@@ -1,0 +1,25 @@
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Vehiculo } from './vehiculo.entity';
+import { VehiculoStatus } from './vehiculo.entity';
+
+@Entity('status_update')
+export class StatusUpdate {
+  @PrimaryGeneratedColumn()
+  id_status: number;
+
+  @Column({
+    type: 'enum',
+    enum: VehiculoStatus,
+  })
+  tipo: VehiculoStatus;
+
+  @Column({ type: 'date' })
+  fecha_desde: string;
+
+  @Column({ type: 'date' })
+  fecha_hasta: string;
+
+  @ManyToOne(() => Vehiculo, vehiculo => vehiculo.statusUpdates)
+  @JoinColumn({ name: 'id_vehiculo' })
+  vehiculo: Vehiculo;
+}
