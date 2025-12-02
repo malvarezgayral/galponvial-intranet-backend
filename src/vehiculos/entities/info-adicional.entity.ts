@@ -7,13 +7,13 @@ export class InfoAdicional {
   @PrimaryGeneratedColumn()
   id_info_adicional: number;
 
-  @Column('bigint')
+  @Column('long')
   numero_serie: number;
 
   @Column()
   licencia_conductor: string;
 
-  @Column()
+  @Column('varchar', { length: 10 })
   color: string;
 
   @Column()
@@ -26,7 +26,7 @@ export class InfoAdicional {
   @JoinColumn({ name: 'id_sector_pertenencia' })
   sector: Sector;
 
-  @OneToOne(() => Vehiculo, vehiculo => vehiculo.infoAdicional)
+  @OneToOne(() => Vehiculo, (vehiculo) => vehiculo.infoAdicional)
   @JoinColumn({ name: 'id_vehiculo' })
   vehiculo: Vehiculo;
 }

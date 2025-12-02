@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Articulo } from './articulo.entity';
 import { MovimientoTipo } from '../enums/almacen.enum';
 
@@ -14,12 +20,12 @@ export class Movimiento {
   tipo: MovimientoTipo;
 
   @Column({ type: 'date' })
-  fecha: string;
+  fecha: Date;
 
-  @ManyToOne(() => Articulo, art => art.movimientos)
+  @ManyToOne(() => Articulo, (art) => art.movimientos)
   @JoinColumn({ name: 'articulo_id' })
   articulo: Articulo;
 
-  @Column()
+  @Column({ type: 'int' })
   usuario_id: number; // se relaciona con usuario.dni
 }

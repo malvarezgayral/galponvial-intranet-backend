@@ -5,6 +5,6 @@ export class Sector {
   @PrimaryGeneratedColumn()
   id_sector: number;
 
-  @Column()
+  @Column('varchar', { length: 20 })
   nombre: string;
 }

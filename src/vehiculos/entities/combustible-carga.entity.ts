@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Vehiculo } from './vehiculo.entity';
 
 @Entity('combustible_carga')
@@ -7,7 +13,7 @@ export class CombustibleCarga {
   id_carga: number;
 
   @Column({ type: 'date' })
-  fecha_carga: string;
+  fecha_carga: Date;
 
   @Column({ nullable: true })
   despachante: string;
@@ -18,7 +24,7 @@ export class CombustibleCarga {
   @Column('float')
   cant_combustible_despachado: number;
 
-  @ManyToOne(() => Vehiculo, vehiculo => vehiculo.cargas)
+  @ManyToOne(() => Vehiculo, (vehiculo) => vehiculo.cargas)
   @JoinColumn({ name: 'id_vehiculo' })
   vehiculo: Vehiculo;
 }

@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  OneToMany,
+} from 'typeorm';
 import { InfoAdicional } from './info-adicional.entity';
 import { StatusUpdate } from './status-update.entity';
 import { CombustibleCarga } from './combustible-carga.entity';
@@ -15,9 +21,6 @@ export class Vehiculo {
   @PrimaryGeneratedColumn()
   id_vehiculo: number;
 
-  @Column({ nullable: true })
-  ubicacion: string;
-
   @Column()
   nombre: string;
 
@@ -27,7 +30,7 @@ export class Vehiculo {
   @Column()
   modelo: string;
 
-  @Column()
+  @Column('year')
   anio: number;
 
   @Column({
@@ -36,24 +39,24 @@ export class Vehiculo {
   })
   status: VehiculoStatus;
 
-  @Column('float', { nullable: true })
+  @Column('float')
   uso_combustible: number;
 
-  @Column('float', { nullable: true })
+  @Column('float')
   uso_km: number;
 
-  @Column()
+  @Column('varchar', { length: 20 })
   tipo_vehiculo: string;
 
-  @OneToOne(() => InfoAdicional, info => info.vehiculo)
+  @OneToOne(() => InfoAdicional, (info) => info.vehiculo)
   infoAdicional: InfoAdicional;
 
-  @OneToMany(() => StatusUpdate, status => status.vehiculo)
+  @OneToMany(() => StatusUpdate, (status) => status.vehiculo)
   statusUpdates: StatusUpdate[];
 
-  @OneToMany(() => CombustibleCarga, carga => carga.vehiculo)
+  @OneToMany(() => CombustibleCarga, (carga) => carga.vehiculo)
   cargas: CombustibleCarga[];
 
-  @OneToMany(() => Recordatorio, rec => rec.vehiculo)
+  @OneToMany(() => Recordatorio, (rec) => rec.vehiculo)
   recordatorios: Recordatorio[];
 }

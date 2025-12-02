@@ -20,13 +20,13 @@ export class Salida {
   })
   tipo: SalidaTipo;
 
-  @Column('text')
+  @Column('text', { nullable: true })
   detalle: string;
 
-  @Column()
+  @Column('varchar', { length: 30 })
   motivo_salida: string;
 
-  @Column('text')
+  @Column('text', { nullable: true })
   detalle_motivo: string;
 
   @OneToOne(() => Movimiento)

@@ -1,14 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Movimiento } from './movimiento.entity';
-
-export enum EntradaTipo {
-  COMPRA = 'compra',
-  INVENTARIO_INICIAL = 'inventario inicial',
-  CAMBIO = 'cambio',
-  TRASPASO = 'traspaso',
-  CAMBIO_UNIDAD = 'cambio de unidad',
-  ALQUILER = 'alquiler',
-}
+import { EntradaTipo } from '../enums/almacen.enum';
 
 @Entity('entrada')
 export class Entrada {
@@ -24,7 +22,7 @@ export class Entrada {
   @Column('text')
   detalle: string;
 
-  @Column()
+  @Column('varchar', { length: 20 })
   proveedor: string;
 
   @OneToOne(() => Movimiento)

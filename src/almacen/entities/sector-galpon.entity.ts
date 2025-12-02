@@ -5,7 +5,7 @@ export class SectorGalpon {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column('tinyint')
   nro_sector: number;
 
   @Column('text')

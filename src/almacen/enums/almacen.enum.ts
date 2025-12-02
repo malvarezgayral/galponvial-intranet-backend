@@ -17,3 +17,12 @@ export enum UnidadCuantTipo {
   VOLUMEN = 'volumen',
   DISTANCIA = 'distancia',
 }
+
+export enum EntradaTipo {
+  COMPRA = 'compra',
+  INVENTARIO_INICIAL = 'inventario inicial',
+  CAMBIO = 'cambio',
+  TRASPASO = 'traspaso',
+  CAMBIO_UNIDAD = 'cambio de unidad',
+  ALQUILER = 'alquiler',
+}

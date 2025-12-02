@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Vehiculo } from './vehiculo.entity';
 import { VehiculoStatus } from './vehiculo.entity';
 
@@ -14,12 +20,12 @@ export class StatusUpdate {
   tipo: VehiculoStatus;
 
   @Column({ type: 'date' })
-  fecha_desde: string;
+  fecha_desde: Date;
 
   @Column({ type: 'date' })
-  fecha_hasta: string;
+  fecha_hasta: Date;
 
-  @ManyToOne(() => Vehiculo, vehiculo => vehiculo.statusUpdates)
+  @ManyToOne(() => Vehiculo, (vehiculo) => vehiculo.statusUpdates)
   @JoinColumn({ name: 'id_vehiculo' })
   vehiculo: Vehiculo;
 }

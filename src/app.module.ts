@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { VehiculosModule } from './vehiculos/vehiculos.module';
+import { AlmacenModule } from './almacen/almacen.module';
 
 @Module({
   imports: [
@@ -19,6 +22,7 @@ import { VehiculosModule } from './vehiculos/vehiculos.module';
       synchronize: true,
     }),
     VehiculosModule,
+    AlmacenModule,
   ],
 })
 export class AppModule {}

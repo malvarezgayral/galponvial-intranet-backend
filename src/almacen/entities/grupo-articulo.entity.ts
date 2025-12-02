@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { SectorGalpon } from './sector-galpon.entity';
 
 @Entity('grupo_articulo')
@@ -6,7 +12,7 @@ export class GrupoArticulo {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: 'varchar', length: 20 })
   nombre: string;
 
   @Column('text')
