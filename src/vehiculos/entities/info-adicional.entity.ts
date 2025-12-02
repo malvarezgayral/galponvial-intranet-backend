@@ -7,7 +7,7 @@ export class InfoAdicional {
   @PrimaryGeneratedColumn()
   id_info_adicional: number;
 
-  @Column('long')
+  @Column('bigint')
   numero_serie: number;
 
   @Column()
