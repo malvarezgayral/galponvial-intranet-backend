@@ -6,7 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Vehiculo } from './vehiculo.entity';
-import { VehiculoStatus } from './vehiculo.entity';
+import { VehiculoStatus } from '../enums/vehiculo.enum';
 
 @Entity('status_update')
 export class StatusUpdate {

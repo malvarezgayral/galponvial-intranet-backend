@@ -9,12 +9,7 @@ import { InfoAdicional } from './info-adicional.entity';
 import { StatusUpdate } from './status-update.entity';
 import { CombustibleCarga } from './combustible-carga.entity';
 import { Recordatorio } from './recordatorio.entity';
-
-export enum VehiculoStatus {
-  DISPONIBLE = 'disponible',
-  EN_TALLER = 'en taller',
-  FUERA_DE_SERVICIO = 'fuera de servicio',
-}
+import { VehiculoStatus } from '../enums/vehiculo.enum';
 
 @Entity('vehiculo')
 export class Vehiculo {
@@ -30,8 +25,8 @@ export class Vehiculo {
   @Column()
   modelo: string;
 
-  @Column('year')
-  anio: number;
+  @Column('date')
+  anio: Date;
 
   @Column({
     type: 'enum',
