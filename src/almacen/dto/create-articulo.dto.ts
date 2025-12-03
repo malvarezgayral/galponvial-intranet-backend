@@ -21,10 +21,4 @@ export class CreateArticuloDto {
 
   @IsEnum(UnidadTipo)
   unidad_tipo: UnidadTipo;
-
-  @IsNotEmpty()
-  grupo_id: number;
-
-  @IsOptional()
-  unidad_medida_id?: number;
 }
