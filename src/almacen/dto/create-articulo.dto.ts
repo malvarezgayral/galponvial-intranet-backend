@@ -1,4 +1,5 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+/* eslint-disable prettier/prettier */
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { UnidadTipo } from '../enums/almacen.enum';
 
 export class CreateArticuloDto {

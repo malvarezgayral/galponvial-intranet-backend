@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { IsEnum, IsInt, IsNotEmpty, IsString } from 'class-validator';
 import { EntradaTipo } from '../enums/almacen.enum';
 
