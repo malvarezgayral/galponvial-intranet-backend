@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { VehiculosModule } from './vehiculos/vehiculos.module';
 import { AlmacenModule } from './almacen/almacen.module';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AlmacenModule } from './almacen/almacen.module';
     }),
     VehiculosModule,
     AlmacenModule,
+    SeedModule,
   ],
 })
 export class AppModule {}

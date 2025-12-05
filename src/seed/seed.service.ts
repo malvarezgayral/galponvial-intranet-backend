@@ -1,0 +1,242 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CsvReaderService } from './csv-reader.service';
+
+// Entidades - Vehiculos
+import { Sector } from '../vehiculos/entities/sector.entity';
+import { Vehiculo } from '../vehiculos/entities/vehiculo.entity';
+import { InfoAdicional } from '../vehiculos/entities/info-adicional.entity';
+import { CombustibleCarga } from '../vehiculos/entities/combustible-carga.entity';
+import { StatusUpdate } from '../vehiculos/entities/status-update.entity';
+import { Recordatorio } from '../vehiculos/entities/recordatorio.entity';
+
+// Entidades - Almacen
+import { SectorGalpon } from '../almacen/entities/sector-galpon.entity';
+import { UnidadMedidaCuant } from '../almacen/entities/unidad-medida-cuant.entity';
+import { GrupoArticulo } from '../almacen/entities/grupo-articulo.entity';
+import { Articulo } from '../almacen/entities/articulo.entity';
+import { Movimiento } from '../almacen/entities/movimiento.entity';
+import { Entrada } from '../almacen/entities/entrada.entity';
+import { Salida } from '../almacen/entities/salida.entity';
+
+@Injectable()
+export class SeedService {
+  private readonly logger = new Logger(SeedService.name);
+
+  constructor(
+    private csvReaderService: CsvReaderService,
+    @InjectRepository(Sector)
+    private sectorRepository: Repository<Sector>,
+    @InjectRepository(SectorGalpon)
+    private sectorGalponRepository: Repository<SectorGalpon>,
+    @InjectRepository(UnidadMedidaCuant)
+    private unidadMedidaCuantRepository: Repository<UnidadMedidaCuant>,
+    @InjectRepository(GrupoArticulo)
+    private grupoArticuloRepository: Repository<GrupoArticulo>,
+    @InjectRepository(Articulo)
+    private articuloRepository: Repository<Articulo>,
+    @InjectRepository(Vehiculo)
+    private vehiculoRepository: Repository<Vehiculo>,
+    @InjectRepository(InfoAdicional)
+    private infoAdicionalRepository: Repository<InfoAdicional>,
+    @InjectRepository(Movimiento)
+    private movimientoRepository: Repository<Movimiento>,
+    @InjectRepository(Entrada)
+    private entradaRepository: Repository<Entrada>,
+    @InjectRepository(Salida)
+    private salidaRepository: Repository<Salida>,
+    @InjectRepository(CombustibleCarga)
+    private combustibleCargaRepository: Repository<CombustibleCarga>,
+    @InjectRepository(StatusUpdate)
+    private statusUpdateRepository: Repository<StatusUpdate>,
+    @InjectRepository(Recordatorio)
+    private recordatorioRepository: Repository<Recordatorio>,
+  ) {}
+
+  /**
+   * Ejecuta el seed completo respetando jerarquía de relaciones
+   */
+  async seed(): Promise<{ message: string; results: Record<string, number> }> {
+    this.logger.log('Iniciando seed de base de datos...');
+    const results: Record<string, number> = {};
+
+    try {
+      // Orden de inserción respetando foreign keys
+      results['sector'] = await this.seedSectores();
+      results['sector_galpon'] = await this.seedSectoresGalpon();
+      results['unidad_medida_cuant'] = await this.seedUnidadesMedida();
+      results['grupo_articulo'] = await this.seedGruposArticulo();
+      results['articulo'] = await this.seedArticulos();
+      results['vehiculo'] = await this.seedVehiculos();
+      results['info_adicional'] = await this.seedInfoAdicional();
+      results['movimiento'] = await this.seedMovimientos();
+      results['entrada'] = await this.seedEntradas();
+      results['salida'] = await this.seedSalidas();
+      results['combustible_carga'] = await this.seedCombustibleCarga();
+      results['status_update'] = await this.seedStatusUpdate();
+      results['recordatorio'] = await this.seedRecordatorios();
+
+      this.logger.log('✓ Seed completado exitosamente');
+      return {
+        message: 'Base de datos poblada exitosamente',
+        results,
+      };
+    } catch (error) {
+      this.logger.error('Error durante seed:', error);
+      throw error;
+    }
+  }
+
+  private async seedSectores(): Promise<number> {
+    this.logger.log('Cargando sectores...');
+    const data = await this.csvReaderService.readCsv('sectores');
+    await this.sectorRepository.save(data);
+    this.logger.log(`✓ ${data.length} sectores cargados`);
+    return data.length;
+  }
+
+  private async seedSectoresGalpon(): Promise<number> {
+    this.logger.log('Cargando sectores de galpon...');
+    const data = await this.csvReaderService.readCsv('sectores_galpon');
+    await this.sectorGalponRepository.save(data);
+    this.logger.log(`✓ ${data.length} sectores de galpon cargados`);
+    return data.length;
+  }
+
+  private async seedUnidadesMedida(): Promise<number> {
+    this.logger.log('Cargando unidades de medida...');
+    const data = await this.csvReaderService.readCsv('unidades_medida');
+    await this.unidadMedidaCuantRepository.save(data);
+    this.logger.log(`✓ ${data.length} unidades de medida cargadas`);
+    return data.length;
+  }
+
+  private async seedGruposArticulo(): Promise<number> {
+    this.logger.log('Cargando grupos de artículos...');
+    const data = await this.csvReaderService.readCsv('grupos_articulo');
+    // Mapear ubicacion a id de sector
+    const mappedData = data.map((item) => ({
+      ...item,
+      sector: { id: Number(item.ubicacion) },
+    }));
+    await this.grupoArticuloRepository.save(mappedData);
+    this.logger.log(`✓ ${data.length} grupos de artículos cargados`);
+    return data.length;
+  }
+
+  private async seedArticulos(): Promise<number> {
+    this.logger.log('Cargando artículos...');
+    const data = await this.csvReaderService.readCsv('articulos');
+    const mappedData = data.map((item) => {
+      const mapped: any = {
+        ...item,
+        grupo: { id: Number(item.grupo_id) },
+      };
+      if (item.unidad_medida_id) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        mapped.unidadMedida = { id: Number(item.unidad_medida_id) };
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return mapped;
+    });
+    await this.articuloRepository.save(mappedData);
+    this.logger.log(`✓ ${data.length} artículos cargados`);
+    return data.length;
+  }
+
+  private async seedVehiculos(): Promise<number> {
+    this.logger.log('Cargando vehículos...');
+    const data = await this.csvReaderService.readCsv('vehiculos');
+    await this.vehiculoRepository.save(data);
+    this.logger.log(`✓ ${data.length} vehículos cargados`);
+    return data.length;
+  }
+
+  private async seedInfoAdicional(): Promise<number> {
+    this.logger.log('Cargando información adicional de vehículos...');
+    const data = await this.csvReaderService.readCsv('info_adicional');
+    const mappedData = data.map((item) => ({
+      ...item,
+      vehiculo: { id_vehiculo: Number(item.id_vehiculo) },
+      sector: { id_sector: Number(item.id_sector_pertenencia) },
+    }));
+    await this.infoAdicionalRepository.save(mappedData);
+    this.logger.log(
+      `✓ ${data.length} registros de información adicional cargados`,
+    );
+    return data.length;
+  }
+
+  private async seedMovimientos(): Promise<number> {
+    this.logger.log('Cargando movimientos...');
+    const data = await this.csvReaderService.readCsv('movimientos');
+    const mappedData = data.map((item) => ({
+      ...item,
+      articulo: { cod: String(item.articulo_id) },
+    }));
+    await this.movimientoRepository.save(mappedData);
+    this.logger.log(`✓ ${data.length} movimientos cargados`);
+    return data.length;
+  }
+
+  private async seedEntradas(): Promise<number> {
+    this.logger.log('Cargando entradas...');
+    const data = await this.csvReaderService.readCsv('entradas');
+    const mappedData = data.map((item) => ({
+      ...item,
+      movimiento: { id: Number(item.movimiento_id) },
+    }));
+    await this.entradaRepository.save(mappedData);
+    this.logger.log(`✓ ${data.length} entradas cargadas`);
+    return data.length;
+  }
+
+  private async seedSalidas(): Promise<number> {
+    this.logger.log('Cargando salidas...');
+    const data = await this.csvReaderService.readCsv('salidas');
+    const mappedData = data.map((item) => ({
+      ...item,
+      movimiento: { id: Number(item.movimiento_id) },
+    }));
+    await this.salidaRepository.save(mappedData);
+    this.logger.log(`✓ ${data.length} salidas cargadas`);
+    return data.length;
+  }
+
+  private async seedCombustibleCarga(): Promise<number> {
+    this.logger.log('Cargando combustible carga...');
+    const data = await this.csvReaderService.readCsv('combustible_carga');
+    const mappedData = data.map((item) => ({
+      ...item,
+      vehiculo: { id_vehiculo: Number(item.id_vehiculo) },
+    }));
+    await this.combustibleCargaRepository.save(mappedData);
+    this.logger.log(`✓ ${data.length} registros de combustible cargados`);
+    return data.length;
+  }
+
+  private async seedStatusUpdate(): Promise<number> {
+    this.logger.log('Cargando actualizaciones de estado...');
+    const data = await this.csvReaderService.readCsv('status_update');
+    const mappedData = data.map((item) => ({
+      ...item,
+      vehiculo: { id_vehiculo: Number(item.id_vehiculo) },
+    }));
+    await this.statusUpdateRepository.save(mappedData);
+    this.logger.log(`✓ ${data.length} actualizaciones de estado cargadas`);
+    return data.length;
+  }
+
+  private async seedRecordatorios(): Promise<number> {
+    this.logger.log('Cargando recordatorios...');
+    const data = await this.csvReaderService.readCsv('recordatorios');
+    const mappedData = data.map((item) => ({
+      ...item,
+      vehiculo: { id_vehiculo: Number(item.id_vehiculo) },
+    }));
+    await this.recordatorioRepository.save(mappedData);
+    this.logger.log(`✓ ${data.length} recordatorios cargados`);
+    return data.length;
+  }
+}

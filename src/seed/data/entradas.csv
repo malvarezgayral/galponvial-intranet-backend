@@ -1,0 +1,5 @@
+id,tipo,detalle,proveedor,movimiento_id
+1,compra,Compra de filtros de aire,Filtros SA,1
+2,compra,Compra de pastillas de freno,Frenos Uruguay,2
+3,compra,Compra de neumáticos,Michelin,3
+4,inventario inicial,Stock inicial cargado,Sistema,5

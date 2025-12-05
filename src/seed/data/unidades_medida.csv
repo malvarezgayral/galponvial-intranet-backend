@@ -1,0 +1,10 @@
+id,tipo,cantidad
+1,peso,1.0
+2,peso,5.0
+3,peso,10.0
+4,volumen,1.0
+5,volumen,5.0
+6,volumen,10.0
+7,distancia,1.0
+8,distancia,10.0
+9,distancia,100.0

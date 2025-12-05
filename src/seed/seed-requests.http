@@ -1,0 +1,255 @@
+# ============================================================
+# EJEMPLOS DE PETICIONES HTTP - SEED MODULE
+# ============================================================
+# Guardar como: seed-requests.http (compatible con REST Client extension)
+# O usar con curl desde terminal
+
+# Base URL
+@baseUrl = http://localhost:3000
+
+### ============================================================
+### 1. EJECUTAR SEED COMPLETO
+### ============================================================
+### Endpoint: POST /seed/run
+### Descripción: Ejecuta el seed completo respetando jerarquía
+### Respuesta: { message, results }
+###
+POST {{baseUrl}}/seed/run
+Content-Type: application/json
+
+###
+
+### ============================================================
+### 2. EJEMPLOS CURL
+### ============================================================
+
+# Ejecutar seed (opción 1)
+# curl -X POST http://localhost:3000/seed/run
+
+# Ejecutar seed con salida formateada (opción 2)
+# curl -s -X POST http://localhost:3000/seed/run | jq
+
+# Ejecutar seed y guardar respuesta (opción 3)
+# curl -X POST http://localhost:3000/seed/run > seed_response.json
+
+# Ejecutar seed con verificación (opción 4)
+# curl -w "\n%{http_code}\n" -X POST http://localhost:3000/seed/run
+
+###
+
+### ============================================================
+### 3. ENDPOINTS ADICIONALES (NO IMPLEMENTADOS AÚN)
+### ============================================================
+### Estos son sugerencias para futuras mejoras
+
+### Endpoint: GET /seed/status
+### Descripción: Ver estado actual del seed
+### Propuesta de respuesta:
+POST {{baseUrl}}/seed/status
+Content-Type: application/json
+
+###
+
+### Endpoint: DELETE /seed/clear
+### Descripción: Limpiar todos los datos del seed
+### ADVERTENCIA: Elimina registros
+### Propuesta:
+DELETE {{baseUrl}}/seed/clear
+Content-Type: application/json
+
+###
+
+### Endpoint: POST /seed/validate
+### Descripción: Validar integridad de datos
+### Propuesta de respuesta: { valid: true, errors: [] }
+POST {{baseUrl}}/seed/validate
+Content-Type: application/json
+
+###
+
+### ============================================================
+### 4. VALIDACIONES VÍA QUERIES SQL
+### ============================================================
+
+### Query para verificar total de registros
+### SELECT
+###   (SELECT COUNT(*) FROM sector) as sectores,
+###   (SELECT COUNT(*) FROM vehiculo) as vehiculos,
+###   (SELECT COUNT(*) FROM articulo) as articulos,
+###   (SELECT COUNT(*) FROM movimiento) as movimientos;
+
+### Query para verificar orfandades (problemas de integridad)
+### SELECT 'Info Adicional sin Vehículo' as problema, COUNT(*) as cantidad
+### FROM info_adicional
+### WHERE id_vehiculo NOT IN (SELECT id_vehiculo FROM vehiculo)
+### UNION ALL
+### SELECT 'Articulo sin Grupo', COUNT(*)
+### FROM articulo
+### WHERE grupo_id NOT IN (SELECT id FROM grupo_articulo);
+
+###
+
+### ============================================================
+### 5. EXAMPLES CON DIFERENTES HEADERS
+### ============================================================
+
+### Con Headers personalizados
+POST {{baseUrl}}/seed/run
+Content-Type: application/json
+Authorization: Bearer token123
+X-Request-ID: seed-001
+
+###
+
+### Con Accept specific
+POST {{baseUrl}}/seed/run
+Content-Type: application/json
+Accept: application/json
+
+###
+
+### ============================================================
+### 6. DEBUGGING
+### ============================================================
+
+### Ver headers de respuesta
+### curl -i -X POST http://localhost:3000/seed/run
+
+### Ver toda la información (headers + body)
+### curl -v -X POST http://localhost:3000/seed/run
+
+### Ver solo headers de respuesta
+### curl -I -X POST http://localhost:3000/seed/run
+
+### Ver timing de la petición
+### curl -w "@curl-format.txt" -o /dev/null -s -X POST http://localhost:3000/seed/run
+
+###
+
+### ============================================================
+### 7. COMANDOS ÚTILES PARA TERMINAL
+### ============================================================
+
+# Ejecutar y contar registros por tabla
+# echo "SELECT table_name, row_count FROM (
+#   SELECT 'vehiculo' as table_name, COUNT(*) as row_count FROM vehiculo
+#   UNION ALL
+#   SELECT 'articulo', COUNT(*) FROM articulo
+# ) t ORDER BY table_name;" | psql -U postgres -h localhost
+
+# Ejecutar seed y verificar
+# curl -X POST http://localhost:3000/seed/run && \
+# sleep 2 && \
+# psql -U postgres -h localhost -c "SELECT COUNT(*) as total_registros FROM (
+#   SELECT COUNT(*) as c FROM vehiculo UNION ALL
+#   SELECT COUNT(*) FROM articulo UNION ALL
+#   SELECT COUNT(*) FROM movimiento
+# ) t;"
+
+# Ejecutar seed con timeout
+# timeout 30 curl -X POST http://localhost:3000/seed/run
+
+# Ejecutar seed y guardar en archivo con timestamp
+# curl -s -X POST http://localhost:3000/seed/run | jq '.' > seed_$(date +%Y%m%d_%H%M%S).json
+
+###
+
+### ============================================================
+### 8. TESTING CON DIFERENTES TOOLS
+### ============================================================
+
+# Postman
+# 1. Import > Raw Text > Pegar las líneas de curl
+# 2. O crear colección manual con:
+#    POST http://localhost:3000/seed/run
+
+# Insomnia
+# 1. New Request > POST
+# 2. URL: http://localhost:3000/seed/run
+# 3. Send
+
+# Thunder Client
+# 1. New Request
+# 2. Method: POST
+# 3. URL: http://localhost:3000/seed/run
+
+# VSCode REST Client Extension
+# 1. Instalar: REST Client
+# 2. Crear archivo .http
+# 3. Click en "Send Request"
+
+###
+
+### ============================================================
+### 9. FLUJO COMPLETO DE TESTING
+### ============================================================
+
+# 1. Iniciar servicios
+# docker-compose up -d
+
+# 2. Iniciar aplicación
+# pnpm run start:dev
+
+# 3. Ejecutar seed
+# curl -X POST http://localhost:3000/seed/run
+
+# 4. Esperar respuesta
+# (debería ver JSON con resultados)
+
+# 5. Verificar en DBeaver
+# SELECT COUNT(*) FROM vehiculo;  -- Debe ser 5
+# SELECT COUNT(*) FROM articulo;  -- Debe ser 8
+
+# 6. Ver detalles
+# SELECT * FROM vehiculo;
+# SELECT * FROM articulo;
+
+###
+
+### ============================================================
+### 10. RESPUESTA ESPERADA
+### ============================================================
+
+# {
+#   "message": "Base de datos poblada exitosamente",
+#   "results": {
+#     "sector": 5,
+#     "sector_galpon": 5,
+#     "unidad_medida_cuant": 9,
+#     "grupo_articulo": 5,
+#     "articulo": 8,
+#     "vehiculo": 5,
+#     "info_adicional": 5,
+#     "movimiento": 5,
+#     "entrada": 4,
+#     "salida": 1,
+#     "combustible_carga": 5,
+#     "status_update": 5,
+#     "recordatorio": 6
+#   }
+# }
+
+###
+
+### ============================================================
+### 11. TROUBLESHOOTING
+### ============================================================
+
+# Error: Connection refused
+# → Verificar que docker-compose está running
+# → Verificar que pnpm run start:dev está ejecutándose
+
+# Error: 404 Not Found
+# → Verificar que SeedModule está importado en app.module.ts
+# → Verificar URL es correcta: /seed/run
+
+# Error: 500 Internal Server Error
+# → Ver logs en terminal de pnpm
+# → Verificar archivos CSV existen en src/seed/data/
+# → Verificar permisos de lectura
+
+# Error: Foreign key violation
+# → Ejecutar seed limpio: docker-compose down -v
+# → Ejecutar seed nuevamente
+
+###
