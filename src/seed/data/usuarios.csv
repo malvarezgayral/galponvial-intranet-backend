@@ -1,0 +1,6 @@
+dni,nombre,apellido,fecha_alta,fecha_baja,rol_id
+12345678,Juan,Pérez,2023-01-15,,1
+87654321,María,García,2023-02-20,,2
+11223344,Carlos,López,2023-03-10,2024-06-30,1
+55667788,Ana,Martínez,2023-04-05,,3
+99887766,Pedro,Rodríguez,2023-05-12,,1

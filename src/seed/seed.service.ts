@@ -20,6 +20,13 @@ import { Movimiento } from '../almacen/entities/movimiento.entity';
 import { Entrada } from '../almacen/entities/entrada.entity';
 import { Salida } from '../almacen/entities/salida.entity';
 
+// Entidades - Usuario
+import { Rol } from '../usuario/entities/rol.entity';
+import { Usuario } from '../usuario/entities/usuario.entity';
+import { UsuarioVehiculo } from '../usuario/entities/usuario-vehiculo.entity';
+import { ReporteIncidente } from '../usuario/entities/reporte-incidente.entity';
+import { Servicio } from '../usuario/entities/servicio.entity';
+
 @Injectable()
 export class SeedService {
   private readonly logger = new Logger(SeedService.name);
@@ -52,6 +59,16 @@ export class SeedService {
     private statusUpdateRepository: Repository<StatusUpdate>,
     @InjectRepository(Recordatorio)
     private recordatorioRepository: Repository<Recordatorio>,
+    @InjectRepository(Rol)
+    private rolRepository: Repository<Rol>,
+    @InjectRepository(Usuario)
+    private usuarioRepository: Repository<Usuario>,
+    @InjectRepository(UsuarioVehiculo)
+    private usuarioVehiculoRepository: Repository<UsuarioVehiculo>,
+    @InjectRepository(ReporteIncidente)
+    private reporteIncidenteRepository: Repository<ReporteIncidente>,
+    @InjectRepository(Servicio)
+    private servicioRepository: Repository<Servicio>,
   ) {}
 
   /**
@@ -76,6 +93,13 @@ export class SeedService {
       results['combustible_carga'] = await this.seedCombustibleCarga();
       results['status_update'] = await this.seedStatusUpdate();
       results['recordatorio'] = await this.seedRecordatorios();
+      
+      // Orden de inserción para módulo usuario (respetando FK)
+      results['rol'] = await this.seedRoles();
+      results['usuario'] = await this.seedUsuarios();
+      results['usuario_vehiculo'] = await this.seedUsuariosVehiculos();
+      results['reporte_incidente'] = await this.seedReportesIncidentes();
+      results['servicio'] = await this.seedServicios();
 
       this.logger.log('✓ Seed completado exitosamente');
       return {
@@ -237,6 +261,85 @@ export class SeedService {
     }));
     await this.recordatorioRepository.save(mappedData);
     this.logger.log(`✓ ${data.length} recordatorios cargados`);
+    return data.length;
+  }
+
+  // ===== Seeders del módulo Usuario =====
+
+  private async seedRoles(): Promise<number> {
+    this.logger.log('Cargando roles...');
+    const data = await this.csvReaderService.readCsv('roles');
+    const mappedData = data.map((item) => ({
+      id: item.id,
+      tipo: item.tipo,
+      permisos: [item.permisos],
+    })) as Partial<Rol>[];
+    await this.rolRepository.save(mappedData);
+    this.logger.log(`✓ ${data.length} roles cargados`);
+    return data.length;
+  }
+
+  private async seedUsuarios(): Promise<number> {
+    this.logger.log('Cargando usuarios...');
+    const data = await this.csvReaderService.readCsv('usuarios');
+    const mappedData = data.map((item) => ({
+      dni: Number(item.dni),
+      nombre: item.nombre,
+      apellido: item.apellido,
+      fecha_alta: new Date(item.fecha_alta as string),
+      fecha_baja: item.fecha_baja ? new Date(item.fecha_baja as string) : null,
+      rol_id: Number(item.rol_id),
+    })) as Partial<Usuario>[];
+    await this.usuarioRepository.save(mappedData);
+    this.logger.log(`✓ ${data.length} usuarios cargados`);
+    return data.length;
+  }
+
+  private async seedUsuariosVehiculos(): Promise<number> {
+    this.logger.log('Cargando asignaciones usuario-vehículo...');
+    const data = await this.csvReaderService.readCsv('usuarios_vehiculos');
+    const mappedData = data.map((item) => ({
+      id_usuario_vehiculo: Number(item.id_usuario_vehiculo),
+      id_vehiculo: Number(item.id_vehiculo),
+      id_usuario: Number(item.id_usuario),
+      fecha_desde: new Date(item.fecha_desde as string),
+      fecha_hasta: item.fecha_hasta ? new Date(item.fecha_hasta as string) : null,
+    })) as Partial<UsuarioVehiculo>[];
+    await this.usuarioVehiculoRepository.save(mappedData);
+    this.logger.log(`✓ ${data.length} asignaciones usuario-vehículo cargadas`);
+    return data.length;
+  }
+
+  private async seedReportesIncidentes(): Promise<number> {
+    this.logger.log('Cargando reportes de incidentes...');
+    const data = await this.csvReaderService.readCsv('reportes_incidentes');
+    const mappedData = data.map((item) => ({
+      id: Number(item.id),
+      fecha: new Date(item.fecha as string),
+      tipo: String(item.tipo),
+      descripcion: String(item.descripcion),
+      falla: item.falla as string,
+      id_usuario: Number(item.id_usuario),
+      id_vehiculo: Number(item.id_vehiculo),
+    })) as Partial<ReporteIncidente>[];
+    await this.reporteIncidenteRepository.save(mappedData);
+    this.logger.log(`✓ ${data.length} reportes de incidentes cargados`);
+    return data.length;
+  }
+
+  private async seedServicios(): Promise<number> {
+    this.logger.log('Cargando servicios...');
+    const data = await this.csvReaderService.readCsv('servicios');
+    const mappedData = data.map((item) => ({
+      id: Number(item.id),
+      tipo: String(item.tipo),
+      fecha_inicio: new Date(item.fecha_inicio as string),
+      fecha_hasta: new Date(item.fecha_hasta as string),
+      descripcion: String(item.descripcion),
+      incidente_id: item.incidente_id ? Number(item.incidente_id) : null,
+    })) as Partial<Servicio>[];
+    await this.servicioRepository.save(mappedData);
+    this.logger.log(`✓ ${data.length} servicios cargados`);
     return data.length;
   }
 }

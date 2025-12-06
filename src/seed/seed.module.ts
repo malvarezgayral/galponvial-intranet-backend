@@ -21,6 +21,13 @@ import { Movimiento } from '../almacen/entities/movimiento.entity';
 import { Entrada } from '../almacen/entities/entrada.entity';
 import { Salida } from '../almacen/entities/salida.entity';
 
+// Entidades - Usuario
+import { Rol } from '../usuario/entities/rol.entity';
+import { Usuario } from '../usuario/entities/usuario.entity';
+import { UsuarioVehiculo } from '../usuario/entities/usuario-vehiculo.entity';
+import { ReporteIncidente } from '../usuario/entities/reporte-incidente.entity';
+import { Servicio } from '../usuario/entities/servicio.entity';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -39,6 +46,12 @@ import { Salida } from '../almacen/entities/salida.entity';
       Movimiento,
       Entrada,
       Salida,
+      // Usuario
+      Rol,
+      Usuario,
+      UsuarioVehiculo,
+      ReporteIncidente,
+      Servicio,
     ]),
   ],
   controllers: [SeedController],
