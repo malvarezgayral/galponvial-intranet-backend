@@ -12,10 +12,16 @@ export class CsvReaderService {
   async readCsv(fileName: string): Promise<Record<string, string | number>[]> {
     // Buscar en src/seed/data (desarrollo) o dist/seed/data (producción)
     let filePath = path.join(__dirname, 'data', `${fileName}.csv`);
-    
+
     // Si no existe en dist, buscar en src
     if (!fs.existsSync(filePath)) {
-      filePath = path.join(process.cwd(), 'src', 'seed', 'data', `${fileName}.csv`);
+      filePath = path.join(
+        process.cwd(),
+        'src',
+        'seed',
+        'data',
+        `${fileName}.csv`,
+      );
     }
 
     if (!fs.existsSync(filePath)) {
@@ -54,12 +60,18 @@ export class CsvReaderService {
    */
   csvExists(fileName: string): boolean {
     let filePath = path.join(__dirname, 'data', `${fileName}.csv`);
-    
+
     // Si no existe en dist, buscar en src
     if (!fs.existsSync(filePath)) {
-      filePath = path.join(process.cwd(), 'src', 'seed', 'data', `${fileName}.csv`);
+      filePath = path.join(
+        process.cwd(),
+        'src',
+        'seed',
+        'data',
+        `${fileName}.csv`,
+      );
     }
-    
+
     return fs.existsSync(filePath);
   }
 }
