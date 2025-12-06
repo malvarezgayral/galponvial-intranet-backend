@@ -1,0 +1,6 @@
+id_carga,fecha_carga,despachante,km_actual,cant_combustible_despachado,id_vehiculo
+1,2024-01-10,Juan Pérez,125000,150.0,1
+2,2024-01-12,Maria García,85000,120.0,2
+3,2024-01-14,Carlos López,245000,180.0,3
+4,2024-01-18,Ana Martínez,65000,80.0,4
+5,2024-01-20,Roberto Díaz,110000,95.0,5

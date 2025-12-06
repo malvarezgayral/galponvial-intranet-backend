@@ -1,0 +1,18 @@
+# Archivos del módulo Seed para .gitignore
+
+# Nota: El módulo seed debe estar incluido en git para desarrollo local
+# Los archivos CSV y SQL son templates y deben ser versionados
+
+# Solo ignorar si generas datos muy grandes localmente:
+# src/seed/data/*.csv
+# src/seed/sql/*.sql
+
+# Logs de seed
+src/seed/logs/
+*.log
+
+# Archivos temporales
+.DS_Store
+*.swp
+*.swo
+*~

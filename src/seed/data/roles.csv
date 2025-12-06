@@ -1,0 +1,4 @@
+id,tipo,permisos
+1,conductor,read
+2,administrador,admin
+3,moderador,write

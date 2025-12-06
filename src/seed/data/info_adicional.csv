@@ -1,0 +1,6 @@
+id_info_adicional,numero_serie,licencia_conductor,color,seguro_empresa,poliza,id_sector_pertenencia,id_vehiculo
+1,123456789012345,LC001,Blanco,Seguros del Este,POL-2024-001,1,1
+2,234567890123456,LC002,Rojo,Seguros del Este,POL-2024-002,1,2
+3,345678901234567,LC003,Azul,Seguros del Este,POL-2024-003,2,3
+4,456789012345678,LC004,Blanco,Seguros Sudamérica,POL-2024-004,3,4
+5,567890123456789,LC005,Negro,Seguros Sudamérica,POL-2024-005,3,5

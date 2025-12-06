@@ -1,0 +1,7 @@
+id,fecha,descripcion,id_vehiculo
+1,2024-02-15,Revisar presión de llantas,1
+2,2024-02-20,Cambio de aceite,1
+3,2024-02-15,Inspección de frenos,2
+4,2024-02-25,Revisión general,3
+5,2024-02-10,Limpiar inyectores,4
+6,2024-02-18,Cambio de filtro de aire,5
