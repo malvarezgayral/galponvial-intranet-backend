@@ -1,0 +1,20 @@
+/* eslint-disable prettier/prettier */
+import { IsEnum, IsInt, IsNotEmpty, IsString } from 'class-validator';
+import { EntradaTipo } from '../enums/almacen.enum';
+
+export class CreateEntradaDto {
+  @IsEnum(EntradaTipo)
+  tipo: EntradaTipo;
+
+  @IsString()
+  @IsNotEmpty()
+  detalle: string;
+
+  @IsString()
+  @IsNotEmpty()
+  proveedor: string;
+
+  @IsInt()
+  @IsNotEmpty()
+  movimiento_id: number;
+}
