@@ -1,18 +1,9 @@
-/* eslint-disable prettier/prettier */
-import { IsNotEmpty, IsString } from 'class-validator';
-import { CreateArticuloDto } from './create-articulo.dto';
+import { CreateArticuloDto } from "./create-articulo.dto";
 
 export class GrupoArticuloDto {
-  @IsString()
-  @IsNotEmpty()
+  id: number;
   nombre: string;
-
-  @IsString()
-  @IsNotEmpty()
   descripcion: string;
-
-  @IsNotEmpty()
-  sector_id: number;
-
+  sector_galpon: number;
   articulos: Array<CreateArticuloDto>;
 }

@@ -24,7 +24,7 @@ export class CreateSalidaDto {
   @IsString()
   detalle_motivo?: string;
 
-  @IsInt()
+  @IsString()
   @IsNotEmpty()
-  movimiento_id: number;
+  cod_articulo: string;
 }

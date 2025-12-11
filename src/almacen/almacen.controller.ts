@@ -19,94 +19,69 @@ import { MovimientoDTO } from './dto/movimiento.dto';
 import { CreateEntradaDto } from './dto/create-entrada.dto';
 import { CreateSalidaDto } from './dto/create-salida.dto';
 
+import { AlmacenService } from './almacen.service';
+
 @Controller('almacen')
 export class AlmacenController {
+  constructor(private readonly almacenService: AlmacenService) { }
+
   // ---------------------- ARTÍCULOS ----------------------
 
-  // Devuelve lista de artículos (stubs)
   @Get('articulos')
-  async getAllArticles(): Promise<CreateArticuloDto[]> {
-    // return this.almacenService.getAllArticles();
-    return [];
+  getAllArticles() {
+    return this.almacenService.getAllArticles();
   }
 
   @Post('articulos')
-  async createArticle(
-    @Body() createArticuloDto: CreateArticuloDto,
-  ): Promise<CreateArticuloDto> {
-    // return this.almacenService.createArticle(createArticuloDto);
-    return createArticuloDto; 
+  createArticle(@Body() dto: CreateArticuloDto) {
+    return this.almacenService.createArticle(dto);
   }
 
   @Put('articulos/:cod')
-  async updateArticle(
+  updateArticle(
     @Param('cod') cod: string,
-    @Body() updateArticuloDto: UpdateArticuloDto,
-  ): Promise<UpdateArticuloDto> {
-    // return this.almacenService.updateArticle(cod, updateArticuloDto);
-    return updateArticuloDto; 
+    @Body() dto: UpdateArticuloDto,
+  ) {
+    return this.almacenService.updateArticle(cod, dto);
   }
 
   @Delete('articulos/:cod')
-  async deleteArticle(@Param('cod') cod: string): Promise<boolean> {
-    // this.almacenService.deleteArticle(cod);
-    return true; 
+  deleteArticle(@Param('cod') cod: string) {
+    return this.almacenService.deleteArticle(cod);
   }
 
-  // ---------------------- GRUPOS DE ARTÍCULOS ----------------------
+  // ---------------------- GRUPOS ----------------------
 
   @Get('grupos')
-  async getAllGroups(): Promise<CreateGrupoArticuloDto[]> {
-    // return this.almacenService.getAllGroups();
-    return []; // stub
+  getAllGroups() {
+    return this.almacenService.getAllGroups();
   }
 
   @Get('grupos/:id')
-  async getGroup(@Param('id') id: number): Promise<GrupoArticuloDto> {
-    // return this.almacenService.getGroup(id);
-    return {} as GrupoArticuloDto; // stub (cast para cumplir tipo)
+  getGroup(@Param('id') id: number): Promise<GrupoArticuloDto> {
+    return this.almacenService.getGroup(id);
   }
 
   @Post('grupos')
-  async createGroup(
-    @Body() createGrupoDto: CreateGrupoArticuloDto,
-  ): Promise<CreateGrupoArticuloDto> {
-    // return this.almacenService.createGroup(createGrupoDto);
-    return createGrupoDto; // stub
+  createGroup(@Body() dto: CreateGrupoArticuloDto) {
+    return this.almacenService.createGroup(dto);
   }
 
   @Put('grupos/:id')
-  async updateGroup(
-    @Param('id') id: number,
-    @Body() updateGrupoDto: UpdateGrupoArticuloDto,
-  ): Promise<UpdateGrupoArticuloDto> {
-    // return this.almacenService.updateGroup(id, updateGrupoDto);
-    return updateGrupoDto; // stub
+  updateGroup(@Param('id') id: number, @Body() dto: UpdateGrupoArticuloDto) {
+    return this.almacenService.updateGroup(id, dto);
   }
 
   // ---------------------- MOVIMIENTOS ----------------------
 
   @Get('movimientos/:idArticulo')
-  async getAllMovimientos(
-    @Param('idArticulo') idArticulo: number,
-  ): Promise<MovimientoDTO[]> {
-    // return this.almacenService.getMovimientosByArticulo(idArticulo);
-    return []; // stub
+  getMovimientos(@Param('idArticulo') codArticulo: string) {
+    return this.almacenService.getMovimientosByArticulo(codArticulo);
   }
 
-  @Post('movimientos/entrada')
-  async createEntrada(
-    @Body() createEntradaDto: CreateEntradaDto,
-  ): Promise<MovimientoDTO> {
-    // return this.almacenService.createEntrada(createEntradaDto);
-    return {} as MovimientoDTO; // stub
+  @Post('movimientos')
+  createMovimiento(@Body() dto: CreateEntradaDto | CreateSalidaDto) {
+    return this.almacenService.createMovimiento(dto);
   }
 
-  @Post('movimientos/salida')
-  async createSalida(
-    @Body() createSalidaDto: CreateSalidaDto,
-  ): Promise<MovimientoDTO> {
-    // return this.almacenService.createSalida(createSalidaDto);
-    return {} as MovimientoDTO; // stub
-  }
 }

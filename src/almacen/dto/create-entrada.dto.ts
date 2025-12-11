@@ -14,7 +14,7 @@ export class CreateEntradaDto {
   @IsNotEmpty()
   proveedor: string;
 
-  @IsInt()
+  @IsString()
   @IsNotEmpty()
-  movimiento_id: number;
+  cod_articulo: string;
 }
