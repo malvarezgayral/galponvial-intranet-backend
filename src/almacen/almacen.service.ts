@@ -189,13 +189,12 @@ export class AlmacenService {
 
     async createMovimiento(dto: CreateEntradaDto | CreateSalidaDto) {
         return await this.dataSource.transaction(async (manager) => {
+
             // -------------------------
-            //    Identificar tipo
-            //     de movimiento
+            // 1. Identificar tipo mov
             // -------------------------
             const esEntrada = Object.values(EntradaTipo).includes(dto.tipo as EntradaTipo);
-            const esSalida = Object.values(SalidaTipo).includes(
-                dto.tipo as SalidaTipo)
+            const esSalida = Object.values(SalidaTipo).includes(dto.tipo as SalidaTipo);
 
             if (!esEntrada && !esSalida) {
                 throw new BadRequestException(
@@ -204,7 +203,7 @@ export class AlmacenService {
             }
 
             // -------------------------
-            //    Buscar artículo
+            // 2. Buscar Artículo
             // -------------------------
             const articulo = await manager.getRepository(Articulo).findOne({
                 where: { cod: dto.cod_articulo },
@@ -217,36 +216,31 @@ export class AlmacenService {
             }
 
             // -------------------------
-            //   Crear el MOVIMIENTO
+            // 3. Crear Movimiento
             // -------------------------
             const movimiento = manager.getRepository(Movimiento).create({
                 tipo: esEntrada ? MovimientoTipo.ENTRADA : MovimientoTipo.SALIDA,
                 fecha: new Date(),
                 articulo,
-
-                // usuario se comenta hasta implementar autenticación
-                // usuario_id: dto.usuario_id
+                // usuario_id: dto.usuario_id (desactivado por ahora)
             });
 
-            const movimientoGuardado = await manager
-                .getRepository(Movimiento)
-                .save(movimiento);
+            const movimientoGuardado = await manager.getRepository(Movimiento).save(movimiento);
 
             // -------------------------
-            //    Crear ENTRADA
+            // 4. Crear ENTRADA
             // -------------------------
             if (esEntrada) {
-                const dtoEntrada = dto as CreateEntradaDto;  
+                const dtoEntrada = dto as CreateEntradaDto;
 
-                const entrada = this.entradaRepo.create({
+                const entrada = manager.getRepository(Entrada).create({
                     tipo: dtoEntrada.tipo,
                     detalle: dtoEntrada.detalle,
                     proveedor: dtoEntrada.proveedor,
                     movimiento: movimientoGuardado
                 });
-                const entradaGuardada = await manager
-                    .getRepository(Entrada)
-                    .save(entrada);
+
+                const entradaGuardada = await manager.getRepository(Entrada).save(entrada);
 
                 return {
                     message: 'Entrada registrada correctamente.',
@@ -256,12 +250,12 @@ export class AlmacenService {
             }
 
             // -------------------------
-            //   Crear SALIDA
+            // 5. Crear SALIDA
             // -------------------------
             if (esSalida) {
-                const dtoSalida = dto as CreateSalidaDto; 
+                const dtoSalida = dto as CreateSalidaDto;
 
-                const salida = this.salidaRepo.create({
+                const salida = manager.getRepository(Salida).create({
                     tipo: dtoSalida.tipo,
                     detalle: dtoSalida.detalle,
                     motivo_salida: dtoSalida.motivo_salida,
@@ -269,9 +263,7 @@ export class AlmacenService {
                     movimiento: movimientoGuardado
                 });
 
-                const salidaGuardada = await manager
-                    .getRepository(Salida)
-                    .save(salida);
+                const salidaGuardada = await manager.getRepository(Salida).save(salida);
 
                 return {
                     message: 'Salida registrada correctamente.',
@@ -281,6 +273,7 @@ export class AlmacenService {
             }
         });
     }
+
 
 
 }
