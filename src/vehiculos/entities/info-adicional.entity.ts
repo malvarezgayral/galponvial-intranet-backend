@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Vehiculo } from './vehiculo.entity';
 import { Sector } from './sector.entity';
 
@@ -7,22 +14,25 @@ export class InfoAdicional {
   @PrimaryGeneratedColumn()
   id_info_adicional: number;
 
-  @Column('bigint')
+  @Column('bigint', { nullable: true })
   numero_serie: number;
 
-  @Column()
+  @Column({ nullable: true })
   licencia_conductor: string;
 
-  @Column('varchar', { length: 10 })
+  @Column('varchar', { length: 20, nullable: true })
   color: string;
 
-  @Column()
+  @Column({ nullable: true })
   seguro_empresa: string;
 
-  @Column()
+  @Column({ nullable: true })
   poliza: string;
 
-  @ManyToOne(() => Sector)
+  @Column('varchar', { length: 50, nullable: true })
+  grupo: string;
+
+  @ManyToOne(() => Sector, { nullable: true })
   @JoinColumn({ name: 'id_sector_pertenencia' })
   sector: Sector;
 
