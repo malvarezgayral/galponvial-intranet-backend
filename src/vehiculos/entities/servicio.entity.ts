@@ -28,7 +28,7 @@ export class Servicio {
   fecha_hasta: Date;
 
   @Column('text', { nullable: true })
-  descripcion: string;
+  descripcion: string | null;
 
   @CreateDateColumn()
   fecha_creacion: Date;
@@ -37,7 +37,7 @@ export class Servicio {
   @JoinColumn({ name: 'id_vehiculo' })
   vehiculo: Vehiculo;
 
-  @ManyToOne(() => ReporteIncidente, { nullable: true })
+  @ManyToOne(() => ReporteIncidente, { nullable: true }) // ← AGREGAR nullable: true
   @JoinColumn({ name: 'incidente_id' })
-  incidente: ReporteIncidente;
+  incidente: ReporteIncidente | null; // ← Cambiar tipo a ReporteIncidente | null
 }

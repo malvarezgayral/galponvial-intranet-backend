@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
-import { ReporteIncidente } from './entities/reporte-incidente.entity';
-import { Vehiculo } from './entities/vehiculo.entity';
-import { StatusUpdate } from './entities/status-update.entity';
-import { CreateIncidenteDto } from './dto/create-incidente.dto';
-import { FiltrosIncidenteDto } from './dto/filtros.dto';
-import { VehiculoStatus, CriticidadIncidente } from './enums/vehiculo.enum';
+import { ReporteIncidente } from '../entities/reporte-incidente.entity';
+import { Vehiculo } from '../entities/vehiculo.entity';
+import { StatusUpdate } from '../entities/status-update.entity';
+import { CreateIncidenteDto } from '../dto/create-incidente.dto';
+import { FiltrosIncidenteDto } from '../dto/filtros.dto';
+import { VehiculoStatus, CriticidadIncidente } from '../enums/vehiculo.enum';
 
 @Injectable()
 export class IncidentesService {

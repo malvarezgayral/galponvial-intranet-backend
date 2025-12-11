@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
-import { CombustibleCarga } from './entities/combustible-carga.entity';
-import { Vehiculo } from './entities/vehiculo.entity';
-import { CreateCombustibleCargaDto } from './dto/create-combustible-carga.dto';
-import { FiltrosCombustibleDto } from './dto/filtros.dto';
+import { CombustibleCarga } from '../entities/combustible-carga.entity';
+import { Vehiculo } from '../entities/vehiculo.entity';
+import { CreateCombustibleCargaDto } from '../dto/create-combustible-carga.dto';
+import { FiltrosCombustibleDto } from '../dto/filtros.dto';
 
 @Injectable()
 export class CombustibleService {
