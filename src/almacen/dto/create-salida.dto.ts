@@ -4,7 +4,6 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsInt,
 } from 'class-validator';
 import { SalidaTipo } from '../entities/salida.entity';
 

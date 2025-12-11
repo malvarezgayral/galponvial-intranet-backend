@@ -1,4 +1,4 @@
-import { CreateArticuloDto } from "./create-articulo.dto";
+import { CreateArticuloDto } from './create-articulo.dto';
 
 export class GrupoArticuloDto {
   id: number;
