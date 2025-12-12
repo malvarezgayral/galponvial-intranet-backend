@@ -90,9 +90,23 @@ export class CombustibleService {
       };
     }
 
+
     const kmRecorridos = carga.km_actual - cargaAnterior.km_actual;
+    if (kmRecorridos <= 0) {
+      return {
+        mensaje: 'Kilometraje inválido para calcular rendimiento',
+        rendimiento: null,
+      };
+}
     const combustibleUsado = cargaAnterior.cant_combustible_despachado;
-    const rendimiento = kmRecorridos / combustibleUsado;
+    if (combustibleUsado <= 0) {
+      return {
+        mensaje: 'Cantidad de combustible inválida',
+        rendimiento: null,
+      };
+}
+
+const rendimiento = kmRecorridos / combustibleUsado;
 
     return {
       kmRecorridos,

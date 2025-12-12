@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { Repository, IsNull } from 'typeorm'; // ← AGREGAR IsNull aquí
 import { Vehiculo } from '../entities/vehiculo.entity';
 import { InfoAdicional } from '../entities/info-adicional.entity';
 import { CreateVehiculoDto } from '../dto/create-vehiculo.dto';
@@ -78,11 +78,39 @@ export class VehiculosService {
     await this.vehiculoRepository.remove(vehiculo);
   }
 
-  async cambiarStatus(id: number, nuevoStatus: VehiculoStatus): Promise<Vehiculo> {
+async cambiarStatus(id: number, nuevoStatus: VehiculoStatus): Promise<Vehiculo> {
     const vehiculo = await this.findOne(id);
+    
+    // Cerrar status anterior
+    const statusAnterior = await this.statusUpdateRepository.findOne({
+      where: { 
+        vehiculo: { id_vehiculo: id },
+        fecha_hasta: IsNull() // ← CAMBIAR de null a IsNull()
+      },
+      order: { fecha_desde: 'DESC' }
+    });
+
+    if (statusAnterior) {
+      statusAnterior.fecha_hasta = new Date();
+      await this.statusUpdateRepository.save(statusAnterior);
+    }
+
+    // Actualizar status del vehículo
     vehiculo.status = nuevoStatus;
-    return await this.vehiculoRepository.save(vehiculo);
+    await this.vehiculoRepository.save(vehiculo);
+
+    // Crear nuevo registro de status
+    const nuevoStatusUpdate = this.statusUpdateRepository.create({
+      tipo: nuevoStatus,
+      fecha_desde: new Date(),
+      fecha_hasta: null,
+      vehiculo,
+    });
+    await this.statusUpdateRepository.save(nuevoStatusUpdate);
+
+    return vehiculo;
   }
+
 
   // Métodos de estadísticas
   async countByStatus(): Promise<any> {

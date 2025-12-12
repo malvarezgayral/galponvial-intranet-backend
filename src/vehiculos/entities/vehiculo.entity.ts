@@ -11,7 +11,14 @@ import { InfoAdicional } from './info-adicional.entity';
 import { StatusUpdate } from './status-update.entity';
 import { CombustibleCarga } from './combustible-carga.entity';
 import { Recordatorio } from './recordatorio.entity';
-import { VehiculoStatus, TipoVehiculo, UnidadMedidaUso, UnidadMedidaCombustible } from '../enums/vehiculo.enum';
+import { ReporteIncidente } from './reporte-incidente.entity'; // ← AGREGAR
+import { Servicio } from './servicio.entity'; // ← AGREGAR
+import { 
+  VehiculoStatus, 
+  TipoVehiculo, 
+  UnidadMedidaUso, 
+  UnidadMedidaCombustible 
+} from '../enums/vehiculo.enum';
 
 @Entity('vehiculo')
 export class Vehiculo {
@@ -81,4 +88,11 @@ export class Vehiculo {
 
   @OneToMany(() => Recordatorio, (rec) => rec.vehiculo)
   recordatorios: Recordatorio[];
+
+  // ⭐ AGREGAR ESTAS DOS RELACIONES:
+  @OneToMany(() => ReporteIncidente, (incidente) => incidente.vehiculo)
+  incidentes: ReporteIncidente[];
+
+  @OneToMany(() => Servicio, (servicio) => servicio.vehiculo)
+  servicios: Servicio[];
 }

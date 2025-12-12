@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { Repository, Between, IsNull } from 'typeorm'; // ← AGREGAR IsNull
 import { ReporteIncidente } from '../entities/reporte-incidente.entity';
 import { Vehiculo } from '../entities/vehiculo.entity';
 import { StatusUpdate } from '../entities/status-update.entity';
@@ -55,23 +55,36 @@ export class IncidentesService {
     }
   }
 
-  private async cambiarStatusVehiculo(vehiculo: Vehiculo, nuevoStatus: VehiculoStatus): Promise<void> {
-    const statusAnterior = vehiculo.status;
-    
+ private async cambiarStatusVehiculo(vehiculo: Vehiculo, nuevoStatus: VehiculoStatus): Promise<void> {
+    // Cerrar el status anterior si existe
+    const statusAnterior = await this.statusUpdateRepository.findOne({
+      where: { 
+        vehiculo: { id_vehiculo: vehiculo.id_vehiculo },
+        fecha_hasta: IsNull() // ← CAMBIAR de null a IsNull()
+      },
+      order: { fecha_desde: 'DESC' }
+    });
+
+    if (statusAnterior) {
+      statusAnterior.fecha_hasta = new Date();
+      await this.statusUpdateRepository.save(statusAnterior);
+    }
+
     // Actualizar status del vehículo
     vehiculo.status = nuevoStatus;
     await this.vehiculoRepository.save(vehiculo);
 
-    // Crear registro de cambio de status
+    // Crear nuevo registro de cambio de status
     const statusUpdate = this.statusUpdateRepository.create({
       tipo: nuevoStatus,
       fecha_desde: new Date(),
-      fecha_hasta: null, // Se completará cuando cambie nuevamente
+      fecha_hasta: null,
       vehiculo,
     });
 
     await this.statusUpdateRepository.save(statusUpdate);
   }
+
 
   async findAll(filtros: FiltrosIncidenteDto): Promise<ReporteIncidente[]> {
     const where: any = {};
