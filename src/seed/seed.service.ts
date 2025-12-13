@@ -93,7 +93,7 @@ export class SeedService {
       results['combustible_carga'] = await this.seedCombustibleCarga();
       results['status_update'] = await this.seedStatusUpdate();
       results['recordatorio'] = await this.seedRecordatorios();
-      
+
       // Orden de inserción para módulo usuario (respetando FK)
       results['rol'] = await this.seedRoles();
       results['usuario'] = await this.seedUsuarios();
@@ -303,7 +303,9 @@ export class SeedService {
       id_vehiculo: Number(item.id_vehiculo),
       id_usuario: Number(item.id_usuario),
       fecha_desde: new Date(item.fecha_desde as string),
-      fecha_hasta: item.fecha_hasta ? new Date(item.fecha_hasta as string) : null,
+      fecha_hasta: item.fecha_hasta
+        ? new Date(item.fecha_hasta as string)
+        : null,
     })) as Partial<UsuarioVehiculo>[];
     await this.usuarioVehiculoRepository.save(mappedData);
     this.logger.log(`✓ ${data.length} asignaciones usuario-vehículo cargadas`);

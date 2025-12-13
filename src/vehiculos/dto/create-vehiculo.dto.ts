@@ -10,12 +10,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import {
-  VehiculoStatus,
-  TipoVehiculo,
-  UnidadMedidaUso,
-  UnidadMedidaCombustible,
-} from '../enums/vehiculo.enum';
+import { VehiculoStatus, TipoVehiculo } from '../enums/vehiculo.enum';
 
 class InfoAdicionalDto {
   @IsOptional()
@@ -76,14 +71,6 @@ export class CreateVehiculoDto {
   @IsEnum(VehiculoStatus)
   @IsOptional()
   status?: VehiculoStatus;
-
-  @IsEnum(UnidadMedidaUso)
-  @IsOptional()
-  unidad_medida_uso?: UnidadMedidaUso;
-
-  @IsEnum(UnidadMedidaCombustible)
-  @IsOptional()
-  unidad_medida_combustible?: UnidadMedidaCombustible;
 
   @IsNumber()
   @IsOptional()

@@ -22,11 +22,10 @@ export class StatusUpdate {
   @Column({ type: 'date' })
   fecha_desde: Date;
 
-  @Column({ type: 'date', nullable: true }) // ← AGREGAR nullable: true
-  fecha_hasta: Date | null; // ← Cambiar tipo a Date | null
+  @Column({ type: 'date' })
+  fecha_hasta: Date;
 
   @ManyToOne(() => Vehiculo, (vehiculo) => vehiculo.statusUpdates)
   @JoinColumn({ name: 'id_vehiculo' })
   vehiculo: Vehiculo;
 }
-

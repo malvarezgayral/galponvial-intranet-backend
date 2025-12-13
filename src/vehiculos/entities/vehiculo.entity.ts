@@ -4,14 +4,13 @@ import {
   Column,
   OneToOne,
   OneToMany,
-  CreateDateColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 import { InfoAdicional } from './info-adicional.entity';
 import { StatusUpdate } from './status-update.entity';
 import { CombustibleCarga } from './combustible-carga.entity';
 import { Recordatorio } from './recordatorio.entity';
-import { VehiculoStatus, TipoVehiculo, UnidadMedidaUso, UnidadMedidaCombustible } from '../enums/vehiculo.enum';
+import { VehiculoStatus, TipoVehiculo } from '../enums/vehiculo.enum';
+import { UsuarioVehiculo } from 'src/usuario/entities/usuario-vehiculo.entity';
 
 @Entity('vehiculo')
 export class Vehiculo {
@@ -49,26 +48,6 @@ export class Vehiculo {
   })
   tipo_vehiculo: TipoVehiculo;
 
-  @Column({
-    type: 'enum',
-    enum: UnidadMedidaUso,
-    default: UnidadMedidaUso.KILOMETROS,
-  })
-  unidad_medida_uso: UnidadMedidaUso;
-
-  @Column({
-    type: 'enum',
-    enum: UnidadMedidaCombustible,
-    default: UnidadMedidaCombustible.LITROS,
-  })
-  unidad_medida_combustible: UnidadMedidaCombustible;
-
-  @CreateDateColumn()
-  fecha_registro: Date;
-
-  @UpdateDateColumn()
-  fecha_actualizacion: Date;
-
   // Relaciones
   @OneToOne(() => InfoAdicional, (info) => info.vehiculo, { cascade: true })
   infoAdicional: InfoAdicional;
@@ -81,4 +60,7 @@ export class Vehiculo {
 
   @OneToMany(() => Recordatorio, (rec) => rec.vehiculo)
   recordatorios: Recordatorio[];
+
+  @OneToMany(() => UsuarioVehiculo, (uv) => uv.vehiculo)
+  usuarios: UsuarioVehiculo[];
 }

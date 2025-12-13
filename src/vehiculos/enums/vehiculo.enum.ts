@@ -1,8 +1,8 @@
 export enum VehiculoStatus {
   DISPONIBLE = 'disponible',
-  EN_TALLER = 'en_taller',
-  FUERA_DE_SERVICIO = 'fuera_de_servicio',
-  EN_USO = 'en_uso',
+  EN_TALLER = 'en taller',
+  FUERA_DE_SERVICIO = 'fuera de servicio',
+  EN_USO = 'en uso',
 }
 
 export enum TipoVehiculo {
@@ -13,17 +13,6 @@ export enum TipoVehiculo {
   MAQUINARIA = 'maquinaria',
   MOTOCICLETA = 'motocicleta',
   OTRO = 'otro',
-}
-
-export enum UnidadMedidaUso {
-  KILOMETROS = 'kilometros',
-  HORAS = 'horas',
-  DIAS = 'dias',
-}
-
-export enum UnidadMedidaCombustible {
-  LITROS = 'litros',
-  GALONES = 'galones',
 }
 
 export enum TipoIncidente {
