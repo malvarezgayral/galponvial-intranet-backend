@@ -15,98 +15,68 @@ import { CreateGrupoArticuloDto } from './dto/create-grupo-articulo.dto';
 import { UpdateGrupoArticuloDto } from './dto/update-grupo-articulo.dto';
 import { GrupoArticuloDto } from './dto/grupo-articulo.dto';
 
-import { MovimientoDTO } from './dto/movimiento.dto';
 import { CreateEntradaDto } from './dto/create-entrada.dto';
 import { CreateSalidaDto } from './dto/create-salida.dto';
 
+import { AlmacenService } from './almacen.service';
+
 @Controller('almacen')
 export class AlmacenController {
+  constructor(private readonly almacenService: AlmacenService) {}
+
   // ---------------------- ARTÍCULOS ----------------------
 
-  // Devuelve lista de artículos (stubs)
   @Get('articulos')
-  async getAllArticles(): Promise<CreateArticuloDto[]> {
-    // return this.almacenService.getAllArticles();
-    return [];
+  async getAllArticles() {
+    return await this.almacenService.getAllArticles();
   }
 
   @Post('articulos')
-  async createArticle(
-    @Body() createArticuloDto: CreateArticuloDto,
-  ): Promise<CreateArticuloDto> {
-    // return this.almacenService.createArticle(createArticuloDto);
-    return createArticuloDto; 
+  async createArticle(@Body() dto: CreateArticuloDto) {
+    return await this.almacenService.createArticle(dto);
   }
 
   @Put('articulos/:cod')
-  async updateArticle(
-    @Param('cod') cod: string,
-    @Body() updateArticuloDto: UpdateArticuloDto,
-  ): Promise<UpdateArticuloDto> {
-    // return this.almacenService.updateArticle(cod, updateArticuloDto);
-    return updateArticuloDto; 
+  async updateArticle(@Param('cod') cod: string, @Body() dto: UpdateArticuloDto) {
+    return await this.almacenService.updateArticle(cod, dto);
   }
 
   @Delete('articulos/:cod')
-  async deleteArticle(@Param('cod') cod: string): Promise<boolean> {
-    // this.almacenService.deleteArticle(cod);
-    return true; 
+  async deleteArticle(@Param('cod') cod: string) {
+    return await this.almacenService.deleteArticle(cod);
   }
 
-  // ---------------------- GRUPOS DE ARTÍCULOS ----------------------
+  // ---------------------- GRUPOS ----------------------
 
   @Get('grupos')
-  async getAllGroups(): Promise<CreateGrupoArticuloDto[]> {
-    // return this.almacenService.getAllGroups();
-    return []; // stub
+  async getAllGroups() {
+    return await this.almacenService.getAllGroups();
   }
 
   @Get('grupos/:id')
   async getGroup(@Param('id') id: number): Promise<GrupoArticuloDto> {
-    // return this.almacenService.getGroup(id);
-    return {} as GrupoArticuloDto; // stub (cast para cumplir tipo)
+    return await this.almacenService.getGroup(id);
   }
 
   @Post('grupos')
-  async createGroup(
-    @Body() createGrupoDto: CreateGrupoArticuloDto,
-  ): Promise<CreateGrupoArticuloDto> {
-    // return this.almacenService.createGroup(createGrupoDto);
-    return createGrupoDto; // stub
+  async createGroup(@Body() dto: CreateGrupoArticuloDto) {
+    return await this.almacenService.createGroup(dto);
   }
 
   @Put('grupos/:id')
-  async updateGroup(
-    @Param('id') id: number,
-    @Body() updateGrupoDto: UpdateGrupoArticuloDto,
-  ): Promise<UpdateGrupoArticuloDto> {
-    // return this.almacenService.updateGroup(id, updateGrupoDto);
-    return updateGrupoDto; // stub
+  async updateGroup(@Param('id') id: number, @Body() dto: UpdateGrupoArticuloDto) {
+    return await this.almacenService.updateGroup(id, dto);
   }
 
   // ---------------------- MOVIMIENTOS ----------------------
 
   @Get('movimientos/:idArticulo')
-  async getAllMovimientos(
-    @Param('idArticulo') idArticulo: number,
-  ): Promise<MovimientoDTO[]> {
-    // return this.almacenService.getMovimientosByArticulo(idArticulo);
-    return []; // stub
+  async getMovimientos(@Param('idArticulo') codArticulo: string) {
+    return await this.almacenService.getMovimientosByArticulo(codArticulo);
   }
 
-  @Post('movimientos/entrada')
-  async createEntrada(
-    @Body() createEntradaDto: CreateEntradaDto,
-  ): Promise<MovimientoDTO> {
-    // return this.almacenService.createEntrada(createEntradaDto);
-    return {} as MovimientoDTO; // stub
-  }
-
-  @Post('movimientos/salida')
-  async createSalida(
-    @Body() createSalidaDto: CreateSalidaDto,
-  ): Promise<MovimientoDTO> {
-    // return this.almacenService.createSalida(createSalidaDto);
-    return {} as MovimientoDTO; // stub
+  @Post('movimientos')
+  async createMovimiento(@Body() dto: CreateEntradaDto | CreateSalidaDto) {
+    return await this.almacenService.createMovimiento(dto);
   }
 }

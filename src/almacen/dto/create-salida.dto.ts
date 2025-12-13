@@ -4,7 +4,6 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsInt,
 } from 'class-validator';
 import { SalidaTipo } from '../entities/salida.entity';
 
@@ -24,7 +23,7 @@ export class CreateSalidaDto {
   @IsString()
   detalle_motivo?: string;
 
-  @IsInt()
+  @IsString()
   @IsNotEmpty()
-  movimiento_id: number;
+  cod_articulo: string;
 }

@@ -5,6 +5,10 @@ import { UnidadTipo } from '../enums/almacen.enum';
 export class CreateArticuloDto {
   @IsString()
   @IsNotEmpty()
+  cod: string;
+
+  @IsString()
+  @IsNotEmpty()
   nombre: string;
 
   @IsString()
