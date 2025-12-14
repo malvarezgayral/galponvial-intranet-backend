@@ -1,6 +1,6 @@
 id_vehiculo,nombre,marca,modelo,anio,status,uso_combustible,uso_km,tipo_vehiculo
-1,Camión Volvo 1,Volvo,FH16,2018-01-01,disponible,25.5,0.25,camión
-2,Camión Mercedes 1,Mercedes,Actros,2019-01-01,disponible,24.0,0.28,camión
-3,Camión Scania 1,Scania,R440,2017-01-01,en taller,26.0,0.24,camión
-4,Camioneta Ford 1,Ford,F-4000,2016-01-01,disponible,15.0,0.50,camioneta
-5,Camioneta Chevrolet 1,Chevrolet,D-Max,2020-01-01,disponible,18.0,0.48,camioneta
+1,Camión Volvo 1,Volvo,FH16,2018,disponible,25.5,0.25,camion
+2,Camión Mercedes 1,Mercedes,Actros,2019,disponible,24.0,0.28,camion
+3,Camión Scania 1,Scania,R440,2017,en taller,26.0,0.24,camion
+4,Camioneta Ford 1,Ford,F-4000,2016,disponible,15.0,0.50,camioneta
+5,Camioneta Chevrolet 1,Chevrolet,D-Max,2020,disponible,18.0,0.48,camioneta

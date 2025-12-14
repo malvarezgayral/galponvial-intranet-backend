@@ -9,8 +9,7 @@ import { InfoAdicional } from './info-adicional.entity';
 import { StatusUpdate } from './status-update.entity';
 import { CombustibleCarga } from './combustible-carga.entity';
 import { Recordatorio } from './recordatorio.entity';
-import { VehiculoStatus } from '../enums/vehiculo.enum';
-import { Usuario } from 'src/usuario/entities/usuario.entity';
+import { VehiculoStatus, TipoVehiculo } from '../enums/vehiculo.enum';
 import { UsuarioVehiculo } from 'src/usuario/entities/usuario-vehiculo.entity';
 
 @Entity('vehiculo')
@@ -18,34 +17,39 @@ export class Vehiculo {
   @PrimaryGeneratedColumn()
   id_vehiculo: number;
 
-  @Column()
+  @Column('varchar', { length: 100 })
   nombre: string;
 
-  @Column()
+  @Column('varchar', { length: 50 })
   marca: string;
 
-  @Column()
+  @Column('varchar', { length: 50 })
   modelo: string;
 
-  @Column('date')
-  anio: Date;
+  @Column('int')
+  anio: number;
 
   @Column({
     type: 'enum',
     enum: VehiculoStatus,
+    default: VehiculoStatus.DISPONIBLE,
   })
   status: VehiculoStatus;
 
-  @Column('float')
+  @Column('float', { default: 0 })
   uso_combustible: number;
 
-  @Column('float')
+  @Column('float', { default: 0 })
   uso_km: number;
 
-  @Column('varchar', { length: 20 })
-  tipo_vehiculo: string;
+  @Column({
+    type: 'enum',
+    enum: TipoVehiculo,
+  })
+  tipo_vehiculo: TipoVehiculo;
 
-  @OneToOne(() => InfoAdicional, (info) => info.vehiculo)
+  // Relaciones
+  @OneToOne(() => InfoAdicional, (info) => info.vehiculo, { cascade: true })
   infoAdicional: InfoAdicional;
 
   @OneToMany(() => StatusUpdate, (status) => status.vehiculo)

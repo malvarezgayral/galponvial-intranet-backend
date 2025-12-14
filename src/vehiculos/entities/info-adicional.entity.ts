@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Vehiculo } from './vehiculo.entity';
 import { Sector } from './sector.entity';
 
@@ -13,7 +20,7 @@ export class InfoAdicional {
   @Column()
   licencia_conductor: string;
 
-  @Column('varchar', { length: 10 })
+  @Column('varchar', { length: 15 })
   color: string;
 
   @Column()
