@@ -35,7 +35,6 @@ export default tseslint.config(
       'no-console': 'error',
       'prettier/prettier': 'error',
 
-      // 🚫 Regla custom registrada correctamente
       'local-no-emoji/no-emoji': 'error',
     },
   },

@@ -26,21 +26,18 @@ export class VehiculosController {
   @Get()
   findAll(@Query('status') status?: string, @Query('tipo') tipo?: string) {}
 
-  // ⭐ RUTAS ESPECÍFICAS PRIMERO (sin parámetros dinámicos)
   @Get('estadisticas')
   getEstadisticas() {}
 
   @Get('disponibles/listado')
   getDisponibles() {}
 
-  // ⭐ LUEGO RUTAS CON PARÁMETROS ESPECÍFICOS
   @Get(':id/historial')
   getHistorial(@Param('id', ParseIntPipe) id: number) {}
 
   @Get(':id/status-history')
   getStatusHistory(@Param('id', ParseIntPipe) id: number) {}
 
-  // ⭐ FINALMENTE RUTAS GENÉRICAS CON :id
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {}
 

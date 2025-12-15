@@ -9,7 +9,7 @@ export class CsvReaderService {
    * @param fileName Nombre del archivo CSV (sin extensión)
    * @returns Array de objetos con los datos parseados
    */
-  async readCsv(fileName: string): Promise<Record<string, string | number>[]> {
+  readCsv(fileName: string): Promise<Record<string, string | number>[]> {
     // Buscar en src/seed/data (desarrollo) o dist/seed/data (producción)
     let filePath = path.join(__dirname, 'data', `${fileName}.csv`);
 

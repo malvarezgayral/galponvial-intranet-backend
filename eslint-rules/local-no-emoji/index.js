@@ -21,24 +21,15 @@ module.exports = {
                         const comments = sourceCode.getAllComments();
 
                         comments.forEach((comment) => {
-                            // dividir comentario en líneas
                             const lines = comment.value.split('\n');
 
                             lines.forEach((line, index) => {
                                 const text = line.trim();
 
-                                // ignorar líneas vacías
                                 if (!text) return;
 
-                                // ignorar líneas que son solo decoración
                                 if (/^[-*\/.\s]+$/.test(text)) return;
 
-                                // DEBUG: imprimí qué está evaluando
-                                console.log(`🔍 Evaluando línea ${comment.loc.start.line + index}: "${text}"`);
-                                console.log(`   Tiene emoji: ${emojiRegex.test(text)}`);
-                                console.log(`   Tiene "agregar": ${forbiddenWordRegex.test(text)}`);
-
-                                // revisar emojis o palabra "agregar"
                                 if (emojiRegex.test(text) || forbiddenWordRegex.test(text)) {
                                     context.report({
                                         node: comment,
