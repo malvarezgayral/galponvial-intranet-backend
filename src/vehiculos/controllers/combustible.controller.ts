@@ -18,8 +18,7 @@ export class CombustibleController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() createDto: CreateCombustibleCargaDto) {
-  }
+  create(@Body() createDto: CreateCombustibleCargaDto) {}
 
   @Get()
   findAll(@Query() filtros: FiltrosCombustibleDto) {}

@@ -94,6 +94,7 @@ export class AlmacenService {
     });
 
     const articulosDto: CreateArticuloDto[] = articulos.map((a) => ({
+      cod: a.cod,
       nombre: a.nombre,
       modelo: a.modelo,
       descripcion: a.descripcion,

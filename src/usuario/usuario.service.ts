@@ -66,10 +66,14 @@ export class UsuarioService {
       fecha_desde: new Date(dto.fecha_desde),
       fecha_hasta: dto.fecha_hasta ? new Date(dto.fecha_hasta) : null,
     };
-    return this.usuarioVehiculoRepository.save(usuarioVehiculo as Partial<UsuarioVehiculo>);
+    return this.usuarioVehiculoRepository.save(
+      usuarioVehiculo as Partial<UsuarioVehiculo>,
+    );
   }
 
-  async obtenerVehiculosPorUsuario(id_usuario: number): Promise<UsuarioVehiculo[]> {
+  async obtenerVehiculosPorUsuario(
+    id_usuario: number,
+  ): Promise<UsuarioVehiculo[]> {
     return this.usuarioVehiculoRepository.find({
       where: { id_usuario },
       relations: ['vehiculo'],
@@ -77,12 +81,16 @@ export class UsuarioService {
   }
 
   // Reportes
-  async crearReporte(dto: CreateReporteIncidenteDto): Promise<ReporteIncidente> {
+  async crearReporte(
+    dto: CreateReporteIncidenteDto,
+  ): Promise<ReporteIncidente> {
     const reporte = {
       ...dto,
       fecha: new Date(dto.fecha),
     };
-    return this.reporteIncidenteRepository.save(reporte as Partial<ReporteIncidente>);
+    return this.reporteIncidenteRepository.save(
+      reporte as Partial<ReporteIncidente>,
+    );
   }
 
   async obtenerReportes(): Promise<ReporteIncidente[]> {
@@ -91,7 +99,9 @@ export class UsuarioService {
     });
   }
 
-  async obtenerReportesPorUsuario(id_usuario: number): Promise<ReporteIncidente[]> {
+  async obtenerReportesPorUsuario(
+    id_usuario: number,
+  ): Promise<ReporteIncidente[]> {
     return this.reporteIncidenteRepository.find({
       where: { id_usuario },
       relations: ['vehiculo', 'servicios'],
@@ -112,7 +122,9 @@ export class UsuarioService {
     return this.servicioRepository.find({ relations: ['incidente'] });
   }
 
-  async obtenerServiciosPorIncidente(incidente_id: number): Promise<Servicio[]> {
+  async obtenerServiciosPorIncidente(
+    incidente_id: number,
+  ): Promise<Servicio[]> {
     return this.servicioRepository.find({
       where: { incidente_id },
     });

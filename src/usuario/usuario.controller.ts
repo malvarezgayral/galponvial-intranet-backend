@@ -59,7 +59,9 @@ export class UsuarioController {
 
   // Reportes
   @Post('reporte')
-  crearReporte(@Body() dto: CreateReporteIncidenteDto): Promise<ReporteIncidente> {
+  crearReporte(
+    @Body() dto: CreateReporteIncidenteDto,
+  ): Promise<ReporteIncidente> {
     return this.usuarioService.crearReporte(dto);
   }
 
@@ -90,6 +92,8 @@ export class UsuarioController {
   obtenerServiciosPorIncidente(
     @Param('incidente_id') incidente_id: string,
   ): Promise<Servicio[]> {
-    return this.usuarioService.obtenerServiciosPorIncidente(parseInt(incidente_id));
+    return this.usuarioService.obtenerServiciosPorIncidente(
+      parseInt(incidente_id),
+    );
   }
 }
