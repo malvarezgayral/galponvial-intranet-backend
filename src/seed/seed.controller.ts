@@ -12,7 +12,10 @@ export class SeedController {
    */
   @Post('run')
   @HttpCode(HttpStatus.OK)
-  async runSeed(): Promise<{ message: string; results: Record<string, number> }> {
+  async runSeed(): Promise<{
+    message: string;
+    results: Record<string, number>;
+  }> {
     return this.seedService.seed();
   }
 }

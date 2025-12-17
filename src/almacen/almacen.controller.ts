@@ -37,7 +37,10 @@ export class AlmacenController {
   }
 
   @Put('articulos/:cod')
-  async updateArticle(@Param('cod') cod: string, @Body() dto: UpdateArticuloDto) {
+  async updateArticle(
+    @Param('cod') cod: string,
+    @Body() dto: UpdateArticuloDto,
+  ) {
     return await this.almacenService.updateArticle(cod, dto);
   }
 
@@ -64,7 +67,10 @@ export class AlmacenController {
   }
 
   @Put('grupos/:id')
-  async updateGroup(@Param('id') id: number, @Body() dto: UpdateGrupoArticuloDto) {
+  async updateGroup(
+    @Param('id') id: number,
+    @Body() dto: UpdateGrupoArticuloDto,
+  ) {
     return await this.almacenService.updateGroup(id, dto);
   }
 

@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsDateString, IsOptional, IsNumber, IsString, IsEnum } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsDateString,
+  IsOptional,
+  IsNumber,
+  IsString,
+  IsEnum,
+} from 'class-validator';
 import { RolTipo, Permiso, FallaIncidente } from '../enums/usuario.enum';
 
 export class CreateUsuarioDto {
