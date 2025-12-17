@@ -26,12 +26,13 @@ export class AlmacenController {
 
   // ---------------------- ARTÍCULOS ----------------------
 
+  // already tested
   @Get('articulos')
   async getAllArticles() {
     return await this.almacenService.getAllArticles();
   }
 
-  //fix
+  // already working
   @Post('articulos')
   async createArticle(@Body() dto: CreateArticuloDto) {
     return await this.almacenService.createArticle(dto);
@@ -60,16 +61,19 @@ export class AlmacenController {
     return await this.almacenService.getAllGroups();
   }
 
+  // already working well
   @Get('grupos/:id')
   async getGroup(@Param('id') id: number): Promise<GrupoArticuloDto> {
     return await this.almacenService.getGroup(id);
   }
 
+  // already working well
   @Post('grupos')
   async createGroup(@Body() dto: CreateGrupoArticuloDto) {
     return await this.almacenService.createGroup(dto);
   }
 
+  // already working well
   @Put('grupos/:id')
   async updateGroup(
     @Param('id') id: number,
@@ -80,11 +84,14 @@ export class AlmacenController {
 
   // ---------------------- MOVIMIENTOS ----------------------
 
+  // already working well
   @Get('movimientos/:idArticulo')
   async getMovimientos(@Param('idArticulo') codArticulo: number) {
     return await this.almacenService.getMovimientosByArticulo(codArticulo);
   }
 
+  // already tested create entry
+  // already tested create output
   @Post('movimientos')
   async createMovimiento(@Body() dto: CreateEntradaDto | CreateSalidaDto) {
     return await this.almacenService.createMovimiento(dto);

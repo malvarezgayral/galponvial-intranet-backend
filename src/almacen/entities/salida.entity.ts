@@ -24,7 +24,7 @@ export class Salida {
   @Column('text', { nullable: true })
   detalle: string;
 
-  @Column('varchar', { length: 30 })
+  @Column('varchar', { length: 100 })
   motivo_salida: string;
 
   @Column('text', { nullable: true })

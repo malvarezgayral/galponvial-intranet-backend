@@ -83,6 +83,7 @@ export class AlmacenService {
   async getGroup(id: number): Promise<GrupoArticuloDto> {
     const grupo = await this.grupoRepo.findOne({
       where: { id },
+      relations: ['sector'],
     });
 
     if (!grupo) {
@@ -93,8 +94,9 @@ export class AlmacenService {
       where: { grupo: { id } },
     });
 
-    const articulosDto: CreateArticuloDto[] = articulos.map((a) => ({
+    const articulosDto: UpdateArticuloDto[] = articulos.map((a) => ({
       cod: a.cod,
+      cod_proveedor: a.cod_proveedor,
       nombre: a.nombre,
       modelo: a.modelo,
       descripcion: a.descripcion,
@@ -215,11 +217,13 @@ export class AlmacenService {
       // -------------------------
       // 3. Crear Movimiento
       // -------------------------
+
+      // usuario hardcodeado para pruebas hasta poder determinar realmente el id de un usuario logueado
       const movimiento = manager.getRepository(Movimiento).create({
         tipo: esEntrada ? MovimientoTipo.ENTRADA : MovimientoTipo.SALIDA,
         fecha: new Date(),
         articulo,
-        // usuario_id: dto.usuario_id (desactivado por ahora)
+        usuario_id: 12345678,
       });
 
       const movimientoGuardado = await manager
