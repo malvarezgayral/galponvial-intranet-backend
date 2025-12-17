@@ -55,7 +55,7 @@ export class AlmacenService {
     return await this.articuloRepo.save(art);
   }
 
-  async updateArticle(cod: string, dto: UpdateArticuloDto) {
+  async updateArticle(cod: number, dto: UpdateArticuloDto) {
     const art = await this.articuloRepo.findOne({ where: { cod } });
 
     if (!art) throw new NotFoundException(`Artículo ${cod} no encontrado`);
@@ -64,7 +64,7 @@ export class AlmacenService {
     return this.articuloRepo.save(art);
   }
 
-  async deleteArticle(cod: string) {
+  async deleteArticle(cod: number) {
     const r = await this.articuloRepo.delete({ cod });
     if (r.affected === 0)
       throw new NotFoundException(`Artículo ${cod} no encontrado`);
@@ -130,7 +130,7 @@ export class AlmacenService {
   // ---------------------- MOVIMIENTOS ----------------------
 
   async getMovimientosByArticulo(
-    codArticulo: string,
+    codArticulo: number,
   ): Promise<MovimientoDTO[]> {
     const articulo = await this.articuloRepo.findOne({
       where: { cod: codArticulo },

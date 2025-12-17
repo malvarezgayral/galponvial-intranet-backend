@@ -31,26 +31,30 @@ export class AlmacenController {
     return await this.almacenService.getAllArticles();
   }
 
+  //fix
   @Post('articulos')
   async createArticle(@Body() dto: CreateArticuloDto) {
     return await this.almacenService.createArticle(dto);
   }
 
+  // already tested
   @Put('articulos/:cod')
   async updateArticle(
-    @Param('cod') cod: string,
+    @Param('cod') cod: number,
     @Body() dto: UpdateArticuloDto,
   ) {
     return await this.almacenService.updateArticle(cod, dto);
   }
 
+  // already tested, working well
   @Delete('articulos/:cod')
-  async deleteArticle(@Param('cod') cod: string) {
+  async deleteArticle(@Param('cod') cod: number) {
     return await this.almacenService.deleteArticle(cod);
   }
 
   // ---------------------- GRUPOS ----------------------
 
+  // already working well
   @Get('grupos')
   async getAllGroups() {
     return await this.almacenService.getAllGroups();
@@ -77,7 +81,7 @@ export class AlmacenController {
   // ---------------------- MOVIMIENTOS ----------------------
 
   @Get('movimientos/:idArticulo')
-  async getMovimientos(@Param('idArticulo') codArticulo: string) {
+  async getMovimientos(@Param('idArticulo') codArticulo: number) {
     return await this.almacenService.getMovimientosByArticulo(codArticulo);
   }
 
