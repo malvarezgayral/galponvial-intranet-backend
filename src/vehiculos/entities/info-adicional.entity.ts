@@ -14,13 +14,13 @@ export class InfoAdicional {
   @PrimaryGeneratedColumn()
   id_info_adicional: number;
 
-  @Column('bigint')
+  @Column('bigint', { nullable: true })
   numero_serie: number;
 
-  @Column()
+  @Column({ nullable: true })
   licencia_conductor: string;
 
-  @Column('varchar', { length: 15 })
+  @Column('varchar', { length: 15, nullable: true })
   color: string;
 
   @Column()
@@ -29,7 +29,10 @@ export class InfoAdicional {
   @Column()
   poliza: string;
 
-  @ManyToOne(() => Sector)
+  @Column('varchar', { length: 50, nullable: true })
+  grupo: string;
+
+  @ManyToOne(() => Sector, { nullable: true })
   @JoinColumn({ name: 'id_sector_pertenencia' })
   sector: Sector;
 

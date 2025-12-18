@@ -22,8 +22,8 @@ export class StatusUpdate {
   @Column({ type: 'date' })
   fecha_desde: Date;
 
-  @Column({ type: 'date' })
-  fecha_hasta: Date;
+  @Column({ type: 'date', nullable: true })
+  fecha_hasta: Date | null;
 
   @ManyToOne(() => Vehiculo, (vehiculo) => vehiculo.statusUpdates)
   @JoinColumn({ name: 'id_vehiculo' })
