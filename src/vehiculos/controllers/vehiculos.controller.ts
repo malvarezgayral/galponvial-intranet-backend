@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { VehiculosService } from '../services/vehiculo.service';
 import { CreateVehiculoDto } from '../dto/create-vehiculo.dto';
 
