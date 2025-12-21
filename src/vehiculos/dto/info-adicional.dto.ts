@@ -28,7 +28,7 @@ export class InfoAdicionalDto {
   @IsNotEmpty()
   poliza: string;
 
-  @IsOptional()
   @IsNumber()
-  id_sector_pertenencia?: number;
+  @IsNotEmpty()
+  id_sector_pertenencia: number;
 }

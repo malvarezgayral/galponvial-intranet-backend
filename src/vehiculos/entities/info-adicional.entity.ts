@@ -29,9 +29,6 @@ export class InfoAdicional {
   @Column()
   poliza: string;
 
-  /*@Column('varchar', { length: 50, nullable: true })
-  grupo: string;*/
-
   @ManyToOne(() => Sector)
   @JoinColumn({ name: 'id_sector_pertenencia' })
   sector: Sector;
