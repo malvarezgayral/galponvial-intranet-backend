@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Usuario } from './entities/usuario.entity';
-import { Rol } from './entities/rol.entity';
-import { UsuarioVehiculo } from './entities/usuario-vehiculo.entity';
-import { ReporteIncidente } from './entities/reporte-incidente.entity';
-import { Servicio } from './entities/servicio.entity';
+import { Usuario } from '../entities/usuario.entity';
+import { Rol } from '../entities/rol.entity';
+import { UsuarioVehiculo } from '../entities/usuario-vehiculo.entity';
+import { ReporteIncidente } from '../entities/reporte-incidente.entity';
+import { Servicio } from '../entities/servicio.entity';
 import {
   CreateUsuarioDto,
   CreateRolDto,
   CreateUsuarioVehiculoDto,
   CreateReporteIncidenteDto,
   CreateServicioDto,
-} from './dto/usuario.dto';
+} from '../dto/usuario.dto';
 
 @Injectable()
 export class UsuarioService {
