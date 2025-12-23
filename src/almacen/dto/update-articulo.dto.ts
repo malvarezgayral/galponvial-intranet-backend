@@ -4,6 +4,10 @@ import { CreateArticuloDto } from './create-articulo.dto';
 import { IsNumber, IsOptional } from 'class-validator';
 
 export class UpdateArticuloDto extends PartialType(CreateArticuloDto) {
+  @IsNumber()
+  @IsOptional()
+  cod?: number;
+
   @IsOptional()
   @IsNumber()
   grupo_id?: number;

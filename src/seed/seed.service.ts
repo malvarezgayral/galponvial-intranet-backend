@@ -197,7 +197,7 @@ export class SeedService {
     const data = await this.csvReaderService.readCsv('movimientos');
     const mappedData = data.map((item) => ({
       ...item,
-      articulo: { cod: String(item.articulo_id) },
+      articulo: { cod: Number(item.articulo_id) },
     }));
     await this.movimientoRepository.save(mappedData);
     this.logger.log(`✓ ${data.length} movimientos cargados`);

@@ -16,5 +16,5 @@ export class CreateEntradaDto {
 
   @IsString()
   @IsNotEmpty()
-  cod_articulo: string;
+  cod_articulo: number;
 }

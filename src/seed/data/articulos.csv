@@ -1,9 +1,9 @@
-cod,nombre,modelo,descripcion,img_url,unidad_tipo,grupo_id,unidad_medida_id
-550e8400-e29b-41d4-a716-446655440001,Filtro de aire,FA-100,Filtro de aire para motores diesel,https://example.com/filtro.jpg,pieza,1,
-550e8400-e29b-41d4-a716-446655440002,Pastillas de freno,PF-200,Pastillas de freno cerámicas,https://example.com/pastillas.jpg,caja,1,2
-550e8400-e29b-41d4-a716-446655440003,Neumático 11R22.5,NE-300,Neumático para camión,https://example.com/neumatico.jpg,pieza,2,
-550e8400-e29b-41d4-a716-446655440004,Aceite diesel 15W40,AC-400,Aceite mineral para motores diesel,https://example.com/aceite.jpg,volumen,3,5
-550e8400-e29b-41d4-a716-446655440005,Destornillador Phillips,HE-500,Destornillador de 10 pulgadas,https://example.com/destorn.jpg,pieza,4,
-550e8400-e29b-41d4-a716-446655440006,Correa de distribución,CD-600,Correa de distribución reforzada,https://example.com/correa.jpg,pieza,1,
-550e8400-e29b-41d4-a716-446655440007,Bujías,BU-700,Juego de 6 bujías,https://example.com/bujias.jpg,caja,1,
-550e8400-e29b-41d4-a716-446655440008,Batería 12V,BA-800,Batería de arranque 12V 100Ah,https://example.com/bateria.jpg,pieza,1,
+nombre,modelo,descripcion,img_url,unidad_tipo,grupo_id,unidad_medida_id
+Filtro de aire,FA-100,Filtro de aire para motores diesel,https://example.com/filtro.jpg,pieza,1,
+Pastillas de freno,PF-200,Pastillas de freno cerámicas,https://example.com/pastillas.jpg,caja,1,2
+Neumático 11R22.5,NE-300,Neumático para camión,https://example.com/neumatico.jpg,pieza,2,
+Aceite diesel 15W40,AC-400,Aceite mineral para motores diesel,https://example.com/aceite.jpg,volumen,3,5
+Destornillador Phillips,HE-500,Destornillador de 10 pulgadas,https://example.com/destorn.jpg,pieza,4,
+Correa de distribución,CD-600,Correa de distribución reforzada,https://example.com/correa.jpg,pieza,1,
+Bujías,BU-700,Juego de 6 bujías,https://example.com/bujias.jpg,caja,1,
+Batería 12V,BA-800,Batería de arranque 12V 100Ah,https://example.com/bateria.jpg,pieza,1,
