@@ -11,38 +11,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { VehiculoStatus, TipoVehiculo } from '../enums/vehiculo.enum';
-
-class InfoAdicionalDto {
-  @IsOptional()
-  @IsNumber()
-  numero_serie?: number;
-
-  @IsOptional()
-  @IsString()
-  licencia_conductor?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  color?: string;
-
-  @IsString()
-  @IsNotEmpty()
-  seguro_empresa: string;
-
-  @IsString()
-  @IsNotEmpty()
-  poliza: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  grupo?: string;
-
-  @IsOptional()
-  @IsNumber()
-  id_sector_pertenencia?: number;
-}
+import { InfoAdicionalDto } from './info-adicional.dto';
 
 export class CreateVehiculoDto {
   @IsString()
