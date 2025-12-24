@@ -41,6 +41,38 @@ describe('Almacen E2E', () => {
     expect(res.body.nombre).toBe('Articulo Test');
   });
 
+  it('PUT /almacen/articulos', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const resArticle = await request(app.getHttpServer())
+      .post('/almacen/articulos')
+      .send({
+        nombre: 'Articulo Test',
+        modelo: 'Modelo',
+        descripcion: 'Descp',
+        img_url: 'https://example.com/filtro.jpg',
+        unidad_tipo: 'pieza',
+      })
+      .expect(201);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const resPut = await request(app.getHttpServer())
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      .put(`/almacen/articulos/${resArticle.body.cod}`)
+      .send({
+        nombre: 'Articulo Test Actualizado',
+        descripcion: 'Descp',
+        modelo: 'Nuevo modelo',
+        stock: 9,
+        unidad_tipo: 'pieza',
+        cod_proveedor: '2',
+      });
+
+    expect(resPut.status).toBe(200);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(resPut.body.nombre).toBe('Articulo Test Actualizado');
+  });
+
   it('GET /almacen/articulos', async () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const res = await request(app.getHttpServer())

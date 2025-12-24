@@ -15,8 +15,4 @@ export class UpdateArticuloDto extends PartialType(CreateArticuloDto) {
   @IsOptional()
   @IsNumber()
   unidad_medida_id?: number;
-
-  @IsOptional()
-  @IsNumber()
-  stock?: number;
 }
