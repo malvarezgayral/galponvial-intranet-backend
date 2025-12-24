@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 import {
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -23,7 +24,7 @@ export class CreateSalidaDto {
   @IsString()
   detalle_motivo?: string;
 
-  @IsString()
+  @IsInt()
   @IsNotEmpty()
   cod_articulo: number;
 }

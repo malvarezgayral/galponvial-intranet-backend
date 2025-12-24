@@ -48,4 +48,34 @@ describe('Almacen E2E', () => {
 
     expect(Array.isArray(res.body)).toBe(true);
   });
+
+  it('POST /almacen/movimientos - should create salida', async () => {
+    const resArticle = await request(app.getHttpServer())
+      .post('/almacen/articulos')
+      .send({
+        nombre: 'Articulo Test',
+        modelo: 'Modelo',
+        descripcion: 'Descp',
+        img_url: 'https://example.com/filtro.jpg',
+        unidad_tipo: 'pieza',
+        grupo_id: 1,
+      })
+      .expect(201);
+
+    const resMovement = await request(app.getHttpServer())
+      .post('/almacen/movimientos')
+      .send({
+        tipo: 'perdida',
+        detalle: 'se rompio algo',
+        motivo_salida: 'pos eso mismo',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        cod_articulo: resArticle.body.cod,
+      })
+      .expect(201);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(resMovement.body.movimiento.tipo).toBe('salida');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(resMovement.body.salida.tipo).toBe('perdida');
+  });
 });
