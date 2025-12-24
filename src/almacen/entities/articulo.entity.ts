@@ -32,6 +32,9 @@ export class Articulo {
   @Column('text')
   img_url: string;
 
+  @Column({ type: 'int', nullable: true })
+  stock?: number;
+
   @Column({
     type: 'enum',
     enum: UnidadTipo,

@@ -1,5 +1,11 @@
 /* eslint-disable prettier/prettier */
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsNumber,
+} from 'class-validator';
 import { UnidadTipo } from '../enums/almacen.enum';
 
 export class CreateArticuloDto {
@@ -24,4 +30,8 @@ export class CreateArticuloDto {
 
   @IsEnum(UnidadTipo)
   unidad_tipo: UnidadTipo;
+
+  @IsOptional()
+  @IsNumber()
+  stock?: number;
 }
