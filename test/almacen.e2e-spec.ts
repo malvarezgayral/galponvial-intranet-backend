@@ -25,6 +25,7 @@ describe('Almacen E2E', () => {
   });
 
   it('POST /almacen/articulos', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const res = await request(app.getHttpServer())
       .post('/almacen/articulos')
       .send({
@@ -33,7 +34,6 @@ describe('Almacen E2E', () => {
         descripcion: 'Descp',
         img_url: 'https://example.com/filtro.jpg',
         unidad_tipo: 'pieza',
-        grupo_id: 1,
       })
       .expect(201);
 
@@ -42,6 +42,7 @@ describe('Almacen E2E', () => {
   });
 
   it('GET /almacen/articulos', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const res = await request(app.getHttpServer())
       .get('/almacen/articulos')
       .expect(200);
@@ -49,7 +50,23 @@ describe('Almacen E2E', () => {
     expect(Array.isArray(res.body)).toBe(true);
   });
 
+  it('POST /almacen/grupos', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const res = await request(app.getHttpServer())
+      .post('/almacen/grupos')
+      .send({
+        nombre: 'Grupo Test',
+        descripcion: 'Descp grupo',
+        sector_id: 1,
+      })
+      .expect(201);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(res.body.nombre).toBe('Grupo Test');
+  });
+
   it('POST /almacen/movimientos - should create salida', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const resArticle = await request(app.getHttpServer())
       .post('/almacen/articulos')
       .send({
@@ -62,6 +79,7 @@ describe('Almacen E2E', () => {
       })
       .expect(201);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const resMovement = await request(app.getHttpServer())
       .post('/almacen/movimientos')
       .send({
