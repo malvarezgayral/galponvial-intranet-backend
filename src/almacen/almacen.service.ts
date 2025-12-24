@@ -20,6 +20,7 @@ import { MovimientoDTO } from './dto/movimiento.dto';
 import { EntradaTipo, MovimientoTipo } from './enums/almacen.enum';
 import { CreateSalidaDto } from './dto/create-salida.dto';
 import { CreateEntradaDto } from './dto/create-entrada.dto';
+import { UnidadMedidaCuant } from './entities/unidad-medida-cuant.entity';
 
 @Injectable()
 export class AlmacenService {
@@ -40,6 +41,9 @@ export class AlmacenService {
 
     @InjectRepository(Salida)
     private readonly salidaRepo: Repository<Salida>,
+
+    @InjectRepository(UnidadMedidaCuant)
+    private readonly unidadRepo: Repository<UnidadMedidaCuant>,
   ) {}
 
   // ---------------------- ARTÍCULOS ----------------------
@@ -56,11 +60,51 @@ export class AlmacenService {
   }
 
   async updateArticle(cod: number, dto: UpdateArticuloDto) {
-    const art = await this.articuloRepo.findOne({ where: { cod } });
+    const art = await this.articuloRepo.findOne({
+      where: { cod },
+      relations: ['grupo', 'unidadMedida'],
+    });
 
-    if (!art) throw new NotFoundException(`Artículo ${cod} no encontrado`);
+    if (!art) {
+      throw new NotFoundException(`Artículo ${cod} no encontrado`);
+    }
 
-    Object.assign(art, dto);
+    if (dto.grupo_id !== undefined) {
+      const grupo = await this.grupoRepo.findOne({
+        where: { id: dto.grupo_id },
+      });
+
+      if (!grupo) {
+        throw new BadRequestException(
+          `Grupo de artículo ${dto.grupo_id} no existe`,
+        );
+      }
+
+      art.grupo = grupo;
+    }
+
+    if (dto.unidad_medida_id !== undefined) {
+      const unidad = await this.unidadRepo.findOne({
+        where: { id: dto.unidad_medida_id },
+      });
+
+      if (!unidad) {
+        throw new BadRequestException(
+          `Unidad de medida ${dto.unidad_medida_id} no existe`,
+        );
+      }
+
+      art.unidadMedida = unidad;
+    }
+
+    if (dto.nombre !== undefined) art.nombre = dto.nombre;
+    if (dto.descripcion !== undefined) art.descripcion = dto.descripcion;
+    if (dto.modelo !== undefined) art.modelo = dto.modelo;
+    if (dto.img_url !== undefined) art.img_url = dto.img_url;
+    if (dto.unidad_tipo !== undefined) art.unidad_tipo = dto.unidad_tipo;
+    if (dto.stock !== undefined) art.stock = dto.stock;
+    if (dto.cod_proveedor !== undefined) art.cod_proveedor = dto.cod_proveedor;
+
     return this.articuloRepo.save(art);
   }
 
