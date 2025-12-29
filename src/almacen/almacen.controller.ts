@@ -144,7 +144,7 @@ export class AlmacenController {
   @ApiResponse({
     status: 200,
     description: 'Movimientos encontrados',
-    type: MovimientoDTO,
+    type: [MovimientoDTO],
   })
   @Get('movimientos/:idArticulo')
   async getMovimientos(@Param('idArticulo') codArticulo: number) {
