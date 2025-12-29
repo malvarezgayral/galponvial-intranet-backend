@@ -9,10 +9,12 @@ import {
 } from '@nestjs/common';
 import {
   ApiTags,
+  ApiExtraModels,
   ApiOperation,
   ApiResponse,
   ApiParam,
   ApiBody,
+  getSchemaPath,
 } from '@nestjs/swagger';
 
 import { CreateArticuloDto } from './dto/create-articulo.dto';
@@ -26,8 +28,10 @@ import { CreateEntradaDto } from './dto/create-entrada.dto';
 import { CreateSalidaDto } from './dto/create-salida.dto';
 
 import { AlmacenService } from './almacen.service';
+import { MovimientoDTO } from './dto/movimiento.dto';
 
 @ApiTags('Almacén')
+@ApiExtraModels(CreateEntradaDto, CreateSalidaDto)
 @Controller('almacen')
 export class AlmacenController {
   constructor(private readonly almacenService: AlmacenService) {}
@@ -137,7 +141,11 @@ export class AlmacenController {
     type: Number,
     description: 'Código del artículo',
   })
-  @ApiResponse({ status: 200, description: 'Movimientos encontrados' })
+  @ApiResponse({
+    status: 200,
+    description: 'Movimientos encontrados',
+    type: MovimientoDTO,
+  })
   @Get('movimientos/:idArticulo')
   async getMovimientos(@Param('idArticulo') codArticulo: number) {
     return await this.almacenService.getMovimientosByArticulo(codArticulo);
@@ -148,8 +156,8 @@ export class AlmacenController {
     description: 'Movimiento de entrada o salida',
     schema: {
       oneOf: [
-        { $ref: '#/components/schemas/CreateEntradaDto' },
-        { $ref: '#/components/schemas/CreateSalidaDto' },
+        { $ref: getSchemaPath(CreateEntradaDto) },
+        { $ref: getSchemaPath(CreateSalidaDto) },
       ],
     },
   })
