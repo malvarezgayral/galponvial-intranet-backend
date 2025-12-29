@@ -45,9 +45,6 @@ export class Usuario {
   @JoinColumn({ name: 'rol_id' })
   rol: Rol;
 
-  @Column()
-  rol_id: number;
-
   @OneToMany(() => UsuarioVehiculo, (uv) => uv.usuario)
   vehiculos: UsuarioVehiculo[];
 

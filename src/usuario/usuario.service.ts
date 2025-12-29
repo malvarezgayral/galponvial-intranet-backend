@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { Usuario } from './entities/usuario.entity';
 import { Rol } from './entities/rol.entity';
 import { UsuarioVehiculo } from './entities/usuario-vehiculo.entity';
@@ -13,6 +13,7 @@ import {
   CreateReporteIncidenteDto,
   CreateServicioDto,
 } from './dto/usuario.dto';
+import { RolService } from './rol.service';
 
 @Injectable()
 export class UsuarioService {
@@ -27,16 +28,18 @@ export class UsuarioService {
     private reporteIncidenteRepository: Repository<ReporteIncidente>,
     @InjectRepository(Servicio)
     private servicioRepository: Repository<Servicio>,
+    private readonly rolService: RolService,
   ) {}
 
   // Usuarios
-  async crearUsuario(dto: CreateUsuarioDto): Promise<Usuario> {
-    const usuario = {
-      ...dto,
-      fecha_alta: new Date(dto.fecha_alta),
-      fecha_baja: dto.fecha_baja ? new Date(dto.fecha_baja) : null,
+  async crearUsuario(CreateUsuarioDto: CreateUsuarioDto) {
+    const usuario: DeepPartial<Usuario> = {
+      ...CreateUsuarioDto,
+      fecha_alta: new Date(), //dia de hoy
+      fecha_baja: undefined,
+      rol: await this.rolService.getRolById(1), //rol por defecto 'usuario'
     };
-    return this.usuarioRepository.save(usuario as Partial<Usuario>);
+    return await this.usuarioRepository.save(usuario);
   }
 
   async obtenerUsuarios(): Promise<Usuario[]> {

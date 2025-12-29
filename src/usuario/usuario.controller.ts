@@ -18,10 +18,15 @@ export class UsuarioController {
   constructor(private readonly usuarioService: UsuarioService) {}
 
   // Usuarios
-  @Post()
-  crearUsuario(@Body() dto: CreateUsuarioDto): Promise<Usuario> {
-    return this.usuarioService.crearUsuario(dto);
+  @Post('register')
+  crearUsuario(@Body() createUserDto: CreateUsuarioDto) {
+    return this.usuarioService.crearUsuario(createUserDto);
   }
+
+  //@Post('login')
+  //loginUser(@Body() loginUserDto: LoginUserDto ) {
+  //  return this.usuarioService.login( loginUserDto );
+  //}
 
   @Get()
   obtenerUsuarios(): Promise<Usuario[]> {

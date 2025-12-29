@@ -7,6 +7,8 @@ import { ReporteIncidente } from './entities/reporte-incidente.entity';
 import { Servicio } from './entities/servicio.entity';
 import { UsuarioService } from './usuario.service';
 import { UsuarioController } from './usuario.controller';
+import { RolService } from './rol.service';
+import { RolController } from './rol.controller';
 
 @Module({
   imports: [
@@ -18,7 +20,7 @@ import { UsuarioController } from './usuario.controller';
       Servicio,
     ]),
   ],
-  providers: [UsuarioService],
-  controllers: [UsuarioController],
+  providers: [UsuarioService, RolService],
+  controllers: [UsuarioController, RolController],
 })
 export class UsuarioModule {}
