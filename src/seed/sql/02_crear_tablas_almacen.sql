@@ -42,11 +42,12 @@ CREATE TABLE IF NOT EXISTS grupo_articulo (
 -- Descripción: Artículos del inventario
 -- ============================================================
 CREATE TABLE IF NOT EXISTS articulo (
-  cod UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  cod SERIAL PRIMARY KEY,
+  cod_proveedor VARCHAR(50),
   nombre VARCHAR(255) NOT NULL,
   modelo VARCHAR(255) NOT NULL,
   descripcion TEXT NOT NULL,
-  img_url TEXT NOT NULL,
+  img_url TEXT,
   unidad_tipo VARCHAR(50) NOT NULL CHECK (unidad_tipo IN ('pieza', 'caja', 'peso', 'volumen', 'distancia', 'paquete')),
   grupo_id INT NOT NULL,
   unidad_medida_id INT,
@@ -54,6 +55,7 @@ CREATE TABLE IF NOT EXISTS articulo (
   CONSTRAINT fk_articulo_grupo FOREIGN KEY (grupo_id) REFERENCES grupo_articulo(id) ON DELETE RESTRICT,
   CONSTRAINT fk_articulo_unidad FOREIGN KEY (unidad_medida_id) REFERENCES unidad_medida_cuant(id) ON DELETE SET NULL
 );
+
 
 -- ============================================================
 -- TABLA: movimiento
@@ -63,7 +65,7 @@ CREATE TABLE IF NOT EXISTS movimiento (
   id SERIAL PRIMARY KEY,
   tipo VARCHAR(50) NOT NULL CHECK (tipo IN ('entrada', 'salida')),
   fecha DATE NOT NULL,
-  articulo_id UUID NOT NULL,
+  articulo_id INT NOT NULL,
   usuario_id INT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_movimiento_articulo FOREIGN KEY (articulo_id) REFERENCES articulo(cod) ON DELETE RESTRICT

@@ -1,11 +1,11 @@
 /* eslint-disable prettier/prettier */
 import {
   Entity,
-  PrimaryColumn,
   Column,
   ManyToOne,
   JoinColumn,
   OneToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { UnidadTipo } from '../enums/almacen.enum';
 import { GrupoArticulo } from './grupo-articulo.entity';
@@ -14,8 +14,11 @@ import { Movimiento } from './movimiento.entity';
 
 @Entity('articulo')
 export class Articulo {
-  @PrimaryColumn('uuid')
-  cod: string;
+  @PrimaryGeneratedColumn()
+  cod: number;
+
+  @Column({ nullable: true })
+  cod_proveedor?: string;
 
   @Column()
   nombre: string;

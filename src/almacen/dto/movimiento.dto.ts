@@ -11,7 +11,7 @@ export class MovimientoDTO {
 
   @IsNotEmpty()
   @IsString()
-  codArticulo: string;
+  codArticulo: number;
 
   @IsNotEmpty()
   @IsNumber()

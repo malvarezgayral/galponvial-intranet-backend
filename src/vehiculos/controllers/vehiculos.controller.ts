@@ -21,7 +21,7 @@ export class VehiculosController {
   create(@Body() createVehiculoDto: CreateVehiculoDto) {
     return this.vehiculosService.create(createVehiculoDto);
   }
-  
+
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   update(

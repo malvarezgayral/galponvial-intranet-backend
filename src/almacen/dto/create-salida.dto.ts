@@ -25,5 +25,5 @@ export class CreateSalidaDto {
 
   @IsString()
   @IsNotEmpty()
-  cod_articulo: string;
+  cod_articulo: number;
 }

@@ -3,9 +3,9 @@ import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { UnidadTipo } from '../enums/almacen.enum';
 
 export class CreateArticuloDto {
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  cod: string;
+  cod_proveedor?: string;
 
   @IsString()
   @IsNotEmpty()
