@@ -1,4 +1,11 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  BadRequestException,
+} from '@nestjs/common';
 import { UsuarioService } from './usuario.service';
 import {
   CreateUsuarioDto,
@@ -12,6 +19,7 @@ import { Rol } from './entities/rol.entity';
 import { UsuarioVehiculo } from './entities/usuario-vehiculo.entity';
 import { ReporteIncidente } from './entities/reporte-incidente.entity';
 import { Servicio } from './entities/servicio.entity';
+import { LoginUserDto } from './dto/login.dto';
 
 @Controller('usuario')
 export class UsuarioController {
@@ -20,13 +28,30 @@ export class UsuarioController {
   // Usuarios
   @Post('register')
   crearUsuario(@Body() createUserDto: CreateUsuarioDto) {
-    return this.usuarioService.crearUsuario(createUserDto);
+    try {
+      const { password, repeatedPassword } = createUserDto;
+      if (password !== repeatedPassword) {
+        throw new BadRequestException('Passwords do not match');
+      }
+      return this.usuarioService.crearUsuario(createUserDto);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
-  //@Post('login')
-  //loginUser(@Body() loginUserDto: LoginUserDto ) {
-  //  return this.usuarioService.login( loginUserDto );
-  //}
+  @Post('login')
+  async loginUser(@Body() loginUserDto: LoginUserDto) {
+    try {
+      const dni = loginUserDto.dni;
+      const usuario = await this.usuarioService.obtenerUsuarioPorDni(dni);
+      if (usuario && !usuario.isActive) {
+        throw new BadRequestException('El usuario no está activo');
+      }
+      return this.usuarioService.login(loginUserDto);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   @Get()
   obtenerUsuarios(): Promise<Usuario[]> {
@@ -34,8 +59,8 @@ export class UsuarioController {
   }
 
   @Get(':dni')
-  obtenerUsuarioPorDni(@Param('dni') dni: string): Promise<Usuario | null> {
-    return this.usuarioService.obtenerUsuarioPorDni(parseInt(dni));
+  obtenerUsuarioPorDni(@Param('dni') dni: number): Promise<Usuario | null> {
+    return this.usuarioService.obtenerUsuarioPorDni(dni);
   }
 
   // Roles

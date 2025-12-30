@@ -14,6 +14,7 @@ import {
   CreateServicioDto,
 } from './dto/usuario.dto';
 import { RolService } from './rol.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsuarioService {
@@ -33,8 +34,13 @@ export class UsuarioService {
 
   // Usuarios
   async crearUsuario(CreateUsuarioDto: CreateUsuarioDto) {
+    const pass = CreateUsuarioDto.password;
+    const salt = await bcrypt.genSalt();
+    const hash = await bcrypt.hash(pass, salt);
+
     const usuario: DeepPartial<Usuario> = {
       ...CreateUsuarioDto,
+      password: hash,
       fecha_alta: new Date(), //dia de hoy
       fecha_baja: undefined,
       rol: await this.rolService.getRolById(1), //rol por defecto 'usuario'
@@ -43,15 +49,20 @@ export class UsuarioService {
   }
 
   async obtenerUsuarios(): Promise<Usuario[]> {
-    return this.usuarioRepository.find({ relations: ['rol'] });
+    return await this.usuarioRepository.find({ relations: ['rol'] });
   }
 
   async obtenerUsuarioPorDni(dni: number): Promise<Usuario | null> {
-    return this.usuarioRepository.findOne({
+    return await this.usuarioRepository.findOne({
       where: { dni },
       relations: ['rol', 'vehiculos', 'reportesIncidentes'],
     });
   }
+
+  async login(loginUserDto: { dni: number; password: string }) {
+    
+  }
+
 
   // Roles
   async crearRol(dto: CreateRolDto): Promise<Rol> {
