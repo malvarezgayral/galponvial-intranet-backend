@@ -2,26 +2,25 @@ import {
   Controller,
   Get,
   Post,
-  // Param,
-  // ParseIntPipe,
+  Body,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { CombustibleService } from '../services/combustible.service';
+import { CreateCombustibleCargaDto } from '../dto/create-combustible-carga.dto';
 
-@Controller('combustible')
+@Controller('combustible-cargas')
 export class CombustibleController {
-  constructor() {}
+  constructor(private readonly combustibleService: CombustibleService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create() {}
+  create(@Body() createDto: CreateCombustibleCargaDto) {
+    return this.combustibleService.create(createDto);
+  }
 
   @Get()
-  findAll() {}
-
-  // @Get('vehiculo/:id')
-  // findByVehiculo(@Param('id', ParseIntPipe) id: number) {}
-
-  // @Get('rendimiento/:id')
-  // calcularRendimiento(@Param('id', ParseIntPipe) id: number) {}
+  findAll() {
+    return this.combustibleService.findAll();
+  }
 }

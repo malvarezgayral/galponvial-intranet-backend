@@ -6,8 +6,9 @@ import { UsuarioVehiculo } from './entities/usuario-vehiculo.entity';
 import { ReporteIncidente } from './entities/reporte-incidente.entity';
 import { Servicio } from './entities/servicio.entity';
 import { RefreshToken } from './entities/refresh-token.entity';
-import { UsuarioService } from './usuario.service';
-import { UsuarioController } from './usuario.controller';
+import { UsuarioService } from './services/usuario.service';
+import { UsuarioVehiculoService } from './services/usuario-vehiculo.service';
+import { UsuarioController } from './controllers/usuario.controller';
 import { RolService } from './rol.service';
 import { RolController } from './rol.controller';
 
@@ -22,7 +23,8 @@ import { RolController } from './rol.controller';
       RefreshToken,
     ]),
   ],
-  providers: [UsuarioService, RolService],
+  providers: [UsuarioService, RolService, UsuarioVehiculoService],
   controllers: [UsuarioController, RolController],
+  exports: [UsuarioService, UsuarioVehiculoService],
 })
 export class UsuarioModule {}
