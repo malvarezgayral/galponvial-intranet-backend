@@ -20,10 +20,15 @@ import { UsuarioVehiculo } from './entities/usuario-vehiculo.entity';
 import { ReporteIncidente } from './entities/reporte-incidente.entity';
 import { Servicio } from './entities/servicio.entity';
 import { LoginUserDto } from './dto/login.dto';
+import { Logger } from 'typeorm/logger/Logger';
+import { LogErrorType } from './types/usuario.types';
 
 @Controller('usuario')
 export class UsuarioController {
-  constructor(private readonly usuarioService: UsuarioService) {}
+  constructor(
+    private readonly usuarioService: UsuarioService,
+    private logger: Logger,
+  ) {}
 
   // Usuarios
   @Post('register')
@@ -34,8 +39,8 @@ export class UsuarioController {
         throw new BadRequestException('Passwords do not match');
       }
       return this.usuarioService.crearUsuario(createUserDto);
-    } catch (error) {
-      console.log(error);
+    } catch (error: unknown) {
+      this.logger.log(error as LogErrorType, 'UsuarioController.crearUsuario');
     }
   }
 
