@@ -106,7 +106,6 @@ export class VehiculosService {
 
     const { infoAdicional: infoData, ...vehiculoData } = updateVehiculoDto;
 
-    // 2. Validar sector si se está actualizando
     if (infoData?.id_sector_pertenencia) {
       const sector = await this.sectorRepository.findOne({
         where: { id_sector: infoData.id_sector_pertenencia },
@@ -120,17 +119,14 @@ export class VehiculosService {
     }
 
     try {
-      // 3. Actualizar datos del vehículo
       Object.assign(vehiculo, vehiculoData);
       await this.vehiculoRepository.save(vehiculo);
 
-      // 4. Actualizar info adicional si se proporcionó
       if (infoData && vehiculo.infoAdicional) {
         Object.assign(vehiculo.infoAdicional, infoData);
         await this.infoAdicionalRepository.save(vehiculo.infoAdicional);
       }
 
-      // 5. Retornar vehículo actualizado con relaciones
       const vehiculoActualizado = await this.vehiculoRepository.findOne({
         where: { id_vehiculo: id },
         relations: ['infoAdicional', 'infoAdicional.sector'],
