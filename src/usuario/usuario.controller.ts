@@ -5,6 +5,7 @@ import {
   Body,
   Param,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { UsuarioService } from './usuario.service';
 import {
@@ -20,27 +21,47 @@ import { UsuarioVehiculo } from './entities/usuario-vehiculo.entity';
 import { ReporteIncidente } from './entities/reporte-incidente.entity';
 import { Servicio } from './entities/servicio.entity';
 import { LoginUserDto } from './dto/login.dto';
-import { Logger } from 'typeorm/logger/Logger';
-import { LogErrorType } from './types/usuario.types';
 
 @Controller('usuario')
 export class UsuarioController {
-  constructor(
-    private readonly usuarioService: UsuarioService,
-    private logger: Logger,
-  ) {}
+  private logger = new Logger(UsuarioController.name);
+
+  constructor(private readonly usuarioService: UsuarioService) {}
 
   // Usuarios
   @Post('register')
-  crearUsuario(@Body() createUserDto: CreateUsuarioDto) {
+  async crearUsuario(@Body() createUserDto: CreateUsuarioDto) {
     try {
-      const { password, repeatedPassword } = createUserDto;
+      const {
+        password,
+        repeatedPassword,
+        email: userEmail,
+        dni: userDni,
+      } = createUserDto;
+
       if (password !== repeatedPassword) {
         throw new BadRequestException('Passwords do not match');
       }
+
+      const usuarioPorDni =
+        await this.usuarioService.obtenerUsuarioPorDni(userDni);
+      if (usuarioPorDni) {
+        throw new BadRequestException('User with this DNI already exists');
+      }
+
+      const usuarioPorEmail =
+        await this.usuarioService.obtenerUsuarioPorEmail(userEmail);
+      if (usuarioPorEmail) {
+        throw new BadRequestException('Email is already in use');
+      }
+
       return this.usuarioService.crearUsuario(createUserDto);
-    } catch (error: unknown) {
-      this.logger.log(error as LogErrorType, 'UsuarioController.crearUsuario');
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioController.crearUsuario',
+      );
+      throw error;
     }
   }
 
@@ -54,7 +75,11 @@ export class UsuarioController {
       }
       return this.usuarioService.login(loginUserDto);
     } catch (error) {
-      console.log(error);
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioController.crearUsuario',
+      );
+      throw error;
     }
   }
 

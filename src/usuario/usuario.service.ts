@@ -43,7 +43,7 @@ export class UsuarioService {
       password: hash,
       fecha_alta: new Date(), //dia de hoy
       fecha_baja: undefined,
-      rol: await this.rolService.getRolById(1), //rol por defecto 'usuario'
+      rol: undefined,
     };
     return await this.usuarioRepository.save(usuario);
   }
@@ -59,10 +59,14 @@ export class UsuarioService {
     });
   }
 
-  async login(loginUserDto: { dni: number; password: string }) {
-    
+  async obtenerUsuarioPorEmail(email: string): Promise<Usuario | null> {
+    return await this.usuarioRepository.findOne({
+      where: { email },
+      relations: ['rol'],
+    });
   }
 
+  async login(loginUserDto: { dni: number; password: string }) {}
 
   // Roles
   async crearRol(dto: CreateRolDto): Promise<Rol> {

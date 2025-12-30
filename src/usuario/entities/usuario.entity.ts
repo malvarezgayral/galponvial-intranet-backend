@@ -41,7 +41,7 @@ export class Usuario {
   @Column('date', { nullable: true })
   fecha_baja: Date;
 
-  @ManyToOne(() => Rol, (rol) => rol.usuarios)
+  @ManyToOne(() => Rol, (rol) => rol.usuarios, { nullable: true })
   @JoinColumn({ name: 'rol_id' })
   rol: Rol;
 
