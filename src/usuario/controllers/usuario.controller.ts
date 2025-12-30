@@ -7,20 +7,20 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
-import { UsuarioService } from './usuario.service';
+import { UsuarioService } from '../services/usuario.service';
 import {
   CreateUsuarioDto,
   CreateRolDto,
   CreateUsuarioVehiculoDto,
   CreateReporteIncidenteDto,
   CreateServicioDto,
-} from './dto/usuario.dto';
-import { Usuario } from './entities/usuario.entity';
-import { Rol } from './entities/rol.entity';
-import { UsuarioVehiculo } from './entities/usuario-vehiculo.entity';
-import { ReporteIncidente } from './entities/reporte-incidente.entity';
-import { Servicio } from './entities/servicio.entity';
-import { LoginUserDto } from './dto/login.dto';
+} from '../dto/usuario.dto';
+import { Usuario } from '../entities/usuario.entity';
+import { Rol } from '../entities/rol.entity';
+import { UsuarioVehiculo } from '../entities/usuario-vehiculo.entity';
+import { ReporteIncidente } from '../entities/reporte-incidente.entity';
+import { Servicio } from '../entities/servicio.entity';
+import { LoginUserDto } from '../dto/login.dto';
 
 @Controller('usuario')
 export class UsuarioController {

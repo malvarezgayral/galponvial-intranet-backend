@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { Usuario } from '../entities/usuario.entity';
 import { Rol } from '../entities/rol.entity';
 import { UsuarioVehiculo } from '../entities/usuario-vehiculo.entity';
@@ -13,7 +13,7 @@ import {
   CreateReporteIncidenteDto,
   CreateServicioDto,
 } from '../dto/usuario.dto';
-import { RolService } from './rol.service';
+import { RolService } from '../rol.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
