@@ -11,6 +11,7 @@ import { Sector } from '../entities/sector.entity';
 import { CreateVehiculoDto } from '../dto/create-vehiculo.dto';
 import { UpdateVehiculoDto } from '../dto/update-vehiculo.dto';
 import { VehiculoStatus } from '../enums/vehiculo.enum';
+import { CreateInfoAdicionalDataDto } from '../dto/create-info-adicional-data.dto';
 
 @Injectable()
 export class VehiculosService {
@@ -24,19 +25,21 @@ export class VehiculosService {
   ) {}
 
   async create(createVehiculoDto: CreateVehiculoDto): Promise<Vehiculo> {
-    const { infoAdicional: infoData, ...vehiculoData } = createVehiculoDto;
+    const { infoAdicional, ...vehiculoData } = createVehiculoDto;
 
-    // Validar que el sector exista si se proporciona
-    if (infoData.id_sector_pertenencia) {
-      const sector = await this.sectorRepository.findOne({
-        where: { id_sector: infoData.id_sector_pertenencia },
+    // Validar y obtener el sector si se proporciona
+    let sector: Sector | undefined;
+    if (infoAdicional.id_sector_pertenencia) {
+      const foundSector = await this.sectorRepository.findOne({
+        where: { id_sector: infoAdicional.id_sector_pertenencia },
       });
 
-      if (!sector) {
+      if (!foundSector) {
         throw new NotFoundException(
-          `Sector con ID ${infoData.id_sector_pertenencia} no encontrado`,
+          `Sector con ID ${infoAdicional.id_sector_pertenencia} no encontrado`,
         );
       }
+      sector = foundSector;
     }
 
     try {
@@ -50,12 +53,24 @@ export class VehiculosService {
 
       const vehiculoGuardado = await this.vehiculoRepository.save(vehiculo);
 
-      // 2. Crear info adicional asociada
-      const infoAdicional = this.infoAdicionalRepository.create({
-        ...infoData,
+      // info adicional creada, se usa deep partial para hacer mas permisivo el create
+      const infoData: Partial<CreateInfoAdicionalDataDto> = {
+        numero_serie: infoAdicional.numero_serie,
+        licencia_conductor: infoAdicional.licencia_conductor,
+        color: infoAdicional.color,
+        seguro_empresa: infoAdicional.seguro_empresa,
+        poliza: infoAdicional.poliza,
         vehiculo: vehiculoGuardado,
-      });
-      await this.infoAdicionalRepository.save(infoAdicional);
+      };
+
+      // solo se asigna sector en caso que exista
+      if (sector) {
+        infoData.sector = sector;
+      }
+
+      const infoAdicionalCreated =
+        this.infoAdicionalRepository.create(infoData);
+      await this.infoAdicionalRepository.save(infoAdicionalCreated);
 
       // 3. Retornar vehículo completo con relaciones
       const vehiculoCompleto = await this.vehiculoRepository.findOne({
@@ -122,7 +137,9 @@ export class VehiculosService {
       });
 
       if (!vehiculoActualizado) {
-        throw new NotFoundException('Error al recuperar el vehículo actualizado');
+        throw new NotFoundException(
+          'Error al recuperar el vehículo actualizado',
+        );
       }
 
       return vehiculoActualizado;
