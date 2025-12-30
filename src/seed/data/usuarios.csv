@@ -1,6 +1,6 @@
 dni,nombre,apellido,email,password,isActive,tokenVersion,fecha_alta,fecha_baja,rol_id
-12345678,Juan,Pérez,juan.perez@galpelvial.com,$2b$10$Y9pWvVdZDFTz5K8q.5K4eO3fQ7q2K8m0L9p4R2V1X8Y9Z0A1B2C3D4,true,0,2023-01-15,,1
-87654321,María,García,maria.garcia@galpelvial.com,$2b$10$X8qVwUcYCES4J7p.4J3dN2eP6q1J7l9nK8o3Q1U0W7X8Y9Z0A1B2C3,true,0,2023-02-20,,2
+12345678,Juan,Pérez,juan.perez@galpelvial.com,$2b$10$Y9pWvVdZDFTz5K8q.5K4eO3fQ7q2K8m0L9p4R2V1X8Y9Z0A1B2C3D4,false,0,2023-01-15,,1
+87654321,María,García,maria.garcia@galpelvial.com,$2b$10$X8qVwUcYCES4J7p.4J3dN2eP6q1J7l9nK8o3Q1U0W7X8Y9Z0A1B2C3,false,0,2023-02-20,,2
 11223344,Carlos,López,carlos.lopez@galpelvial.com,$2b$10$W7pUtBbXBDR3I6o.3I2cM1dO5p0I6k8mJ7n2P0T9V6W7X8Y9Z0A1B2,false,0,2023-03-10,2024-06-30,1
 55667788,Ana,Martínez,ana.martinez@galpelvial.com,$2b$10$V6oTsAaWACQ2H5n.2H1bL0cN4o9H5j7lI6m1O9S8U5V6W7X8Y9Z0A1,true,0,2023-04-05,,3
-99887766,Pedro,Rodríguez,pedro.rodriguez@galpelvial.com,$2b$10$U5nSrZzVZBP1G4m.1G0aK9bM3n8G4i6kH5l0N8R7T4U5V6W7X8Y9Z0,true,0,2023-05-12,,1
+99887766,Pedro,Rodríguez,pedro.rodriguez@galpelvial.com,$2b$10$U5nSrZzVZBP1G4m.1G0aK9bM3n8G4i6kH5l0N8R7T4U5V6W7X8Y9Z0,false,0,2023-05-12,,1

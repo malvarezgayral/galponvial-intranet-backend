@@ -29,7 +29,7 @@ export class Usuario {
   @Column()
   password: string;
 
-  @Column('boolean', { default: true })
+  @Column('boolean', { default: false })
   isActive: boolean;
 
   @Column('int', { default: 0 })
