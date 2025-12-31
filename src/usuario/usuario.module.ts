@@ -41,7 +41,7 @@ import { JwtStrategy } from './authStrategies/jwt.strategy';
       },
     }),
   ],
-  providers: [UsuarioService, RolService, UsuarioVehiculoService],
+  providers: [UsuarioService, RolService, UsuarioVehiculoService, JwtStrategy],
   controllers: [UsuarioController, RolController],
   exports: [
     UsuarioService,
