@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 import { Usuario } from '../entities/usuario.entity';
@@ -13,11 +13,15 @@ import {
   CreateReporteIncidenteDto,
   CreateServicioDto,
 } from '../dto/usuario.dto';
-import { RolService } from '../rol.service';
 import * as bcrypt from 'bcrypt';
+import { LoginUserDto } from '../dto/login.dto';
+import { JwtPayload } from '../interfaces/jwt-payload.interface';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsuarioService {
+  private logger = new Logger(UsuarioService.name);
+
   constructor(
     @InjectRepository(Usuario)
     private usuarioRepository: Repository<Usuario>,
@@ -29,7 +33,7 @@ export class UsuarioService {
     private reporteIncidenteRepository: Repository<ReporteIncidente>,
     @InjectRepository(Servicio)
     private servicioRepository: Repository<Servicio>,
-    private readonly rolService: RolService,
+    private readonly jwtService: JwtService,
   ) {}
 
   // Usuarios
@@ -66,7 +70,38 @@ export class UsuarioService {
     });
   }
 
-  async login(loginUserDto: { dni: number; password: string }) {}
+  async login(loginUserDto: LoginUserDto) {
+    const { password, dni } = loginUserDto;
+
+    try {
+      const user = await this.usuarioRepository.findOne({
+        where: { dni },
+        select: { password: true, email: true },
+      });
+
+      if (!user)
+        throw new UnauthorizedException('Credentials are not valid (email)');
+
+      if (!bcrypt.compareSync(password, user.password))
+        throw new UnauthorizedException('Credentials are not valid (password)');
+
+      return {
+        ...user,
+        token: this.getJwtToken({ dni: user.dni }),
+      };
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioService.login',
+      );
+      throw error;
+    }
+  }
+
+  private getJwtToken(payload: JwtPayload) {
+    const token = this.jwtService.sign(payload);
+    return token;
+  }
 
   // Roles
   async crearRol(dto: CreateRolDto): Promise<Rol> {
