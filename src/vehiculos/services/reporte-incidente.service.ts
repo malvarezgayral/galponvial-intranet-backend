@@ -6,61 +6,52 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
-import { Vehiculo } from '../entities/vehiculo.entity';
-import { Usuario } from 'src/usuario/entities/usuario.entity';
 import { CreateReporteIncidenteDto } from '../dto/create-reporte-incidente.dto';
 import { VehiculoStatus } from '../enums/vehiculo.enum';
 import { FallaIncidente } from 'src/usuario/enums/usuario.enum';
 import { StatusUpdateService } from './status-update.service';
+import { VehiculosService } from './vehiculo.service';
+import { UsuarioVehiculoService } from 'src/usuario/services/usuario-vehiculo.service';
 
 @Injectable()
 export class ReporteIncidenteService {
   constructor(
     @InjectRepository(ReporteIncidente)
     private readonly reporteIncidenteRepository: Repository<ReporteIncidente>,
-    @InjectRepository(Vehiculo)
-    private readonly vehiculoRepository: Repository<Vehiculo>,
-    @InjectRepository(Usuario)
-    private readonly usuarioRepository: Repository<Usuario>,
+    private readonly vehiculosService: VehiculosService,
+    private readonly usuarioVehiculoService: UsuarioVehiculoService,
     private readonly statusUpdateService: StatusUpdateService,
   ) {}
 
   async create(
     createDto: CreateReporteIncidenteDto,
   ): Promise<ReporteIncidente> {
-    // 1. Validar que el vehículo exista
-    const vehiculo = await this.vehiculoRepository.findOne({
-      where: { id_vehiculo: createDto.id_vehiculo },
-    });
+    // 1. Obtener vehículo usando el servicio
+    const vehiculo = await this.vehiculosService.findOne(createDto.id_vehiculo);
 
-    if (!vehiculo) {
-      throw new NotFoundException(
-        `Vehículo con ID ${createDto.id_vehiculo} no encontrado`,
+    // 2. Obtener conductor vigente del vehículo
+    const conductorVigente =
+      await this.usuarioVehiculoService.findConductorVigente(
+        createDto.id_vehiculo,
       );
-    }
 
-    // 2. Validar que el usuario exista
-    const usuario = await this.usuarioRepository.findOne({
-      where: { dni: createDto.id_usuario },
-    });
-
-    if (!usuario) {
-      throw new NotFoundException(
-        `Usuario con DNI ${createDto.id_usuario} no encontrado`,
+    if (!conductorVigente) {
+      throw new BadRequestException(
+        `No hay conductor asignado vigente para el vehículo ID ${createDto.id_vehiculo}`,
       );
     }
 
     try {
-      // 3. Crear reporte de incidente
+      // 3. Crear reporte de incidente (con el usuario del vehículo)
       const reporte = this.reporteIncidenteRepository.create({
         fecha: new Date(createDto.fecha),
         tipo: createDto.tipo,
         descripcion: createDto.descripcion,
         falla: createDto.falla,
         id_vehiculo: createDto.id_vehiculo,
-        id_usuario: createDto.id_usuario,
+        id_usuario: conductorVigente.id_usuario, // ← Obtenido del vehículo
         vehiculo,
-        usuario,
+        usuario: conductorVigente.usuario,
       });
 
       const reporteGuardado =
@@ -68,14 +59,13 @@ export class ReporteIncidenteService {
 
       // 4. Si la falla es CRÍTICA, cambiar status del vehículo
       if (createDto.falla === FallaIncidente.CRITICA) {
-        // Cerrar status actual
-        await this.statusUpdateService.cerrarStatusActual(vehiculo.id_vehiculo);
+        // Cambiar status usando el servicio de vehículos (responsabilidad correcta)
+        await this.vehiculosService.updateStatus(
+          vehiculo.id_vehiculo,
+          VehiculoStatus.FUERA_DE_SERVICIO,
+        );
 
-        // Cambiar status del vehículo
-        vehiculo.status = VehiculoStatus.FUERA_DE_SERVICIO;
-        await this.vehiculoRepository.save(vehiculo);
-
-        // Crear nuevo status_update
+        // Crear registro histórico en status_update
         await this.statusUpdateService.crearStatusUpdate(
           vehiculo,
           VehiculoStatus.FUERA_DE_SERVICIO,

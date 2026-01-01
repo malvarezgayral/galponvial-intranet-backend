@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository } from 'typeorm';
 import { StatusUpdate } from '../entities/status-update.entity';
 import { Vehiculo } from '../entities/vehiculo.entity';
 import { VehiculoStatus } from '../enums/vehiculo.enum';
@@ -12,27 +12,6 @@ export class StatusUpdateService {
     private readonly statusUpdateRepository: Repository<StatusUpdate>,
   ) {}
 
-  /**
-   * Cerrar el status actual del vehículo (establecer fecha_hasta)
-   */
-  async cerrarStatusActual(idVehiculo: number): Promise<void> {
-    const statusActual = await this.statusUpdateRepository.findOne({
-      where: {
-        vehiculo: { id_vehiculo: idVehiculo },
-        fecha_hasta: IsNull(),
-      },
-      order: { fecha_desde: 'DESC' },
-    });
-
-    if (statusActual) {
-      statusActual.fecha_hasta = new Date();
-      await this.statusUpdateRepository.save(statusActual);
-    }
-  }
-
-  /**
-   * Crear un nuevo registro de status
-   */
   async crearStatusUpdate(
     vehiculo: Vehiculo,
     nuevoStatus: VehiculoStatus,
@@ -40,10 +19,19 @@ export class StatusUpdateService {
     const statusUpdate = this.statusUpdateRepository.create({
       tipo: nuevoStatus,
       fecha_desde: new Date(),
-      fecha_hasta: null,
+      fecha_hasta: new Date(), 
       vehiculo,
     });
 
     return await this.statusUpdateRepository.save(statusUpdate);
+  }
+
+  async obtenerUltimoStatus(idVehiculo: number): Promise<StatusUpdate | null> {
+    return await this.statusUpdateRepository.findOne({
+      where: {
+        vehiculo: { id_vehiculo: idVehiculo },
+      },
+      order: { fecha_desde: 'DESC' },
+    });
   }
 }

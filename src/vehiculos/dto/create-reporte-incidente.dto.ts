@@ -28,7 +28,4 @@ export class CreateReporteIncidenteDto {
   @IsNotEmpty()
   id_vehiculo: number;
 
-  @IsNumber()
-  @IsNotEmpty()
-  id_usuario: number;
 }
