@@ -66,7 +66,9 @@ export class UsuarioController {
   }
 
   @Post('login')
-  async loginUser(@Body() loginUserDto: LoginUserDto) {
+  async loginUser(
+    @Body() loginUserDto: LoginUserDto,
+  ): Promise<{ dni: number; token: string }> {
     try {
       const dni = loginUserDto.dni;
       const usuario = await this.usuarioService.obtenerUsuarioPorDni(dni);

@@ -3,7 +3,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { Usuario } from '../entities/usuario.entity';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-//import { ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -13,10 +13,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     @InjectRepository(Usuario)
     private readonly userRepository: Repository<Usuario>,
 
-    //configService: ConfigService,
+    configService: ConfigService,
   ) {
+    const jwtSecret =
+      configService.get<string>('JWT_SECRET') || process.env.JWT_SECRET;
+
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET is not defined in environment variables');
+    }
+
     super({
-      secretOrKey: 'mysecretkey', //configService.get('JWT_SECRET'),
+      secretOrKey: jwtSecret,
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     });
   }

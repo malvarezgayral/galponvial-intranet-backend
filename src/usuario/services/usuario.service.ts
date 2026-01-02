@@ -76,17 +76,19 @@ export class UsuarioService {
     try {
       const user = await this.usuarioRepository.findOne({
         where: { dni },
-        select: { password: true, email: true },
+        select: { dni: true, password: true },
       });
 
-      if (!user)
-        throw new UnauthorizedException('Credentials are not valid (email)');
+      console.log('User found during login:', user);
+
+      if (!user) throw new UnauthorizedException('Credentials are not valid');
 
       if (!bcrypt.compareSync(password, user.password))
         throw new UnauthorizedException('Credentials are not valid (password)');
 
+      this.logger.log(`Usuario ${user.dni} logged in successfully`);
       return {
-        ...user,
+        dni: user.dni,
         token: this.getJwtToken({ dni: user.dni }),
       };
     } catch (error) {
