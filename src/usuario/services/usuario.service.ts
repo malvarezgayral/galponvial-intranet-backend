@@ -79,8 +79,6 @@ export class UsuarioService {
         select: { dni: true, password: true },
       });
 
-      console.log('User found during login:', user);
-
       if (!user) throw new UnauthorizedException('Credentials are not valid');
 
       if (!bcrypt.compareSync(password, user.password))
