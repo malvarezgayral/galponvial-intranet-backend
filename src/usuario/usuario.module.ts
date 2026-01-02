@@ -11,6 +11,10 @@ import { UsuarioVehiculoService } from './services/usuario-vehiculo.service';
 import { UsuarioController } from './controllers/usuario.controller';
 import { RolService } from './rol.service';
 import { RolController } from './rol.controller';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './authStrategies/jwt.strategy';
 
 @Module({
   imports: [
@@ -22,9 +26,30 @@ import { RolController } from './rol.controller';
       Servicio,
       RefreshToken,
     ]),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          secret: configService.get('JWT_SECRET'),
+          signOptions: {
+            expiresIn: '1h',
+          },
+        };
+      },
+    }),
   ],
-  providers: [UsuarioService, RolService, UsuarioVehiculoService],
+  providers: [UsuarioService, RolService, UsuarioVehiculoService, JwtStrategy],
   controllers: [UsuarioController, RolController],
-  exports: [UsuarioService, UsuarioVehiculoService],
+  exports: [
+    UsuarioService,
+    UsuarioVehiculoService,
+    TypeOrmModule,
+    JwtStrategy,
+    PassportModule,
+    JwtModule,
+  ],
 })
 export class UsuarioModule {}
