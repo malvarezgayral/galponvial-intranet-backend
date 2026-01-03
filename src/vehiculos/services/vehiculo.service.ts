@@ -82,7 +82,7 @@ export class VehiculosService {
         throw new NotFoundException('Error al recuperar el vehículo creado');
       }
 
-      return vehiculoCompleto;
+      return vehiculoCompleto; // ← ESTE ES EL RETURN QUE FALTABA
     } catch (error) {
       throw new BadRequestException(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -145,5 +145,37 @@ export class VehiculosService {
         'Error al actualizar el vehículo: ' + error.message,
       );
     }
+  }
+
+  async updateStatus(
+    idVehiculo: number,
+    nuevoStatus: VehiculoStatus,
+  ): Promise<Vehiculo> {
+    const vehiculo = await this.vehiculoRepository.findOne({
+      where: { id_vehiculo: idVehiculo },
+    });
+
+    if (!vehiculo) {
+      throw new NotFoundException(
+        `Vehículo con ID ${idVehiculo} no encontrado`,
+      );
+    }
+
+    vehiculo.status = nuevoStatus;
+    return await this.vehiculoRepository.save(vehiculo);
+  }
+
+  async findOne(idVehiculo: number): Promise<Vehiculo> {
+    const vehiculo = await this.vehiculoRepository.findOne({
+      where: { id_vehiculo: idVehiculo },
+    });
+
+    if (!vehiculo) {
+      throw new NotFoundException(
+        `Vehículo con ID ${idVehiculo} no encontrado`,
+      );
+    }
+
+    return vehiculo;
   }
 }
