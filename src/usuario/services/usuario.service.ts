@@ -1,21 +1,27 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Usuario } from './entities/usuario.entity';
-import { Rol } from './entities/rol.entity';
-import { UsuarioVehiculo } from './entities/usuario-vehiculo.entity';
-import { ReporteIncidente } from './entities/reporte-incidente.entity';
-import { Servicio } from './entities/servicio.entity';
+import { DeepPartial, Repository } from 'typeorm';
+import { Usuario } from '../entities/usuario.entity';
+import { Rol } from '../entities/rol.entity';
+import { UsuarioVehiculo } from '../entities/usuario-vehiculo.entity';
+import { ReporteIncidente } from '../entities/reporte-incidente.entity';
+import { Servicio } from '../entities/servicio.entity';
 import {
   CreateUsuarioDto,
   CreateRolDto,
   CreateUsuarioVehiculoDto,
   CreateReporteIncidenteDto,
   CreateServicioDto,
-} from './dto/usuario.dto';
+} from '../dto/usuario.dto';
+import * as bcrypt from 'bcrypt';
+import { LoginUserDto } from '../dto/login.dto';
+import { JwtPayload } from '../interfaces/jwt-payload.interface';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsuarioService {
+  private logger = new Logger(UsuarioService.name);
+
   constructor(
     @InjectRepository(Usuario)
     private usuarioRepository: Repository<Usuario>,
@@ -27,27 +33,74 @@ export class UsuarioService {
     private reporteIncidenteRepository: Repository<ReporteIncidente>,
     @InjectRepository(Servicio)
     private servicioRepository: Repository<Servicio>,
+    private readonly jwtService: JwtService,
   ) {}
 
   // Usuarios
-  async crearUsuario(dto: CreateUsuarioDto): Promise<Usuario> {
-    const usuario = {
-      ...dto,
-      fecha_alta: new Date(dto.fecha_alta),
-      fecha_baja: dto.fecha_baja ? new Date(dto.fecha_baja) : null,
+  async crearUsuario(CreateUsuarioDto: CreateUsuarioDto) {
+    const pass = CreateUsuarioDto.password;
+    const salt = await bcrypt.genSalt();
+    const hash = await bcrypt.hash(pass, salt);
+
+    const usuario: DeepPartial<Usuario> = {
+      ...CreateUsuarioDto,
+      password: hash,
+      fecha_alta: new Date(), //dia de hoy
+      fecha_baja: undefined,
+      rol: undefined,
     };
-    return this.usuarioRepository.save(usuario as Partial<Usuario>);
+    return await this.usuarioRepository.save(usuario);
   }
 
   async obtenerUsuarios(): Promise<Usuario[]> {
-    return this.usuarioRepository.find({ relations: ['rol'] });
+    return await this.usuarioRepository.find({ relations: ['rol'] });
   }
 
   async obtenerUsuarioPorDni(dni: number): Promise<Usuario | null> {
-    return this.usuarioRepository.findOne({
+    return await this.usuarioRepository.findOne({
       where: { dni },
       relations: ['rol', 'vehiculos', 'reportesIncidentes'],
     });
+  }
+
+  async obtenerUsuarioPorEmail(email: string): Promise<Usuario | null> {
+    return await this.usuarioRepository.findOne({
+      where: { email },
+      relations: ['rol'],
+    });
+  }
+
+  async login(loginUserDto: LoginUserDto) {
+    const { password, dni } = loginUserDto;
+
+    try {
+      const user = await this.usuarioRepository.findOne({
+        where: { dni },
+        select: { dni: true, password: true },
+      });
+
+      if (!user) throw new UnauthorizedException('Credentials are not valid');
+
+      if (!bcrypt.compareSync(password, user.password))
+        throw new UnauthorizedException('Credentials are not valid (password)');
+
+      this.logger.log(`Usuario ${user.dni} logged in successfully`);
+      return {
+        dni: user.dni,
+        token: this.getJwtToken({ dni: user.dni }),
+      };
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioService.login',
+      );
+      throw error;
+    }
+  }
+
+  private getJwtToken(payload: JwtPayload) {
+    const token = this.jwtService.sign(payload);
+    return token;
   }
 
   // Roles

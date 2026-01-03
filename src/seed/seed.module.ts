@@ -27,6 +27,7 @@ import { Usuario } from '../usuario/entities/usuario.entity';
 import { UsuarioVehiculo } from '../usuario/entities/usuario-vehiculo.entity';
 import { ReporteIncidente } from '../usuario/entities/reporte-incidente.entity';
 import { Servicio } from '../usuario/entities/servicio.entity';
+import { RefreshToken } from '../usuario/entities/refresh-token.entity';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { Servicio } from '../usuario/entities/servicio.entity';
       UsuarioVehiculo,
       ReporteIncidente,
       Servicio,
+      RefreshToken,
     ]),
   ],
   controllers: [SeedController],
