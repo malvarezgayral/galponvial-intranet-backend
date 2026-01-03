@@ -27,5 +27,4 @@ export class CreateReporteIncidenteDto {
   @IsNumber()
   @IsNotEmpty()
   id_vehiculo: number;
-
 }
