@@ -1,12 +1,12 @@
 /* eslint-disable prettier/prettier */
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateArticuloDto } from './create-articulo.dto';
-import { IsNumber, IsOptional } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpdateArticuloDto extends PartialType(CreateArticuloDto) {
+  @IsString()
   @IsOptional()
-  @IsNumber()
-  cod?: number;
+  cod_proveedor?: string;
 
   @IsOptional()
   @IsNumber()

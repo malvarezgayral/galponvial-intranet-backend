@@ -26,6 +26,7 @@ export class CreateArticuloDto {
   descripcion: string;
 
   @IsString()
+  @IsOptional()
   img_url: string;
 
   @IsEnum(UnidadTipo)

@@ -28,7 +28,6 @@ const isTestEnv = process.env.NODE_ENV === 'test';
             password: process.env.DB_PASSWORD,
             autoLoadEntities: true,
             synchronize: true,
-            logging: ['query'],
           }),
         ]
       : []),

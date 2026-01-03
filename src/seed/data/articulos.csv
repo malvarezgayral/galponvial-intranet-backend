@@ -1,9 +1,9 @@
-nombre,modelo,descripcion,img_url,stock,unidad_tipo,grupo_id,unidad_medida_id
-Filtro de aire,FA-100,Filtro de aire para motores diesel,https://example.com/filtro.jpg,3,pieza,1,
-Pastillas de freno,PF-200,Pastillas de freno cerámicas,https://example.com/pastillas.jpg,6,caja,1,2
-Neumático 11R22.5,NE-300,Neumático para camión,https://example.com/neumatico.jpg,9,pieza,2,
-Aceite diesel 15W40,AC-400,Aceite mineral para motores diesel,https://example.com/aceite.jpg,0,volumen,3,5
-Destornillador Phillips,HE-500,Destornillador de 10 pulgadas,https://example.com/destorn.jpg,4,pieza,4,
-Correa de distribución,CD-600,Correa de distribución reforzada,https://example.com/correa.jpg,2,pieza,1,
-Bujías,BU-700,Juego de 6 bujías,https://example.com/bujias.jpg,7,caja,1,
-Batería 12V,BA-800,Batería de arranque 12V 100Ah,https://example.com/bateria.jpg,2,pieza,1,
+nombre,modelo,descripcion,img_url,stock,unidad_tipo,cod_proveedor,grupo_id,unidad_medida_id
+Filtro de aire,FA-100,Filtro de aire para motores diesel,https://example.com/filtro.jpg,3,pieza,PROV-FA-100,1,
+Pastillas de freno,PF-200,Pastillas de freno cerámicas,https://example.com/pastillas.jpg,6,caja,PROV-PF-200,1,2
+Neumático 11R22.5,NE-300,Neumático para camión,https://example.com/neumatico.jpg,9,pieza,PROV-NE-300,2,
+Aceite diesel 15W40,AC-400,Aceite mineral para motores diesel,https://example.com/aceite.jpg,0,volumen,PROV-AC-400,3,5
+Destornillador Phillips,HE-500,Destornillador de 10 pulgadas,https://example.com/destorn.jpg,4,pieza,PROV-HE-500,4,
+Correa de distribución,CD-600,Correa de distribución reforzada,https://example.com/correa.jpg,2,pieza,PROV-CD-600,1,
+Bujías,BU-700,Juego de 6 bujías,https://example.com/bujias.jpg,7,caja,PROV-BU-700,1,
+Batería 12V,BA-800,Batería de arranque 12V 100Ah,https://example.com/bateria.jpg,2,pieza,PROV-BA-800,1,

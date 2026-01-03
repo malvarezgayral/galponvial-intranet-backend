@@ -29,7 +29,7 @@ export class Articulo {
   @Column('text')
   descripcion: string;
 
-  @Column('text')
+  @Column({ type: 'text', nullable: true })
   img_url: string;
 
   @Column({ type: 'int', nullable: true })

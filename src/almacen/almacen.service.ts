@@ -69,6 +69,16 @@ export class AlmacenService {
       throw new NotFoundException(`Artículo ${cod} no encontrado`);
     }
 
+    // Actualizar propiedades simples
+    if (dto.nombre !== undefined) art.nombre = dto.nombre;
+    if (dto.descripcion !== undefined) art.descripcion = dto.descripcion;
+    if (dto.modelo !== undefined) art.modelo = dto.modelo;
+    if (dto.img_url !== undefined) art.img_url = dto.img_url;
+    if (dto.unidad_tipo !== undefined) art.unidad_tipo = dto.unidad_tipo;
+    if (dto.stock !== undefined) art.stock = dto.stock;
+    if (dto.cod_proveedor !== undefined) art.cod_proveedor = dto.cod_proveedor;
+
+    // Actualizar relación: Grupo
     if (dto.grupo_id !== undefined) {
       const grupo = await this.grupoRepo.findOne({
         where: { id: dto.grupo_id },
@@ -83,6 +93,7 @@ export class AlmacenService {
       art.grupo = grupo;
     }
 
+    // Actualizar relación: Unidad de Medida
     if (dto.unidad_medida_id !== undefined) {
       const unidad = await this.unidadRepo.findOne({
         where: { id: dto.unidad_medida_id },
@@ -96,14 +107,6 @@ export class AlmacenService {
 
       art.unidadMedida = unidad;
     }
-
-    if (dto.nombre !== undefined) art.nombre = dto.nombre;
-    if (dto.descripcion !== undefined) art.descripcion = dto.descripcion;
-    if (dto.modelo !== undefined) art.modelo = dto.modelo;
-    if (dto.img_url !== undefined) art.img_url = dto.img_url;
-    if (dto.unidad_tipo !== undefined) art.unidad_tipo = dto.unidad_tipo;
-    if (dto.stock !== undefined) art.stock = dto.stock;
-    if (dto.cod_proveedor !== undefined) art.cod_proveedor = dto.cod_proveedor;
 
     return this.articuloRepo.save(art);
   }
