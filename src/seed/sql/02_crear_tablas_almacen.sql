@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS articulo (
   modelo VARCHAR(255) NOT NULL,
   descripcion TEXT NOT NULL,
   img_url TEXT,
+  stock INT,
   unidad_tipo VARCHAR(50) NOT NULL CHECK (unidad_tipo IN ('pieza', 'caja', 'peso', 'volumen', 'distancia', 'paquete')),
   grupo_id INT NOT NULL,
   unidad_medida_id INT,

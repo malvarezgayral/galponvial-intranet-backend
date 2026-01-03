@@ -1,6 +1,13 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+/* eslint-disable prettier/prettier */
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsNumber,
+} from 'class-validator';
 import { UnidadTipo } from '../enums/almacen.enum';
+import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 
 export class CreateArticuloDto {
   @ApiPropertyOptional({
@@ -32,12 +39,9 @@ export class CreateArticuloDto {
   @IsNotEmpty()
   descripcion: string;
 
-  @ApiPropertyOptional({
-    example: 'https://example.com/filtro.jpg',
-  })
-  @IsOptional()
   @IsString()
-  img_url?: string;
+  @IsOptional()
+  img_url: string;
 
   @ApiProperty({
     enum: UnidadTipo,
@@ -45,4 +49,8 @@ export class CreateArticuloDto {
   })
   @IsEnum(UnidadTipo)
   unidad_tipo: UnidadTipo;
+
+  @IsOptional()
+  @IsNumber()
+  stock?: number;
 }

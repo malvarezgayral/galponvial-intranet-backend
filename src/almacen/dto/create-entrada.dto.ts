@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsString } from 'class-validator';
 import { EntradaTipo } from '../enums/almacen.enum';
 
 export class CreateEntradaDto {
@@ -24,11 +24,7 @@ export class CreateEntradaDto {
   @IsNotEmpty()
   proveedor: string;
 
-  @ApiProperty({
-    description: 'Código del artículo',
-    example: 1001,
-  })
-  @IsString()
+  @IsInt()
   @IsNotEmpty()
   cod_articulo: number;
 }

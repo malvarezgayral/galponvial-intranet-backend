@@ -1,15 +1,15 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateArticuloDto } from './create-articulo.dto';
-import { IsNumber, IsOptional } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpdateArticuloDto extends PartialType(CreateArticuloDto) {
   @ApiPropertyOptional({
     example: 1001,
   })
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  cod?: number;
+  cod_proveedor?: string;
 
   @ApiPropertyOptional({
     description: 'ID del grupo de artículo',
