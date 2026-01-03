@@ -17,8 +17,8 @@ export class Articulo {
   @PrimaryGeneratedColumn()
   cod: number;
 
-  @Column({ nullable: true })
-  cod_proveedor?: string;
+  @Column()
+  cod_proveedor: string;
 
   @Column()
   nombre: string;
@@ -30,7 +30,7 @@ export class Articulo {
   descripcion: string;
 
   @Column({ type: 'text', nullable: true })
-  img_url: string;
+  img_url?: string;
 
   @Column({ type: 'int', nullable: true })
   stock?: number;
