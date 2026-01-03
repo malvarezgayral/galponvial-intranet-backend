@@ -17,8 +17,8 @@ export class Articulo {
   @PrimaryGeneratedColumn()
   cod: number;
 
-  @Column({ nullable: true })
-  cod_proveedor?: string;
+  @Column()
+  cod_proveedor: string;
 
   @Column()
   nombre: string;
@@ -29,8 +29,11 @@ export class Articulo {
   @Column('text')
   descripcion: string;
 
-  @Column('text')
-  img_url: string;
+  @Column({ type: 'text', nullable: true })
+  img_url?: string;
+
+  @Column({ type: 'int', nullable: true })
+  stock?: number;
 
   @Column({
     type: 'enum',

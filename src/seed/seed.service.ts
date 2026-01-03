@@ -26,6 +26,7 @@ import { Usuario } from '../usuario/entities/usuario.entity';
 import { UsuarioVehiculo } from '../usuario/entities/usuario-vehiculo.entity';
 import { ReporteIncidente } from '../usuario/entities/reporte-incidente.entity';
 import { Servicio } from '../usuario/entities/servicio.entity';
+import { RefreshToken } from '../usuario/entities/refresh-token.entity';
 
 @Injectable()
 export class SeedService {
@@ -69,6 +70,8 @@ export class SeedService {
     private reporteIncidenteRepository: Repository<ReporteIncidente>,
     @InjectRepository(Servicio)
     private servicioRepository: Repository<Servicio>,
+    @InjectRepository(RefreshToken)
+    private refreshTokenRepository: Repository<RefreshToken>,
   ) {}
 
   /**
@@ -97,6 +100,7 @@ export class SeedService {
       // Orden de inserción para módulo usuario (respetando FK)
       results['rol'] = await this.seedRoles();
       results['usuario'] = await this.seedUsuarios();
+      results['refresh_token'] = await this.seedRefreshTokens();
       results['usuario_vehiculo'] = await this.seedUsuariosVehiculos();
       results['reporte_incidente'] = await this.seedReportesIncidentes();
       results['servicio'] = await this.seedServicios();
@@ -286,6 +290,10 @@ export class SeedService {
       dni: Number(item.dni),
       nombre: item.nombre,
       apellido: item.apellido,
+      email: item.email,
+      password: item.password,
+      isActive: item.isActive === 'true',
+      tokenVersion: Number(item.tokenVersion),
       fecha_alta: new Date(item.fecha_alta as string),
       fecha_baja: item.fecha_baja ? new Date(item.fecha_baja as string) : null,
       rol_id: Number(item.rol_id),
@@ -342,6 +350,21 @@ export class SeedService {
     })) as Partial<Servicio>[];
     await this.servicioRepository.save(mappedData);
     this.logger.log(`✓ ${data.length} servicios cargados`);
+    return data.length;
+  }
+
+  private async seedRefreshTokens(): Promise<number> {
+    this.logger.log('Cargando refresh tokens...');
+    const data = await this.csvReaderService.readCsv('refresh_tokens');
+    const mappedData = data.map((item) => ({
+      id: Number(item.id),
+      expiresAt: new Date(item.expiresAt as string),
+      tokenHash: String(item.tokenHash),
+      revoked: item.revoked === 'true',
+      dni_usuario: Number(item.dni_usuario),
+    })) as Partial<RefreshToken>[];
+    await this.refreshTokenRepository.save(mappedData);
+    this.logger.log(`✓ ${data.length} refresh tokens cargados`);
     return data.length;
   }
 }

@@ -1,26 +1,91 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
-import { UsuarioService } from './usuario.service';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
+import { UsuarioService } from '../services/usuario.service';
 import {
   CreateUsuarioDto,
   CreateRolDto,
   CreateUsuarioVehiculoDto,
   CreateReporteIncidenteDto,
   CreateServicioDto,
-} from './dto/usuario.dto';
-import { Usuario } from './entities/usuario.entity';
-import { Rol } from './entities/rol.entity';
-import { UsuarioVehiculo } from './entities/usuario-vehiculo.entity';
-import { ReporteIncidente } from './entities/reporte-incidente.entity';
-import { Servicio } from './entities/servicio.entity';
+} from '../dto/usuario.dto';
+import { Usuario } from '../entities/usuario.entity';
+import { Rol } from '../entities/rol.entity';
+import { UsuarioVehiculo } from '../entities/usuario-vehiculo.entity';
+import { ReporteIncidente } from '../entities/reporte-incidente.entity';
+import { Servicio } from '../entities/servicio.entity';
+import { LoginUserDto } from '../dto/login.dto';
 
 @Controller('usuario')
 export class UsuarioController {
+  private logger = new Logger(UsuarioController.name);
+
   constructor(private readonly usuarioService: UsuarioService) {}
 
   // Usuarios
-  @Post()
-  crearUsuario(@Body() dto: CreateUsuarioDto): Promise<Usuario> {
-    return this.usuarioService.crearUsuario(dto);
+  @Post('register')
+  async crearUsuario(@Body() createUserDto: CreateUsuarioDto) {
+    try {
+      const {
+        password,
+        repeatedPassword,
+        email: userEmail,
+        dni: userDni,
+      } = createUserDto;
+
+      if (password !== repeatedPassword) {
+        throw new BadRequestException('Passwords do not match');
+      }
+
+      const usuarioPorDni =
+        await this.usuarioService.obtenerUsuarioPorDni(userDni);
+      if (usuarioPorDni) {
+        throw new BadRequestException('User with this DNI already exists');
+      }
+
+      const usuarioPorEmail =
+        await this.usuarioService.obtenerUsuarioPorEmail(userEmail);
+      if (usuarioPorEmail) {
+        throw new BadRequestException('Email is already in use');
+      }
+
+      return this.usuarioService.crearUsuario(createUserDto);
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioController.crearUsuario',
+      );
+      throw error;
+    }
+  }
+
+  @Post('login')
+  async loginUser(
+    @Body() loginUserDto: LoginUserDto,
+  ): Promise<{ dni: number; token: string }> {
+    try {
+      const dni = loginUserDto.dni;
+      const usuario = await this.usuarioService.obtenerUsuarioPorDni(dni);
+      if (!usuario) {
+        throw new BadRequestException('Invalid credentials');
+      }
+      if (usuario && !usuario.isActive) {
+        throw new BadRequestException('El usuario no está activo');
+      }
+      return this.usuarioService.login(loginUserDto);
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioController.crearUsuario',
+      );
+      throw error;
+    }
   }
 
   @Get()
@@ -29,8 +94,8 @@ export class UsuarioController {
   }
 
   @Get(':dni')
-  obtenerUsuarioPorDni(@Param('dni') dni: string): Promise<Usuario | null> {
-    return this.usuarioService.obtenerUsuarioPorDni(parseInt(dni));
+  obtenerUsuarioPorDni(@Param('dni') dni: number): Promise<Usuario | null> {
+    return this.usuarioService.obtenerUsuarioPorDni(dni);
   }
 
   // Roles

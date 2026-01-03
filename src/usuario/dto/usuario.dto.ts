@@ -5,13 +5,17 @@ import {
   IsNumber,
   IsString,
   IsEnum,
+  IsEmail,
+  MinLength,
+  MaxLength,
+  Matches,
 } from 'class-validator';
 import { RolTipo, Permiso, FallaIncidente } from '../enums/usuario.enum';
 
 export class CreateUsuarioDto {
   @IsNotEmpty()
   @IsNumber()
-  dni: number;
+  dni: number; //verificar que sea un dni valido
 
   @IsNotEmpty()
   @IsString()
@@ -21,17 +25,27 @@ export class CreateUsuarioDto {
   @IsString()
   apellido: string;
 
-  @IsNotEmpty()
-  @IsDateString()
-  fecha_alta: string;
+  @IsString()
+  @IsEmail()
+  email: string;
 
-  @IsOptional()
-  @IsDateString()
-  fecha_baja?: string;
+  @IsString()
+  @MinLength(6)
+  @MaxLength(50)
+  @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+    message:
+      'The password must have a Uppercase, lowercase letter and a number',
+  })
+  password: string;
 
-  @IsNotEmpty()
-  @IsNumber()
-  rol_id: number;
+  @IsString()
+  @MinLength(6)
+  @MaxLength(50)
+  @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+    message:
+      'The password must have a Uppercase, lowercase letter and a number',
+  })
+  repeatedPassword: string;
 }
 
 export class UpdateUsuarioDto {

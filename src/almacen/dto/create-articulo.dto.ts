@@ -1,28 +1,56 @@
 /* eslint-disable prettier/prettier */
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsNumber,
+} from 'class-validator';
 import { UnidadTipo } from '../enums/almacen.enum';
+import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 
 export class CreateArticuloDto {
+  @ApiPropertyOptional({
+    description: 'Código del proveedor',
+    example: 'PROV-123',
+  })
   @IsOptional()
   @IsString()
   cod_proveedor?: string;
 
+  @ApiProperty({
+    example: 'Filtro de aceite',
+  })
   @IsString()
   @IsNotEmpty()
   nombre: string;
 
+  @ApiProperty({
+    example: 'FO-2024',
+  })
   @IsString()
   @IsNotEmpty()
   modelo: string;
 
+  @ApiProperty({
+    example: 'Filtro compatible con motor X',
+  })
   @IsString()
   @IsNotEmpty()
   descripcion: string;
 
-  @IsOptional()
   @IsString()
-  img_url?: string;
+  @IsOptional()
+  img_url: string;
 
+  @ApiProperty({
+    enum: UnidadTipo,
+    example: UnidadTipo.PIEZA,
+  })
   @IsEnum(UnidadTipo)
   unidad_tipo: UnidadTipo;
+
+  @IsOptional()
+  @IsNumber()
+  stock?: number;
 }

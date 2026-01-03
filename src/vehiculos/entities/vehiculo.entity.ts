@@ -10,7 +10,7 @@ import { StatusUpdate } from './status-update.entity';
 import { CombustibleCarga } from './combustible-carga.entity';
 import { Recordatorio } from './recordatorio.entity';
 import { VehiculoStatus, TipoVehiculo } from '../enums/vehiculo.enum';
-import { UsuarioVehiculo } from 'src/usuario/entities/usuario-vehiculo.entity';
+import { UsuarioVehiculo } from '../../usuario/entities/usuario-vehiculo.entity';
 
 @Entity('vehiculo')
 export class Vehiculo {
