@@ -59,6 +59,7 @@ export class ReporteIncidenteService {
 
       // 4. Si la falla es CRÍTICA, cambiar status del vehículo
       if (createDto.falla === FallaIncidente.CRITICA) {
+        const statusViejo: VehiculoStatus = vehiculo.status;
         // Cambiar status usando el servicio de vehículos (responsabilidad correcta)
         await this.vehiculosService.updateStatus(
           vehiculo.id_vehiculo,
@@ -66,10 +67,7 @@ export class ReporteIncidenteService {
         );
 
         // Crear registro histórico en status_update
-        await this.statusUpdateService.crearStatusUpdate(
-          vehiculo,
-          VehiculoStatus.FUERA_DE_SERVICIO,
-        );
+        await this.statusUpdateService.crearStatusUpdate(vehiculo, statusViejo);
       }
 
       // 5. Retornar con relaciones

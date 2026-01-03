@@ -147,7 +147,6 @@ export class VehiculosService {
     }
   }
 
-
   async updateStatus(
     idVehiculo: number,
     nuevoStatus: VehiculoStatus,
@@ -166,9 +165,7 @@ export class VehiculosService {
     return await this.vehiculoRepository.save(vehiculo);
   }
 
-  async findOne(
-    idVehiculo: number
-  ): Promise<Vehiculo> {
+  async findOne(idVehiculo: number): Promise<Vehiculo> {
     const vehiculo = await this.vehiculoRepository.findOne({
       where: { id_vehiculo: idVehiculo },
     });

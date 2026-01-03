@@ -8,8 +8,8 @@ import { Sector } from './entities/sector.entity';
 import { CombustibleCarga } from './entities/combustible-carga.entity';
 import { Recordatorio } from './entities/recordatorio.entity';
 import { StatusUpdate } from './entities/status-update.entity';
-import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity'; 
-import { Usuario } from 'src/usuario/entities/usuario.entity'; 
+import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
+import { Usuario } from 'src/usuario/entities/usuario.entity';
 
 // Módulos externos
 import { UsuarioModule } from 'src/usuario/usuario.module';
@@ -17,13 +17,13 @@ import { UsuarioModule } from 'src/usuario/usuario.module';
 // Servicios
 import { VehiculosService } from './services/vehiculo.service';
 import { CombustibleService } from './services/combustible.service';
-import { StatusUpdateService } from './services/status-update.service'; 
-import { ReporteIncidenteService } from './services/reporte-incidente.service'; 
+import { StatusUpdateService } from './services/status-update.service';
+import { ReporteIncidenteService } from './services/reporte-incidente.service';
 
 // Controladores
 import { VehiculosController } from './controllers/vehiculos.controller';
 import { CombustibleController } from './controllers/combustible.controller';
-import { ReporteIncidenteController } from './controllers/reporte-incidente.controller'; 
+import { ReporteIncidenteController } from './controllers/reporte-incidente.controller';
 
 @Module({
   imports: [
@@ -34,27 +34,27 @@ import { ReporteIncidenteController } from './controllers/reporte-incidente.cont
       CombustibleCarga,
       Recordatorio,
       StatusUpdate,
-      ReporteIncidente, 
-      Usuario, 
+      ReporteIncidente,
+      Usuario,
     ]),
     UsuarioModule,
   ],
   controllers: [
     VehiculosController,
     CombustibleController,
-    ReporteIncidenteController, 
+    ReporteIncidenteController,
   ],
   providers: [
     VehiculosService,
     CombustibleService,
-    StatusUpdateService, 
-    ReporteIncidenteService, 
+    StatusUpdateService,
+    ReporteIncidenteService,
   ],
   exports: [
     VehiculosService,
     CombustibleService,
-    StatusUpdateService, 
-    ReporteIncidenteService, 
+    StatusUpdateService,
+    ReporteIncidenteService,
   ],
 })
 export class VehiculosModule {}

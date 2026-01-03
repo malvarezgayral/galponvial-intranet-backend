@@ -4,6 +4,7 @@ import {
   Column,
   OneToOne,
   OneToMany,
+  CreateDateColumn,
 } from 'typeorm';
 import { InfoAdicional } from './info-adicional.entity';
 import { StatusUpdate } from './status-update.entity';
@@ -47,6 +48,9 @@ export class Vehiculo {
     enum: TipoVehiculo,
   })
   tipo_vehiculo: TipoVehiculo;
+
+  @CreateDateColumn({ nullable: false })
+  created_at: Date;
 
   // Relaciones
   @OneToOne(() => InfoAdicional, (info) => info.vehiculo, { cascade: true })

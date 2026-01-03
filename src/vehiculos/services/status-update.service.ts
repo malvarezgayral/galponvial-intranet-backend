@@ -15,15 +15,23 @@ export class StatusUpdateService {
   async crearStatusUpdate(
     vehiculo: Vehiculo,
     nuevoStatus: VehiculoStatus,
-  ): Promise<StatusUpdate> {
-    const statusUpdate = this.statusUpdateRepository.create({
-      tipo: nuevoStatus,
-      fecha_desde: new Date(),
-      fecha_hasta: new Date(), 
-      vehiculo,
-    });
+  ): Promise<StatusUpdate | null> {
+    const lastStatus = await this.obtenerUltimoStatus(vehiculo.id_vehiculo);
 
-    return await this.statusUpdateRepository.save(statusUpdate);
+    // Solo crear StatusUpdate si existe un status previo (transición de status)
+    if (lastStatus) {
+      const newStatusUpdate = this.statusUpdateRepository.create({
+        tipo: nuevoStatus,
+        fecha_desde: lastStatus.fecha_hasta,
+        fecha_hasta: new Date(),
+        vehiculo,
+      });
+
+      return await this.statusUpdateRepository.save(newStatusUpdate);
+    }
+
+    // En la creación del vehículo no se crea StatusUpdate
+    return null;
   }
 
   async obtenerUltimoStatus(idVehiculo: number): Promise<StatusUpdate | null> {
