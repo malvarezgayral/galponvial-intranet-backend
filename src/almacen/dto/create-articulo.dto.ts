@@ -7,6 +7,7 @@ import {
   IsNumber,
 } from 'class-validator';
 import { UnidadTipo } from '../enums/almacen.enum';
+import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 
 export class CreateArticuloDto {
   @ApiPropertyOptional({

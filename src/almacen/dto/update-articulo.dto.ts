@@ -7,7 +7,7 @@ export class UpdateArticuloDto extends PartialType(CreateArticuloDto) {
   @ApiPropertyOptional({
     example: 1001,
   })
-  @IsNumber()
+  @IsString()
   @IsOptional()
   cod_proveedor?: string;
 
