@@ -71,7 +71,7 @@ describe('AlmacenService', () => {
   it('should throw NotFoundException if article does not exist', async () => {
     articuloRepo.findOne.mockResolvedValue(null);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+     
     await expect(service.updateArticle(999, {} as any)).rejects.toThrow(
       NotFoundException,
     );
