@@ -33,6 +33,7 @@ describe('Almacen E2E', () => {
         descripcion: 'Descp',
         img_url: 'https://example.com/filtro.jpg',
         unidad_tipo: 'pieza',
+        cod_proveedor: '1',
       })
       .expect(201);
 
@@ -48,6 +49,7 @@ describe('Almacen E2E', () => {
         descripcion: 'Descp',
         img_url: 'https://example.com/filtro.jpg',
         unidad_tipo: 'pieza',
+        cod_proveedor: '1',
       })
       .expect(201);
 
@@ -98,6 +100,7 @@ describe('Almacen E2E', () => {
         img_url: 'https://example.com/filtro.jpg',
         unidad_tipo: 'pieza',
         grupo_id: 1,
+        cod_proveedor: '1',
       })
       .expect(201);
 

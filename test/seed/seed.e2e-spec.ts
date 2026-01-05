@@ -34,6 +34,16 @@ describe('Seed Module (e2e)', () => {
     dataSource = moduleFixture.get(DataSource);
   }, 20000);
 
+  beforeEach(async () => {
+    const entities = dataSource.entityMetadatas;
+
+    for (const entity of entities) {
+      const repository = dataSource.getRepository(entity.name);
+      await repository.query(`TRUNCATE TABLE "${entity.tableName}" RESTART IDENTITY CASCADE`);
+    }
+  });
+
+
   afterAll(async () => {
     if (dataSource?.isInitialized) {
       await dataSource.destroy();
@@ -63,4 +73,16 @@ describe('Seed Module (e2e)', () => {
 
     expect(Number(result[0].count)).toBe(0);
   });
-});
+
+  it('ejecutar el seed dos veces debería fallar por unique property', async () => {
+    const firstRun = await request(app.getHttpServer())
+      .post('/seed/run');
+
+    expect(firstRun.status).toBe(200);
+
+    const secondRun = await request(app.getHttpServer())
+      .post('/seed/run');
+
+    expect(secondRun.status).not.toBe(200);
+  });
+})
