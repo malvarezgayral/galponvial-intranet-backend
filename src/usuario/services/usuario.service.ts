@@ -8,10 +8,10 @@ import { ReporteIncidente } from '../entities/reporte-incidente.entity';
 import { Servicio } from '../entities/servicio.entity';
 import {
   CreateUsuarioDto,
-  CreateRolDto,
   CreateUsuarioVehiculoDto,
   CreateReporteIncidenteDto,
   CreateServicioDto,
+  AssignRolDto,
 } from '../dto/usuario.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from '../dto/login.dto';
@@ -104,8 +104,30 @@ export class UsuarioService {
   }
 
   // Roles
-  async crearRol(dto: CreateRolDto): Promise<Rol> {
-    return this.rolRepository.save(dto as unknown as Partial<Rol>);
+  async addRol(dto: AssignRolDto, dni: number): Promise<Rol> {
+    try {
+      const usuario = await this.usuarioRepository.findOne({
+        where: { dni },
+      });
+
+      if (!usuario) {
+        throw new Error(`Usuario with dni ${dni} not found`);
+      }
+      this.logger.log(`Assigning role ${dto.rol} to user ${usuario.nombre}`);
+      const rol = await this.rolRepository.findOne({ where: { rol: dto.rol } });
+
+      if (!rol) {
+        throw new Error(`Rol ${dto.rol} not found`);
+      }
+      usuario.rol = rol;
+      return this.usuarioRepository.save(usuario).then(() => rol);
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioService.addRol',
+      );
+      throw error;
+    }
   }
 
   // Usuario-Vehiculo

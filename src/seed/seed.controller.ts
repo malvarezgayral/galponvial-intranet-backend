@@ -1,9 +1,10 @@
 import { Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
 import { SeedService } from './seed.service';
 import { Auth } from 'src/usuario/decorators/auth.decorator';
+import { ValidRoles } from 'src/usuario/enums/usuario.enum';
 
 @Controller('seed')
-@Auth()
+@Auth(ValidRoles.admin, ValidRoles.superUser)
 export class SeedController {
   constructor(private readonly seedService: SeedService) {}
 

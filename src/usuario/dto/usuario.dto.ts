@@ -66,11 +66,7 @@ export class UpdateUsuarioDto {
   rol_id?: number;
 }
 
-export class CreateRolDto {
-  @IsNotEmpty()
-  @IsEnum(Permisos)
-  permisos: Permisos;
-
+export class AssignRolDto {
   @IsNotEmpty()
   @IsEnum(ValidRoles, { each: true })
   rol: ValidRoles;

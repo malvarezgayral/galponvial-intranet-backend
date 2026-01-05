@@ -9,7 +9,6 @@ import { RefreshToken } from './entities/refresh-token.entity';
 import { UsuarioService } from './services/usuario.service';
 import { UsuarioVehiculoService } from './services/usuario-vehiculo.service';
 import { UsuarioController } from './controllers/usuario.controller';
-import { RolController } from './controllers/rol.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -42,7 +41,7 @@ import { RolService } from './services/rol.service';
     }),
   ],
   providers: [UsuarioService, RolService, UsuarioVehiculoService, JwtStrategy],
-  controllers: [UsuarioController, RolController],
+  controllers: [UsuarioController],
   exports: [
     UsuarioService,
     UsuarioVehiculoService,

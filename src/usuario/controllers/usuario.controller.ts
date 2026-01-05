@@ -6,14 +6,15 @@ import {
   Param,
   BadRequestException,
   Logger,
+  Patch,
 } from '@nestjs/common';
 import { UsuarioService } from '../services/usuario.service';
 import {
   CreateUsuarioDto,
-  CreateRolDto,
   CreateUsuarioVehiculoDto,
   CreateReporteIncidenteDto,
   CreateServicioDto,
+  AssignRolDto,
 } from '../dto/usuario.dto';
 import { Usuario } from '../entities/usuario.entity';
 import { Rol } from '../entities/rol.entity';
@@ -99,9 +100,9 @@ export class UsuarioController {
   }
 
   // Roles
-  @Post('rol')
-  crearRol(@Body() dto: CreateRolDto): Promise<Rol> {
-    return this.usuarioService.crearRol(dto);
+  @Patch('addRol/:dni')
+  crearRol(@Param('dni') dni: number, @Body() dto: AssignRolDto): Promise<Rol> {
+    return this.usuarioService.addRol(dto, dni);
   }
 
   // Usuario-Vehiculo
