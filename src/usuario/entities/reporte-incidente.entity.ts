@@ -11,6 +11,12 @@ import { Vehiculo } from '../../vehiculos/entities/vehiculo.entity';
 import { Servicio } from './servicio.entity';
 import { FallaIncidente } from '../enums/usuario.enum';
 
+export enum StatusIncidente {
+  PENDIENTE = 'pendiente',
+  RESUELTO = 'resuelto',
+  CERRADO = 'cerrado',
+}
+
 @Entity('reporte_incidente')
 export class ReporteIncidente {
   @PrimaryGeneratedColumn()
@@ -30,6 +36,13 @@ export class ReporteIncidente {
     enum: FallaIncidente,
   })
   falla: FallaIncidente;
+
+  @Column({
+    type: 'enum',
+    enum: StatusIncidente,
+    default: StatusIncidente.PENDIENTE, 
+  })
+  estado: StatusIncidente;
 
   @Column('bigint')
   id_usuario: number;
