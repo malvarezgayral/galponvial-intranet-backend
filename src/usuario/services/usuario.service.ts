@@ -108,10 +108,6 @@ export class UsuarioService {
     return this.rolRepository.save(dto as Partial<Rol>);
   }
 
-  async obtenerRoles(): Promise<Rol[]> {
-    return this.rolRepository.find({ relations: ['usuarios'] });
-  }
-
   // Usuario-Vehiculo
   async asignarVehiculo(dto: CreateUsuarioVehiculoDto) {
     const usuarioVehiculo = {

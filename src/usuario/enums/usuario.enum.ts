@@ -4,10 +4,10 @@ export enum RolTipo {
   MODERADOR = 'moderador',
 }
 
-export enum Permiso {
-  ADMIN = 'admin',
-  WRITE = 'write',
-  READ = 'read',
+export enum ValidRoles {
+  admin = 'admin', //all permissions (write/read)
+  superUser = 'super-user', //some permissions
+  user = 'user', //basic permissions (read-only)
 }
 
 export enum FallaIncidente {

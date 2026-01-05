@@ -9,12 +9,12 @@ import { RefreshToken } from './entities/refresh-token.entity';
 import { UsuarioService } from './services/usuario.service';
 import { UsuarioVehiculoService } from './services/usuario-vehiculo.service';
 import { UsuarioController } from './controllers/usuario.controller';
-import { RolService } from './rol.service';
-import { RolController } from './rol.controller';
+import { RolController } from './controllers/rol.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './authStrategies/jwt.strategy';
+import { RolService } from './services/rol.service';
 
 @Module({
   imports: [

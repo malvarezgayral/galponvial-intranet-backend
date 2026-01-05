@@ -104,11 +104,6 @@ export class UsuarioController {
     return this.usuarioService.crearRol(dto);
   }
 
-  @Get('rol/all')
-  obtenerRoles(): Promise<Rol[]> {
-    return this.usuarioService.obtenerRoles();
-  }
-
   // Usuario-Vehiculo
   @Post('asignar-vehiculo')
   asignarVehiculo(@Body() dto: CreateUsuarioVehiculoDto) {
