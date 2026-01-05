@@ -275,9 +275,9 @@ export class SeedService {
     const data = await this.csvReaderService.readCsv('roles');
     const mappedData = data.map((item) => ({
       id: item.id,
-      tipo: item.tipo,
+      rol: item.rol,
       permisos: [item.permisos],
-    })) as Partial<Rol>[];
+    })) as unknown as Partial<Rol>[];
     await this.rolRepository.save(mappedData);
     this.logger.log(`✓ ${data.length} roles cargados`);
     return data.length;

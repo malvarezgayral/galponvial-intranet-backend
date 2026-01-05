@@ -10,7 +10,7 @@ import {
   MaxLength,
   Matches,
 } from 'class-validator';
-import { RolTipo, Permiso, FallaIncidente } from '../enums/usuario.enum';
+import { Permisos, ValidRoles, FallaIncidente } from '../enums/usuario.enum';
 
 export class CreateUsuarioDto {
   @IsNotEmpty()
@@ -68,12 +68,12 @@ export class UpdateUsuarioDto {
 
 export class CreateRolDto {
   @IsNotEmpty()
-  @IsEnum(RolTipo)
-  tipo: RolTipo;
+  @IsEnum(Permisos)
+  permisos: Permisos;
 
   @IsNotEmpty()
-  @IsEnum(Permiso, { each: true })
-  permisos: Permiso[];
+  @IsEnum(ValidRoles, { each: true })
+  rol: ValidRoles;
 }
 
 export class CreateUsuarioVehiculoDto {

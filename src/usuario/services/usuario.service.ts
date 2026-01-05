@@ -105,7 +105,7 @@ export class UsuarioService {
 
   // Roles
   async crearRol(dto: CreateRolDto): Promise<Rol> {
-    return this.rolRepository.save(dto as Partial<Rol>);
+    return this.rolRepository.save(dto as unknown as Partial<Rol>);
   }
 
   // Usuario-Vehiculo

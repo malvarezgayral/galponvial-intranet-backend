@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { RolTipo, Permiso } from '../enums/usuario.enum';
+import { Permisos, ValidRoles } from '../enums/usuario.enum';
 import { Usuario } from './usuario.entity';
 
 @Entity('rol')
@@ -9,16 +9,16 @@ export class Rol {
 
   @Column({
     type: 'enum',
-    enum: RolTipo,
+    enum: Permisos,
+    array: true,
   })
-  tipo: RolTipo;
+  permisos: Permisos[];
 
   @Column({
     type: 'enum',
-    enum: Permiso,
-    array: true,
+    enum: ValidRoles,
   })
-  permisos: Permiso[];
+  rol: ValidRoles;
 
   @OneToMany(() => Usuario, (usuario) => usuario.rol)
   usuarios: Usuario[];

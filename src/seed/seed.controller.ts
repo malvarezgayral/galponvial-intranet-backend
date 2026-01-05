@@ -1,15 +1,12 @@
 import { Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
 import { SeedService } from './seed.service';
+import { Auth } from 'src/usuario/decorators/auth.decorator';
 
 @Controller('seed')
+@Auth()
 export class SeedController {
   constructor(private readonly seedService: SeedService) {}
 
-  /**
-   * Endpoint para ejecutar el seed de la base de datos
-   * POST /seed/run
-   * Respuesta: { message, results }
-   */
   @Post('run')
   @HttpCode(HttpStatus.OK)
   async runSeed(): Promise<{
