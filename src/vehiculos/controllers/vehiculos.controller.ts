@@ -30,4 +30,16 @@ export class VehiculosController {
   ) {
     return this.vehiculosService.update(id, updateVehiculoDto);
   }
+
+  @Patch(':id/baja')
+  @HttpCode(HttpStatus.OK)
+  darDeBaja(@Param('id', ParseIntPipe) id: number) {
+    return this.vehiculosService.darDeBaja(id);
+  }
+
+  @Patch(':id/alta')
+  @HttpCode(HttpStatus.OK)
+  darDeAlta(@Param('id', ParseIntPipe) id: number) {
+    return this.vehiculosService.darDeAlta(id);
+  }
 }
