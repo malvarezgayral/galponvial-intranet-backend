@@ -8,8 +8,10 @@ import {
 } from '@nestjs/common';
 import { CombustibleService } from '../services/combustible.service';
 import { CreateCombustibleCargaDto } from '../dto/create-combustible-carga.dto';
+import { Auth } from 'src/usuario/decorators/auth.decorator';
 
 @Controller('combustible-cargas')
+@Auth()
 export class CombustibleController {
   constructor(private readonly combustibleService: CombustibleService) {}
 
