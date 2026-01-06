@@ -30,6 +30,8 @@ export class UserRoleGuard implements CanActivate {
 
     if (!user) throw new BadRequestException('User not found');
 
+    console.log(`User dni: ${user.dni}`);
+    if (!user.rol) throw new BadRequestException('User role not found');
     if (validRoles.includes(user.rol.rol)) {
       return true;
     }
