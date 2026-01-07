@@ -98,7 +98,7 @@ export class SeedService {
       results['recordatorio'] = await this.seedRecordatorios();
 
       // Orden de inserción para módulo usuario (respetando FK)
-      results['rol'] = await this.seedRoles();
+      //results['rol'] = await this.seedRoles();
       results['usuario'] = await this.seedUsuarios();
       results['refresh_token'] = await this.seedRefreshTokens();
       results['usuario_vehiculo'] = await this.seedUsuariosVehiculos();
@@ -112,6 +112,27 @@ export class SeedService {
       };
     } catch (error) {
       this.logger.error('Error durante seed:', error);
+      throw error;
+    }
+  }
+
+  public async seedRolesByUser(): Promise<{
+    message: string;
+    results: Record<string, number>;
+  }> {
+    this.logger.log('Iniciando seed de roles...');
+    const results: Record<string, number> = {};
+
+    try {
+      results['rol'] = await this.seedRoles();
+
+      this.logger.log('✓ Seed de roles completado exitosamente');
+      return {
+        message: 'Roles poblados exitosamente',
+        results,
+      };
+    } catch (error) {
+      this.logger.error('Error durante seed de roles:', error);
       throw error;
     }
   }
@@ -275,9 +296,9 @@ export class SeedService {
     const data = await this.csvReaderService.readCsv('roles');
     const mappedData = data.map((item) => ({
       id: item.id,
-      tipo: item.tipo,
+      rol: item.rol,
       permisos: [item.permisos],
-    })) as Partial<Rol>[];
+    })) as unknown as Partial<Rol>[];
     await this.rolRepository.save(mappedData);
     this.logger.log(`✓ ${data.length} roles cargados`);
     return data.length;
