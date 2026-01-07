@@ -137,6 +137,7 @@ export class VehiculosService {
       return vehiculoActualizado;
     } catch (error) {
       throw new BadRequestException(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         'Error al actualizar el vehículo: ' + error.message,
       );
     }

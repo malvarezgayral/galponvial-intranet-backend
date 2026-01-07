@@ -29,10 +29,13 @@ import { CreateSalidaDto } from './dto/create-salida.dto';
 
 import { AlmacenService } from './almacen.service';
 import { MovimientoDTO } from './dto/movimiento.dto';
+import { Auth } from 'src/usuario/decorators/auth.decorator';
+import { ValidRoles } from 'src/usuario/enums/usuario.enum';
 
 @ApiTags('Almacén')
 @ApiExtraModels(CreateEntradaDto, CreateSalidaDto)
 @Controller('almacen')
+@Auth(ValidRoles.admin)
 export class AlmacenController {
   constructor(private readonly almacenService: AlmacenService) {}
 
@@ -41,6 +44,7 @@ export class AlmacenController {
   @ApiOperation({ summary: 'Obtener todos los artículos' })
   @ApiResponse({ status: 200, description: 'Listado de artículos' })
   @Get('articulos')
+  @Auth()
   async getAllArticles() {
     return await this.almacenService.getAllArticles();
   }
@@ -49,6 +53,7 @@ export class AlmacenController {
   @ApiBody({ type: CreateArticuloDto })
   @ApiResponse({ status: 201, description: 'Artículo creado correctamente' })
   @Post('articulos')
+  @Auth(ValidRoles.superUser)
   async createArticle(@Body() dto: CreateArticuloDto) {
     return await this.almacenService.createArticle(dto);
   }
@@ -63,6 +68,7 @@ export class AlmacenController {
   @ApiResponse({ status: 200, description: 'Artículo actualizado' })
   @ApiResponse({ status: 404, description: 'Artículo no encontrado' })
   @Put('articulos/:cod')
+  @Auth(ValidRoles.superUser)
   async updateArticle(
     @Param('cod') cod: number,
     @Body() dto: UpdateArticuloDto,
@@ -79,6 +85,7 @@ export class AlmacenController {
   @ApiResponse({ status: 200, description: 'Artículo eliminado' })
   @ApiResponse({ status: 404, description: 'Artículo no encontrado' })
   @Delete('articulos/:cod')
+  @Auth(ValidRoles.superUser)
   async deleteArticle(@Param('cod') cod: number) {
     return await this.almacenService.deleteArticle(cod);
   }
@@ -88,6 +95,7 @@ export class AlmacenController {
   @ApiOperation({ summary: 'Obtener todos los grupos de artículos' })
   @ApiResponse({ status: 200, description: 'Listado de grupos' })
   @Get('grupos')
+  @Auth()
   async getAllGroups() {
     return await this.almacenService.getAllGroups();
   }
@@ -105,6 +113,7 @@ export class AlmacenController {
   })
   @ApiResponse({ status: 404, description: 'Grupo no encontrado' })
   @Get('grupos/:id')
+  @Auth()
   async getGroup(@Param('id') id: number): Promise<GrupoArticuloDto> {
     return await this.almacenService.getGroup(id);
   }
@@ -113,6 +122,7 @@ export class AlmacenController {
   @ApiBody({ type: CreateGrupoArticuloDto })
   @ApiResponse({ status: 201, description: 'Grupo creado correctamente' })
   @Post('grupos')
+  @Auth(ValidRoles.superUser)
   async createGroup(@Body() dto: CreateGrupoArticuloDto) {
     return await this.almacenService.createGroup(dto);
   }
@@ -126,6 +136,7 @@ export class AlmacenController {
   @ApiBody({ type: UpdateGrupoArticuloDto })
   @ApiResponse({ status: 200, description: 'Grupo actualizado' })
   @Put('grupos/:id')
+  @Auth(ValidRoles.superUser)
   async updateGroup(
     @Param('id') id: number,
     @Body() dto: UpdateGrupoArticuloDto,
@@ -147,6 +158,7 @@ export class AlmacenController {
     type: [MovimientoDTO],
   })
   @Get('movimientos/:idArticulo')
+  @Auth()
   async getMovimientos(@Param('idArticulo') codArticulo: number) {
     return await this.almacenService.getMovimientosByArticulo(codArticulo);
   }
@@ -163,6 +175,7 @@ export class AlmacenController {
   })
   @ApiResponse({ status: 201, description: 'Movimiento registrado' })
   @Post('movimientos')
+  @Auth()
   async createMovimiento(@Body() dto: CreateEntradaDto | CreateSalidaDto) {
     return await this.almacenService.createMovimiento(dto);
   }

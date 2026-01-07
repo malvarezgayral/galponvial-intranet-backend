@@ -11,8 +11,11 @@ import {
 import { VehiculosService } from '../services/vehiculo.service';
 import { CreateVehiculoDto } from '../dto/create-vehiculo.dto';
 import { UpdateVehiculoDto } from '../dto/update-vehiculo.dto';
+import { Auth } from 'src/usuario/decorators/auth.decorator';
+import { ValidRoles } from 'src/usuario/enums/usuario.enum';
 
 @Controller('vehiculos')
+@Auth(ValidRoles.admin)
 export class VehiculosController {
   constructor(private readonly vehiculosService: VehiculosService) {}
 

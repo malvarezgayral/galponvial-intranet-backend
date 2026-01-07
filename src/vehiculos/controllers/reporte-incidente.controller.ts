@@ -11,9 +11,12 @@ import {
 } from '@nestjs/common';
 import { ReporteIncidenteService } from '../services/reporte-incidente.service';
 import { CreateReporteIncidenteDto } from '../dto/create-reporte-incidente.dto';
-import { FiltrosIncidenteDto } from '../dto/filtros.dto'; // ← Usar el existente
+import { FiltrosIncidenteDto } from '../dto/filtros.dto';
+import { Auth } from 'src/usuario/decorators/auth.decorator';
+import { ValidRoles } from 'src/usuario/enums/usuario.enum';
 
 @Controller('incidentes')
+@Auth(ValidRoles.admin, ValidRoles.superUser)
 export class ReporteIncidenteController {
   constructor(
     private readonly reporteIncidenteService: ReporteIncidenteService,
@@ -26,9 +29,9 @@ export class ReporteIncidenteController {
   }
 
   @Get()
-  findAll(@Query() filtros: FiltrosIncidenteDto) {
+  @Auth()
+  findAll(@Body() filtros: FiltrosIncidenteDto) {
     return this.reporteIncidenteService.findAll(filtros);
-  }
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {

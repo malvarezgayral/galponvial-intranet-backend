@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Rol } from './entities/rol.entity';
+import { Rol } from '../entities/rol.entity';
 
 @Injectable()
 export class RolService {
@@ -27,9 +27,8 @@ export class RolService {
   }
 
   private handleDBErrors(error: any): never {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (error.code === '23505') throw new BadRequestException(error.detail);
-
-    console.log(error);
 
     throw new InternalServerErrorException('Please check server logs');
   }

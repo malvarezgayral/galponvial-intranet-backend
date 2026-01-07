@@ -1,5 +1,5 @@
 import { IsOptional, IsDateString, IsEnum } from 'class-validator';
-import { StatusIncidente} from '../enums/vehiculo.enum';
+import { StatusIncidente } from '../enums/vehiculo.enum';
 import { FallaIncidente } from 'src/usuario/enums/usuario.enum';
 
 export class FiltrosCombustibleDto {
@@ -28,5 +28,4 @@ export class FiltrosIncidenteDto {
   @IsOptional()
   @IsEnum(FallaIncidente)
   importancia?: FallaIncidente;
-
 }
