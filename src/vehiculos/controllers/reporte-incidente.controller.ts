@@ -26,7 +26,7 @@ export class ReporteIncidenteController {
   }
 
   @Get()
-  findAll(@Query() filtros: FiltrosIncidenteDto) {
+  findAll(@Body() filtros: FiltrosIncidenteDto) {
     return this.reporteIncidenteService.findAll(filtros);
   }
 

@@ -40,7 +40,7 @@ export class ReporteIncidente {
   @Column({
     type: 'enum',
     enum: StatusIncidente,
-    default: StatusIncidente.PENDIENTE, 
+    default: StatusIncidente.PENDIENTE,
   })
   estado: StatusIncidente;
 

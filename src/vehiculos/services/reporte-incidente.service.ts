@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, FindOptionsWhere } from 'typeorm';
 import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
 import { CreateReporteIncidenteDto } from '../dto/create-reporte-incidente.dto';
-import { FiltrosIncidenteDto } from '../dto/filtros.dto'; 
+import { FiltrosIncidenteDto } from '../dto/filtros.dto';
 import { VehiculoStatus } from '../enums/vehiculo.enum';
 import { FallaIncidente } from 'src/usuario/enums/usuario.enum';
 import { StatusUpdateService } from './status-update.service';
