@@ -1,3 +1,4 @@
+// src/vehiculo/entities/servicio.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -6,30 +7,34 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { ReporteIncidente } from './reporte-incidente.entity';
+import { TipoServicio } from 'src/vehiculos/enums/vehiculo.enum';
 
 @Entity('servicio')
 export class Servicio {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column('varchar')
-  tipo: string;
+  @Column({
+    type: 'enum',
+    enum: TipoServicio,
+  })
+  tipo: TipoServicio;
 
-  @Column('date')
+  @Column({ type: 'date' })
   fecha_inicio: Date;
 
-  @Column('date')
-  fecha_hasta: Date;
+  @Column({ type: 'date', nullable: true })
+  fecha_hasta: Date | null; // ← Cambiado a "Date | null"
 
-  @Column('text')
+  @Column({ type: 'text' })
   descripcion: string;
 
   @Column({ nullable: true })
-  incidente_id: number;
+  incidente_id?: number;
 
   @ManyToOne(() => ReporteIncidente, (incidente) => incidente.servicios, {
     nullable: true,
   })
   @JoinColumn({ name: 'incidente_id' })
-  incidente: ReporteIncidente;
+  incidente: ReporteIncidente | null;
 }

@@ -7,8 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, FindOptionsWhere } from 'typeorm';
 import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
 import { CreateReporteIncidenteDto } from '../dto/create-reporte-incidente.dto';
-import { FiltrosIncidenteDto } from '../dto/filtros.dto';
-import { VehiculoStatus } from '../enums/vehiculo.enum';
+import { FiltrosIncidenteDto } from '../dto/filtros.dto'; 
+import { VehiculoStatus, StatusIncidente } from '../enums/vehiculo.enum';
 import { FallaIncidente } from 'src/usuario/enums/usuario.enum';
 import { StatusUpdateService } from './status-update.service';
 import { VehiculosService } from './vehiculo.service';
@@ -130,4 +130,47 @@ export class ReporteIncidenteService {
 
     return incidente;
   }
+
+  async marcarEnTratamiento(id: number): Promise<ReporteIncidente> {
+  const incidente = await this.reporteIncidenteRepository.findOne({
+    where: { id },
+  });
+
+  if (!incidente) {
+    throw new NotFoundException(`Incidente con ID ${id} no encontrado`);
+  }
+
+  // Mantener como PENDIENTE (está en tratamiento pero no resuelto)
+  incidente.estado = StatusIncidente.PENDIENTE;
+
+  return await this.reporteIncidenteRepository.save(incidente);
+}
+
+async marcarResuelto(id: number): Promise<ReporteIncidente> {
+  const incidente = await this.reporteIncidenteRepository.findOne({
+    where: { id },
+  });
+
+  if (!incidente) {
+    throw new NotFoundException(`Incidente con ID ${id} no encontrado`);
+  }
+
+  incidente.estado = StatusIncidente.RESUELTO;
+
+  return await this.reporteIncidenteRepository.save(incidente);
+}
+
+async marcarCerrado(id: number): Promise<ReporteIncidente> {
+  const incidente = await this.reporteIncidenteRepository.findOne({
+    where: { id },
+  });
+
+  if (!incidente) {
+    throw new NotFoundException(`Incidente con ID ${id} no encontrado`);
+  }
+
+  incidente.estado = StatusIncidente.CERRADO;
+
+  return await this.reporteIncidenteRepository.save(incidente);
+}
 }
