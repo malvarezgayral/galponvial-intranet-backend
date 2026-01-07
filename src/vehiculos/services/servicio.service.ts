@@ -9,7 +9,7 @@ import { Servicio } from 'src/usuario/entities/servicio.entity';
 import { CreateServicioDto } from '../dto/create-servicio.dto';
 import { ReporteIncidenteService } from './reporte-incidente.service';
 import { VehiculosService } from './vehiculo.service';
-import { VehiculoStatus} from '../enums/vehiculo.enum';
+import { VehiculoStatus } from '../enums/vehiculo.enum';
 import { StatusUpdateService } from './status-update.service';
 
 @Injectable()
@@ -23,52 +23,73 @@ export class ServicioService {
   ) {}
 
   async create(createServicioDto: CreateServicioDto): Promise<Servicio> {
-    // 1. Validar que el incidente existe (OBLIGATORIO)
-    const incidente = await this.reporteIncidenteService.findOne(
-      createServicioDto.incidente_id,
-    );
-
-    // 2. Obtener el vehículo desde el incidente
-    const vehiculo = await this.vehiculosService.findOne(
-      incidente.id_vehiculo,
-    );
+    // Obtener el vehículo según si hay incidente o no
+    let vehiculo;
+    let incidente;
 
     try {
-      // 3. Marcar incidente como "pendiente" (en proceso)
-      await this.reporteIncidenteService.marcarEnTratamiento(
-        createServicioDto.incidente_id,
-      );
+      // Caso 1: Si hay incidente, obtener vehículo desde el incidente
+      if (createServicioDto.incidente_id) {
+        incidente = await this.reporteIncidenteService.findOne(
+          createServicioDto.incidente_id,
+        );
+        if (incidente) {
+          vehiculo = await this.vehiculosService.findOne(incidente.id_vehiculo);
+        }
 
-      // 4. Cambiar status del vehículo a EN_TALLER
+        // Marcar incidente como "en tratamiento"
+        await this.reporteIncidenteService.marcarEnTratamiento(
+          createServicioDto.incidente_id,
+        );
+      }
+      // Caso 2: Si no hay incidente, usar id_vehiculo directamente
+      else {
+        if (!createServicioDto.id_vehiculo) {
+          throw new BadRequestException(
+            'Debe proporcionar id_vehiculo si no está asociado a un incidente',
+          );
+        }
+        vehiculo = await this.vehiculosService.findOne(
+          createServicioDto.id_vehiculo,
+        );
+      }
+
+      // Cambiar status del vehículo a EN_TALLER
       const statusViejo: VehiculoStatus = vehiculo.status;
-      
+
       if (statusViejo !== VehiculoStatus.EN_TALLER) {
         await this.vehiculosService.updateStatus(
           vehiculo.id_vehiculo,
           VehiculoStatus.EN_TALLER,
         );
-        
+
         // Crear registro de status update
         await this.statusUpdateService.crearStatusUpdate(vehiculo, statusViejo);
       }
 
-      // 5. Crear el servicio
-        const servicio = this.servicioRepository.create({
+      // Crear el servicio
+      const servicioData: any = {
         tipo: createServicioDto.tipo,
         fecha_inicio: new Date(createServicioDto.fecha_inicio),
         fecha_hasta: createServicioDto.fecha_hasta
-            ? new Date(createServicioDto.fecha_hasta)
-            : null,
+          ? new Date(createServicioDto.fecha_hasta)
+          : null,
         descripcion: createServicioDto.descripcion,
-        incidente_id: createServicioDto.incidente_id,
-        incidente: incidente,
-        })
+        incidente_id: createServicioDto.incidente_id || null,
+      };
 
-      const servicioGuardado = await this.servicioRepository.save(servicio);
+      if (incidente) {
+        servicioData.incidente = incidente;
+      }
 
-      // 6. Retornar servicio completo con relaciones
+      const servicio = this.servicioRepository.create(servicioData);
+
+      const servicioGuardado: unknown =
+        await this.servicioRepository.save(servicio);
+
+      // Retornar servicio completo con relaciones (si tiene incidente)
       const servicioCompleto = await this.servicioRepository.findOne({
-        where: { id: servicioGuardado.id },
+        where: { id: (servicioGuardado as Servicio).id },
         relations: ['incidente', 'incidente.vehiculo', 'incidente.usuario'],
       });
 
@@ -118,10 +139,10 @@ export class ServicioService {
     await this.vehiculosService.findOne(idVehiculo);
 
     return await this.servicioRepository.find({
-      where: { 
-        incidente: { 
-          id_vehiculo: idVehiculo 
-        } 
+      where: {
+        incidente: {
+          id_vehiculo: idVehiculo,
+        },
       },
       relations: ['incidente', 'incidente.vehiculo', 'incidente.usuario'],
       order: { fecha_inicio: 'DESC' },

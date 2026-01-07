@@ -10,6 +10,7 @@ import { Recordatorio } from './entities/recordatorio.entity';
 import { StatusUpdate } from './entities/status-update.entity';
 import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
+import { Servicio } from 'src/usuario/entities/servicio.entity';
 
 // Módulos externos
 import { UsuarioModule } from 'src/usuario/usuario.module';
@@ -19,11 +20,13 @@ import { VehiculosService } from './services/vehiculo.service';
 import { CombustibleService } from './services/combustible.service';
 import { StatusUpdateService } from './services/status-update.service';
 import { ReporteIncidenteService } from './services/reporte-incidente.service';
+import { ServicioService } from './services/servicio.service';
 
 // Controladores
 import { VehiculosController } from './controllers/vehiculos.controller';
 import { CombustibleController } from './controllers/combustible.controller';
 import { ReporteIncidenteController } from './controllers/reporte-incidente.controller';
+import { ServicioController } from './controllers/servicio.controller';
 
 @Module({
   imports: [
@@ -36,6 +39,7 @@ import { ReporteIncidenteController } from './controllers/reporte-incidente.cont
       StatusUpdate,
       ReporteIncidente,
       Usuario,
+      Servicio,
     ]),
     UsuarioModule,
   ],
@@ -43,18 +47,21 @@ import { ReporteIncidenteController } from './controllers/reporte-incidente.cont
     VehiculosController,
     CombustibleController,
     ReporteIncidenteController,
+    ServicioController,
   ],
   providers: [
     VehiculosService,
     CombustibleService,
     StatusUpdateService,
     ReporteIncidenteService,
+    ServicioService,
   ],
   exports: [
     VehiculosService,
     CombustibleService,
     StatusUpdateService,
     ReporteIncidenteService,
+    ServicioService,
   ],
 })
 export class VehiculosModule {}
