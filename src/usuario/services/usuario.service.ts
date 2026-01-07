@@ -17,6 +17,7 @@ import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from '../dto/login.dto';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
+import { ObjectServiceResponse } from '../interfaces/object-service-response.interface';
 
 @Injectable()
 export class UsuarioService {
@@ -93,6 +94,42 @@ export class UsuarioService {
       this.logger.error(
         error instanceof Error ? error.message : 'Unknown error',
         'UsuarioService.login',
+      );
+      throw error;
+    }
+  }
+
+  async activarDesactivarUsuario(
+    dni: number,
+    flag: boolean,
+  ): Promise<ObjectServiceResponse<Usuario>> {
+    try {
+      const usuario = await this.usuarioRepository.findOne({ where: { dni } });
+      if (!usuario) throw new Error(`Usuario with dni ${dni} not found`);
+      if (flag == usuario.isActive) {
+        return {
+          success: false,
+          data: usuario,
+          message: flag
+            ? 'El usuario ya está activo'
+            : 'El usuario ya está inactivo',
+        }; // se retorna si no precisa cambios
+      }
+      usuario.isActive = flag;
+      usuario.refreshToken = null; // se invalida su token, similar a invalidar sesión
+      if (flag) usuario.fecha_baja = null;
+      else usuario.fecha_baja = new Date();
+      return {
+        success: true,
+        data: await this.usuarioRepository.save(usuario),
+        message: flag
+          ? 'Usuario activado correctamente'
+          : 'Usuario desactivado correctamente',
+      };
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioService.activarDesactivarUsuario',
       );
       throw error;
     }

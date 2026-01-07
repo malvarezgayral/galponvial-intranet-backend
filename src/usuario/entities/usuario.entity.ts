@@ -35,11 +35,11 @@ export class Usuario {
   @Column('int', { default: 0 })
   tokenVersion: number;
 
-  @Column('date')
-  fecha_alta: Date;
+  @Column('date', { nullable: true })
+  fecha_alta: Date | null;
 
   @Column('date', { nullable: true })
-  fecha_baja: Date;
+  fecha_baja: Date | null;
 
   @ManyToOne(() => Rol, (rol) => rol.usuarios, { nullable: true })
   @JoinColumn({ name: 'rol_id' })
@@ -52,5 +52,5 @@ export class Usuario {
   reportesIncidentes: ReporteIncidente[];
 
   @OneToOne(() => RefreshToken, (rt) => rt.usuario)
-  refreshToken: RefreshToken;
+  refreshToken: RefreshToken | null;
 }

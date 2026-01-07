@@ -7,6 +7,7 @@ import {
   BadRequestException,
   Logger,
   Patch,
+  Put,
 } from '@nestjs/common';
 import { UsuarioService } from '../services/usuario.service';
 import {
@@ -24,6 +25,7 @@ import { Servicio } from '../entities/servicio.entity';
 import { LoginUserDto } from '../dto/login.dto';
 import { Auth } from '../decorators/auth.decorator';
 import { ValidRoles } from '../enums/usuario.enum';
+import { ObjectServiceResponse } from '../interfaces/object-service-response.interface';
 
 @Controller('usuario')
 export class UsuarioController {
@@ -101,6 +103,15 @@ export class UsuarioController {
   @Auth()
   obtenerUsuarioPorDni(@Param('dni') dni: number): Promise<Usuario | null> {
     return this.usuarioService.obtenerUsuarioPorDni(dni);
+  }
+
+  @Put(':dni')
+  @Auth(ValidRoles.admin)
+  activarDesactivarUsuario(
+    @Param('dni') dni: number,
+    @Body() flag: boolean,
+  ): Promise<ObjectServiceResponse<Usuario>> {
+    return this.usuarioService.activarDesactivarUsuario(dni, flag);
   }
 
   // Roles
