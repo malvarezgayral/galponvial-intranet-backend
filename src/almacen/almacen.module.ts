@@ -9,6 +9,7 @@ import { Movimiento } from './entities/movimiento.entity';
 import { Salida } from './entities/salida.entity';
 import { SectorGalpon } from './entities/sector-galpon.entity';
 import { UnidadMedidaCuant } from './entities/unidad-medida-cuant.entity';
+import { UsuarioModule } from 'src/usuario/usuario.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { UnidadMedidaCuant } from './entities/unidad-medida-cuant.entity';
       SectorGalpon,
       UnidadMedidaCuant,
     ]),
+    UsuarioModule,
   ],
   controllers: [AlmacenController],
   providers: [AlmacenService],

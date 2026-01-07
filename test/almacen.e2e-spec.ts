@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import * as request from 'supertest';
+import request from 'supertest';
 
 import { AlmacenModule } from '../src/almacen/almacen.module';
 import { typeOrmTestConfig } from '../src/database/typeorm.config';
@@ -25,7 +25,6 @@ describe('Almacen E2E', () => {
   });
 
   it('POST /almacen/articulos', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const res = await request(app.getHttpServer())
       .post('/almacen/articulos')
       .send({
@@ -34,15 +33,14 @@ describe('Almacen E2E', () => {
         descripcion: 'Descp',
         img_url: 'https://example.com/filtro.jpg',
         unidad_tipo: 'pieza',
+        cod_proveedor: '1',
       })
       .expect(201);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(res.body.nombre).toBe('Articulo Test');
   });
 
   it('PUT /almacen/articulos', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const resArticle = await request(app.getHttpServer())
       .post('/almacen/articulos')
       .send({
@@ -51,12 +49,11 @@ describe('Almacen E2E', () => {
         descripcion: 'Descp',
         img_url: 'https://example.com/filtro.jpg',
         unidad_tipo: 'pieza',
+        cod_proveedor: '1',
       })
       .expect(201);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const resPut = await request(app.getHttpServer())
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .put(`/almacen/articulos/${resArticle.body.cod}`)
       .send({
         nombre: 'Articulo Test Actualizado',
@@ -69,12 +66,10 @@ describe('Almacen E2E', () => {
 
     expect(resPut.status).toBe(200);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(resPut.body.nombre).toBe('Articulo Test Actualizado');
   });
 
   it('GET /almacen/articulos', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const res = await request(app.getHttpServer())
       .get('/almacen/articulos')
       .expect(200);
@@ -83,7 +78,6 @@ describe('Almacen E2E', () => {
   });
 
   it('POST /almacen/grupos', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const res = await request(app.getHttpServer())
       .post('/almacen/grupos')
       .send({
@@ -93,12 +87,10 @@ describe('Almacen E2E', () => {
       })
       .expect(201);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(res.body.nombre).toBe('Grupo Test');
   });
 
   it('POST /almacen/movimientos - should create salida', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const resArticle = await request(app.getHttpServer())
       .post('/almacen/articulos')
       .send({
@@ -108,24 +100,21 @@ describe('Almacen E2E', () => {
         img_url: 'https://example.com/filtro.jpg',
         unidad_tipo: 'pieza',
         grupo_id: 1,
+        cod_proveedor: '1',
       })
       .expect(201);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const resMovement = await request(app.getHttpServer())
       .post('/almacen/movimientos')
       .send({
         tipo: 'perdida',
         detalle: 'se rompio algo',
         motivo_salida: 'pos eso mismo',
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         cod_articulo: resArticle.body.cod,
       })
       .expect(201);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(resMovement.body.movimiento.tipo).toBe('salida');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(resMovement.body.salida.tipo).toBe('perdida');
   });
 });

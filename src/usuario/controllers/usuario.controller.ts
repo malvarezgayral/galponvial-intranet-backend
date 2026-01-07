@@ -6,14 +6,15 @@ import {
   Param,
   BadRequestException,
   Logger,
+  Patch,
 } from '@nestjs/common';
 import { UsuarioService } from '../services/usuario.service';
 import {
   CreateUsuarioDto,
-  CreateRolDto,
   CreateUsuarioVehiculoDto,
   CreateReporteIncidenteDto,
   CreateServicioDto,
+  AssignRolDto,
 } from '../dto/usuario.dto';
 import { Usuario } from '../entities/usuario.entity';
 import { Rol } from '../entities/rol.entity';
@@ -21,6 +22,8 @@ import { UsuarioVehiculo } from '../entities/usuario-vehiculo.entity';
 import { ReporteIncidente } from '../entities/reporte-incidente.entity';
 import { Servicio } from '../entities/servicio.entity';
 import { LoginUserDto } from '../dto/login.dto';
+import { Auth } from '../decorators/auth.decorator';
+import { ValidRoles } from '../enums/usuario.enum';
 
 @Controller('usuario')
 export class UsuarioController {
@@ -89,33 +92,36 @@ export class UsuarioController {
   }
 
   @Get()
+  @Auth()
   obtenerUsuarios(): Promise<Usuario[]> {
     return this.usuarioService.obtenerUsuarios();
   }
 
   @Get(':dni')
+  @Auth()
   obtenerUsuarioPorDni(@Param('dni') dni: number): Promise<Usuario | null> {
     return this.usuarioService.obtenerUsuarioPorDni(dni);
   }
 
   // Roles
-  @Post('rol')
-  crearRol(@Body() dto: CreateRolDto): Promise<Rol> {
-    return this.usuarioService.crearRol(dto);
-  }
-
-  @Get('rol/all')
-  obtenerRoles(): Promise<Rol[]> {
-    return this.usuarioService.obtenerRoles();
+  @Patch('addRol/:dni')
+  @Auth(ValidRoles.admin)
+  asignarRol(
+    @Param('dni') dni: number,
+    @Body() dto: AssignRolDto,
+  ): Promise<Rol> {
+    return this.usuarioService.addRol(dto, dni);
   }
 
   // Usuario-Vehiculo
   @Post('asignar-vehiculo')
+  @Auth(ValidRoles.admin)
   asignarVehiculo(@Body() dto: CreateUsuarioVehiculoDto) {
     return this.usuarioService.asignarVehiculo(dto);
   }
 
   @Get(':id_usuario/vehiculos')
+  @Auth()
   obtenerVehiculosPorUsuario(
     @Param('id_usuario') id_usuario: string,
   ): Promise<UsuarioVehiculo[]> {
@@ -124,6 +130,7 @@ export class UsuarioController {
 
   // Reportes
   @Post('reporte')
+  @Auth()
   crearReporte(
     @Body() dto: CreateReporteIncidenteDto,
   ): Promise<ReporteIncidente> {
@@ -131,11 +138,13 @@ export class UsuarioController {
   }
 
   @Get('reporte/all')
+  @Auth()
   obtenerReportes(): Promise<ReporteIncidente[]> {
     return this.usuarioService.obtenerReportes();
   }
 
   @Get(':id_usuario/reportes')
+  @Auth()
   obtenerReportesPorUsuario(
     @Param('id_usuario') id_usuario: string,
   ): Promise<ReporteIncidente[]> {
@@ -144,16 +153,19 @@ export class UsuarioController {
 
   // Servicios
   @Post('servicio')
+  @Auth()
   crearServicio(@Body() dto: CreateServicioDto): Promise<Servicio> {
     return this.usuarioService.crearServicio(dto);
   }
 
   @Get('servicio/all')
+  @Auth()
   obtenerServicios(): Promise<Servicio[]> {
     return this.usuarioService.obtenerServicios();
   }
 
   @Get('servicio/incidente/:incidente_id')
+  @Auth()
   obtenerServiciosPorIncidente(
     @Param('incidente_id') incidente_id: string,
   ): Promise<Servicio[]> {
