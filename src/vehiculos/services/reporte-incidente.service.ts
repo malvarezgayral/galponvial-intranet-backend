@@ -81,6 +81,7 @@ export class ReporteIncidenteService {
       return reporteCompleto;
     } catch (error) {
       throw new BadRequestException(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         'Error al crear reporte de incidente: ' + error.message,
       );
     }
