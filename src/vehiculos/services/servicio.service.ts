@@ -9,7 +9,7 @@ import { Servicio } from 'src/usuario/entities/servicio.entity';
 import { CreateServicioDto } from '../dto/create-servicio.dto';
 import { ReporteIncidenteService } from './reporte-incidente.service';
 import { VehiculosService } from './vehiculo.service';
-import { VehiculoStatus} from '../enums/vehiculo.enum';
+import { VehiculoStatus } from '../enums/vehiculo.enum';
 import { StatusUpdateService } from './status-update.service';
 
 @Injectable()
@@ -23,23 +23,19 @@ export class ServicioService {
   ) {}
 
   async create(createServicioDto: CreateServicioDto): Promise<Servicio> {
-    // 1. Validar que el incidente existe (OBLIGATORIO)
     const incidente = await this.reporteIncidenteService.findOne(
       createServicioDto.incidente_id,
     );
 
-    // 2. Obtener el vehículo desde el incidente
     const vehiculo = await this.vehiculosService.findOne(
       incidente.id_vehiculo,
     );
 
     try {
-      // 3. Marcar incidente como "pendiente" (en proceso)
       await this.reporteIncidenteService.marcarEnTratamiento(
         createServicioDto.incidente_id,
       );
 
-      // 4. Cambiar status del vehículo a EN_TALLER
       const statusViejo: VehiculoStatus = vehiculo.status;
       
       if (statusViejo !== VehiculoStatus.EN_TALLER) {
@@ -48,25 +44,22 @@ export class ServicioService {
           VehiculoStatus.EN_TALLER,
         );
         
-        // Crear registro de status update
         await this.statusUpdateService.crearStatusUpdate(vehiculo, statusViejo);
       }
 
-      // 5. Crear el servicio
-        const servicio = this.servicioRepository.create({
+      const servicio = this.servicioRepository.create({
         tipo: createServicioDto.tipo,
         fecha_inicio: new Date(createServicioDto.fecha_inicio),
         fecha_hasta: createServicioDto.fecha_hasta
-            ? new Date(createServicioDto.fecha_hasta)
-            : null,
+          ? new Date(createServicioDto.fecha_hasta)
+          : null,
         descripcion: createServicioDto.descripcion,
         incidente_id: createServicioDto.incidente_id,
         incidente: incidente,
-        })
+      });
 
       const servicioGuardado = await this.servicioRepository.save(servicio);
 
-      // 6. Retornar servicio completo con relaciones
       const servicioCompleto = await this.servicioRepository.findOne({
         where: { id: servicioGuardado.id },
         relations: ['incidente', 'incidente.vehiculo', 'incidente.usuario'],
@@ -79,7 +72,8 @@ export class ServicioService {
       return servicioCompleto;
     } catch (error) {
       throw new BadRequestException(
-        'Error al crear servicio: ' + error.message,
+        'Error al crear servicio: ' +
+          (error instanceof Error ? error.message : 'Error desconocido'),
       );
     }
   }

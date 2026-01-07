@@ -82,7 +82,8 @@ export class VehiculosService {
       return vehiculoCompleto;
     } catch (error) {
       throw new BadRequestException(
-        'Error al crear el vehículo: ' + error.message,
+        'Error al crear el vehículo: ' +
+          (error instanceof Error ? error.message : 'Error desconocido'),
       );
     }
   }
@@ -137,8 +138,8 @@ export class VehiculosService {
       return vehiculoActualizado;
     } catch (error) {
       throw new BadRequestException(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        'Error al actualizar el vehículo: ' + error.message,
+        'Error al actualizar el vehículo: ' +
+          (error instanceof Error ? error.message : 'Error desconocido'),
       );
     }
   }
@@ -193,13 +194,10 @@ export class VehiculosService {
     }
 
     const statusViejo: VehiculoStatus = vehiculo.status;
-
-    // Cambiar status a FUERA_DE_SERVICIO (indica baja)
     vehiculo.status = VehiculoStatus.FUERA_DE_SERVICIO;
 
     const vehiculoActualizado = await this.vehiculoRepository.save(vehiculo);
 
-    // Registrar cambio de status
     await this.statusUpdateService.crearStatusUpdate(
       vehiculoActualizado,
       statusViejo,
@@ -226,13 +224,10 @@ export class VehiculosService {
     }
 
     const statusViejo: VehiculoStatus = vehiculo.status;
-
-    // Cambiar status a DISPONIBLE (vuelve a estar activo)
     vehiculo.status = VehiculoStatus.DISPONIBLE;
 
     const vehiculoActualizado = await this.vehiculoRepository.save(vehiculo);
 
-    // Registrar cambio de status
     await this.statusUpdateService.crearStatusUpdate(
       vehiculoActualizado,
       statusViejo,
