@@ -15,6 +15,7 @@ import { CreateInfoAdicionalDataDto } from '../dto/create-info-adicional-data.dt
 import { StatusUpdateService } from './status-update.service';
 import { Recordatorio } from '../entities/recordatorio.entity';
 import { CreateRecordatorioDto } from '../dto/create-recordatorio.dto';
+import { UpdateRecordatorioDto } from '../dto/update-recordatorio.dto';
 
 @Injectable()
 export class VehiculosService {
@@ -261,5 +262,41 @@ export class VehiculosService {
     });
 
     return await this.recordatorioRepository.save(recordatorio);
+  }
+
+  async getRecordatoriosByVehiculo(
+    vehiculoId: number,
+  ): Promise<Recordatorio[]> {
+    return this.recordatorioRepository.find({
+      where: {
+        vehiculo: { id_vehiculo: vehiculoId },
+      },
+      order: {
+        fecha: 'ASC',
+      },
+    });
+  }
+
+  async updateRecordatorio(
+    recordatorioId: number,
+    data: UpdateRecordatorioDto,
+  ): Promise<Recordatorio> {
+    const recordatorio = await this.recordatorioRepository.findOne({
+      where: { id: recordatorioId },
+    });
+
+    if (!recordatorio) {
+      throw new NotFoundException('Recordatorio no encontrado');
+    }
+
+    if (data.fecha !== undefined) {
+      recordatorio.fecha = new Date(data.fecha);
+    }
+
+    if (data.descripcion !== undefined) {
+      recordatorio.descripcion = data.descripcion;
+    }
+
+    return this.recordatorioRepository.save(recordatorio);
   }
 }

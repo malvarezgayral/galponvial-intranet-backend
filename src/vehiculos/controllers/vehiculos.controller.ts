@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   HttpCode,
   HttpStatus,
+  Get,
 } from '@nestjs/common';
 import { VehiculosService } from '../services/vehiculo.service';
 import { CreateVehiculoDto } from '../dto/create-vehiculo.dto';
@@ -14,6 +15,7 @@ import { UpdateVehiculoDto } from '../dto/update-vehiculo.dto';
 import { Auth } from 'src/usuario/decorators/auth.decorator';
 import { ValidRoles } from 'src/usuario/enums/usuario.enum';
 import { CreateRecordatorioDto } from '../dto/create-recordatorio.dto';
+import { UpdateRecordatorioDto } from '../dto/update-recordatorio.dto';
 
 @Controller('vehiculos')
 @Auth(ValidRoles.admin)
@@ -54,5 +56,20 @@ export class VehiculosController {
     @Body() createRecordatorioDto: CreateRecordatorioDto,
   ) {
     return this.vehiculosService.agregarRecordatorio(id, createRecordatorioDto);
+  }
+
+  @Get(':vehiculoId/recordatorios')
+  async getRecordatorios(
+    @Param('vehiculoId', ParseIntPipe) vehiculoId: number,
+  ) {
+    return this.vehiculosService.getRecordatoriosByVehiculo(vehiculoId);
+  }
+
+  @Patch('recordatorios/:recordatorioId')
+  async updateRecordatorio(
+    @Param('recordatorioId', ParseIntPipe) recordatorioId: number,
+    @Body() dto: UpdateRecordatorioDto,
+  ) {
+    return this.vehiculosService.updateRecordatorio(recordatorioId, dto);
   }
 }
