@@ -18,6 +18,7 @@ import {
   CreateReporteIncidenteDto,
   CreateServicioDto,
   AssignRolDto,
+  UpdateUsuarioDto,
 } from '../dto/usuario.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from '../dto/login.dto';
@@ -25,6 +26,7 @@ import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
 import { ObjectServiceResponse } from '../interfaces/object-service-response.interface';
 import { DeActivateUserDto } from '../dto/de-activate.dto';
+import { ValidRoles } from '../enums/usuario.enum';
 
 @Injectable()
 export class UsuarioService {
@@ -153,6 +155,87 @@ export class UsuarioService {
       this.logger.error(
         error instanceof Error ? error.message : 'Unknown error',
         'UsuarioService.activarDesactivarUsuario',
+      );
+      throw error;
+    }
+  }
+
+  async updateUsuario(
+    dni: number,
+    updateDto: UpdateUsuarioDto,
+    currentUserRol: ValidRoles,
+  ): Promise<ObjectServiceResponse<Usuario | null>> {
+    try {
+      // campos solo para admin
+      const adminOnlyFields = ['password', 'tokenVersion', 'rol'];
+      const hasAdminFields = adminOnlyFields.some(
+        (field) => updateDto[field] !== undefined,
+      );
+
+      // se verifica el caso de que se quiera modificar un campo de admin sin ser admin
+      if (hasAdminFields && currentUserRol !== ValidRoles.admin) {
+        return {
+          success: false,
+          data: null,
+          message: 'No tienes permisos para modificar esos campos',
+        };
+      }
+
+      const usuario = await this.usuarioRepository.findOne({
+        where: { dni },
+        relations: ['rol'],
+      });
+
+      if (!usuario) {
+        throw new BadRequestException(`Usuario con DNI ${dni} no encontrado`);
+      }
+
+      // esto quizas no sea necesario verificar ya que el dto no tiene isActive
+      if ('isActive' in updateDto && updateDto.isActive !== undefined) {
+        throw new BadRequestException(
+          'No puedes modificar isActive. Usa el endpoint de activar/desactivar',
+        );
+      }
+
+      // Actualizar campos genéricos
+      if (updateDto.nombre !== undefined) usuario.nombre = updateDto.nombre;
+      if (updateDto.apellido !== undefined)
+        usuario.apellido = updateDto.apellido;
+      if (updateDto.email !== undefined) usuario.email = updateDto.email;
+
+      // Actualizar campos solo admin
+      if (updateDto.password !== undefined) {
+        const salt = await bcrypt.genSalt();
+        usuario.password = await bcrypt.hash(updateDto.password, salt);
+      }
+
+      //esto luego hay que verificar que solo haga un +1 o un reset
+      if (updateDto.tokenVersion !== undefined) {
+        usuario.tokenVersion = updateDto.tokenVersion;
+      }
+
+      if (updateDto.rol !== undefined) {
+        const rol = await this.rolRepository.findOne({
+          where: { rol: updateDto.rol },
+        });
+        if (!rol) {
+          throw new BadRequestException(`Rol ${updateDto.rol} no existe`);
+        }
+        usuario.rol = rol;
+      }
+
+      // Guardar cambios
+      const usuarioActualizado = await this.usuarioRepository.save(usuario);
+
+      return {
+        success: true,
+        data: usuarioActualizado,
+        message: 'Usuario actualizado correctamente',
+      };
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioService.updateUsuario',
       );
       throw error;
     }

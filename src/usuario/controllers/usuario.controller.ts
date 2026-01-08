@@ -16,6 +16,7 @@ import {
   CreateReporteIncidenteDto,
   CreateServicioDto,
   AssignRolDto,
+  UpdateUsuarioDto,
 } from '../dto/usuario.dto';
 import { Usuario } from '../entities/usuario.entity';
 import { Rol } from '../entities/rol.entity';
@@ -114,6 +115,16 @@ export class UsuarioController {
     @Body() dto: DeActivateUserDto,
   ): Promise<ObjectServiceResponse<Usuario | number>> {
     return this.usuarioService.activarDesactivarUsuario(dto, currentUser.dni);
+  }
+
+  @Put(':dni')
+  @Auth()
+  async updateUsuario(
+    @Param('dni') dni: number,
+    @GetUser() currentUser: Usuario,
+    @Body() dto: UpdateUsuarioDto,
+  ): Promise<ObjectServiceResponse<Usuario | null>> {
+    return this.usuarioService.updateUsuario(dni, dto, currentUser.rol.rol);
   }
 
   // Roles
