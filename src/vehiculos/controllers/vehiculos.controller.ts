@@ -13,6 +13,7 @@ import { CreateVehiculoDto } from '../dto/create-vehiculo.dto';
 import { UpdateVehiculoDto } from '../dto/update-vehiculo.dto';
 import { Auth } from 'src/usuario/decorators/auth.decorator';
 import { ValidRoles } from 'src/usuario/enums/usuario.enum';
+import { CreateRecordatorioDto } from '../dto/create-recordatorio.dto';
 
 @Controller('vehiculos')
 @Auth(ValidRoles.admin)
@@ -44,5 +45,14 @@ export class VehiculosController {
   @HttpCode(HttpStatus.OK)
   darDeAlta(@Param('id', ParseIntPipe) id: number) {
     return this.vehiculosService.darDeAlta(id);
+  }
+
+  @Post(':id/recordatorios')
+  @HttpCode(HttpStatus.CREATED)
+  agregarRecordatorio(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() createRecordatorioDto: CreateRecordatorioDto,
+  ) {
+    return this.vehiculosService.agregarRecordatorio(id, createRecordatorioDto);
   }
 }

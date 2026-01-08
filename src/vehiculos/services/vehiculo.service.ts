@@ -13,6 +13,8 @@ import { UpdateVehiculoDto } from '../dto/update-vehiculo.dto';
 import { VehiculoStatus } from '../enums/vehiculo.enum';
 import { CreateInfoAdicionalDataDto } from '../dto/create-info-adicional-data.dto';
 import { StatusUpdateService } from './status-update.service';
+import { Recordatorio } from '../entities/recordatorio.entity';
+import { CreateRecordatorioDto } from '../dto/create-recordatorio.dto';
 
 @Injectable()
 export class VehiculosService {
@@ -24,6 +26,8 @@ export class VehiculosService {
     @InjectRepository(Sector)
     private readonly sectorRepository: Repository<Sector>,
     private readonly statusUpdateService: StatusUpdateService,
+    @InjectRepository(Recordatorio)
+    private readonly recordatorioRepository: Repository<Recordatorio>,
   ) {}
 
   async create(createVehiculoDto: CreateVehiculoDto): Promise<Vehiculo> {
@@ -234,5 +238,28 @@ export class VehiculosService {
     );
 
     return vehiculoActualizado;
+  }
+
+  async agregarRecordatorio(
+    idVehiculo: number,
+    data: CreateRecordatorioDto,
+  ): Promise<Recordatorio> {
+    const vehiculo = await this.vehiculoRepository.findOne({
+      where: { id_vehiculo: idVehiculo },
+    });
+
+    if (!vehiculo) {
+      throw new NotFoundException(
+        `Vehículo con ID ${idVehiculo} no encontrado`,
+      );
+    }
+
+    const recordatorio = this.recordatorioRepository.create({
+      fecha: data.fecha,
+      descripcion: data.descripcion,
+      vehiculo,
+    });
+
+    return await this.recordatorioRepository.save(recordatorio);
   }
 }
