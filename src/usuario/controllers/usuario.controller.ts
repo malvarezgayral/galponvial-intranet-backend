@@ -24,6 +24,7 @@ import { ReporteIncidente } from '../entities/reporte-incidente.entity';
 import { Servicio } from '../entities/servicio.entity';
 import { LoginUserDto } from '../dto/login.dto';
 import { Auth } from '../decorators/auth.decorator';
+import { GetUser } from '../decorators/get-user.decorator';
 import { ValidRoles } from '../enums/usuario.enum';
 import { ObjectServiceResponse } from '../interfaces/object-service-response.interface';
 import { DeActivateUserDto } from '../dto/de-activate.dto';
@@ -109,9 +110,10 @@ export class UsuarioController {
   @Put()
   @Auth(ValidRoles.admin)
   activarDesactivarUsuario(
+    @GetUser() currentUser: Usuario,
     @Body() dto: DeActivateUserDto,
-  ): Promise<ObjectServiceResponse<Usuario>> {
-    return this.usuarioService.activarDesactivarUsuario(dto);
+  ): Promise<ObjectServiceResponse<Usuario | number>> {
+    return this.usuarioService.activarDesactivarUsuario(dto, currentUser.dni);
   }
 
   // Roles

@@ -1,4 +1,9 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 import { Usuario } from '../entities/usuario.entity';
@@ -103,13 +108,24 @@ export class UsuarioService {
     }
   }
 
-  async activarDesactivarUsuario({
-    dni,
-    isActive,
-  }: DeActivateUserDto): Promise<ObjectServiceResponse<Usuario>> {
+  async activarDesactivarUsuario(
+    { dni, isActive }: DeActivateUserDto,
+    currentUserDni: number,
+  ): Promise<ObjectServiceResponse<Usuario | number>> {
+    console.log('current user dni: ', currentUserDni);
     try {
+      // Validar que no intente modificarse a sí mismo
+      if (dni == currentUserDni) {
+        return {
+          success: false,
+          data: dni,
+          message: 'El usuario no puede activarse/desactivarse a sí mismo',
+        }; // se retorna si no precisa cambios
+      }
+
       const usuario = await this.usuarioRepository.findOne({ where: { dni } });
       if (!usuario) throw new Error(`Usuario with dni ${dni} not found`);
+
       if (isActive == usuario.isActive) {
         return {
           success: false,

@@ -10,8 +10,3 @@ export function Auth(...roles: ValidRoles[]) {
     UseGuards(AuthGuard(), UserValidRoleGuard),
   );
 }
-
-/*export function AuthRolePresence() {
-  return applyDecorators(UseGuards(AuthGuard(), UserPresenceRoleGuard));
-}
-*/
