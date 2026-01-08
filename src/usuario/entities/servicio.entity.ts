@@ -29,10 +29,10 @@ export class Servicio {
   @Column({ type: 'text' })
   descripcion: string;
 
-  @Column()
-  incidente_id: number;
+  @Column({ nullable: true })
+  incidente_id?: number;
 
   @ManyToOne(() => ReporteIncidente, (incidente) => incidente.servicios)
   @JoinColumn({ name: 'incidente_id' })
-  incidente: ReporteIncidente;
+  incidente: ReporteIncidente | null;
 }
