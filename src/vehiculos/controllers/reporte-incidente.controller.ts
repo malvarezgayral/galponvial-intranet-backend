@@ -32,6 +32,7 @@ export class ReporteIncidenteController {
   @Auth()
   findAll(@Body() filtros: FiltrosIncidenteDto) {
     return this.reporteIncidenteService.findAll(filtros);
+  }
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {

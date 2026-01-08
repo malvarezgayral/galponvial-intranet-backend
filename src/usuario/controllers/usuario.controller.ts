@@ -26,6 +26,7 @@ import { LoginUserDto } from '../dto/login.dto';
 import { Auth } from '../decorators/auth.decorator';
 import { ValidRoles } from '../enums/usuario.enum';
 import { ObjectServiceResponse } from '../interfaces/object-service-response.interface';
+import { DeActivateUserDto } from '../dto/de-activate.dto';
 
 @Controller('usuario')
 export class UsuarioController {
@@ -105,13 +106,12 @@ export class UsuarioController {
     return this.usuarioService.obtenerUsuarioPorDni(dni);
   }
 
-  @Put(':dni')
+  @Put()
   @Auth(ValidRoles.admin)
   activarDesactivarUsuario(
-    @Param('dni') dni: number,
-    @Body() flag: boolean,
+    @Body() dto: DeActivateUserDto,
   ): Promise<ObjectServiceResponse<Usuario>> {
-    return this.usuarioService.activarDesactivarUsuario(dni, flag);
+    return this.usuarioService.activarDesactivarUsuario(dto);
   }
 
   // Roles

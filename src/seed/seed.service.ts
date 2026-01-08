@@ -28,6 +28,8 @@ import { ReporteIncidente } from '../usuario/entities/reporte-incidente.entity';
 import { Servicio } from '../usuario/entities/servicio.entity';
 import { RefreshToken } from '../usuario/entities/refresh-token.entity';
 
+import * as bcrypt from 'bcrypt';
+
 @Injectable()
 export class SeedService {
   private readonly logger = new Logger(SeedService.name);
@@ -99,7 +101,7 @@ export class SeedService {
 
       // Orden de inserción para módulo usuario (respetando FK)
       //results['rol'] = await this.seedRoles();
-      results['usuario'] = await this.seedUsuarios();
+      //results['usuario'] = await this.seedUsuarios();
       results['refresh_token'] = await this.seedRefreshTokens();
       results['usuario_vehiculo'] = await this.seedUsuariosVehiculos();
       results['reporte_incidente'] = await this.seedReportesIncidentes();
@@ -133,6 +135,27 @@ export class SeedService {
       };
     } catch (error) {
       this.logger.error('Error durante seed de roles:', error);
+      throw error;
+    }
+  }
+
+  public async seedUsers(): Promise<{
+    message: string;
+    results: Record<string, number>;
+  }> {
+    this.logger.log('Iniciando seed de usuarios...');
+    const results: Record<string, number> = {};
+
+    try {
+      results['usuario'] = await this.seedUsuarios();
+
+      this.logger.log('✓ Seed de usuarios completado exitosamente');
+      return {
+        message: 'Usuarios poblados exitosamente',
+        results,
+      };
+    } catch (error) {
+      this.logger.error('Error durante seed de usuarios:', error);
       throw error;
     }
   }
@@ -307,18 +330,25 @@ export class SeedService {
   private async seedUsuarios(): Promise<number> {
     this.logger.log('Cargando usuarios...');
     const data = await this.csvReaderService.readCsv('usuarios');
-    const mappedData = data.map((item) => ({
-      dni: Number(item.dni),
-      nombre: item.nombre,
-      apellido: item.apellido,
-      email: item.email,
-      password: item.password,
-      isActive: item.isActive === 'true',
-      tokenVersion: Number(item.tokenVersion),
-      fecha_alta: new Date(item.fecha_alta as string),
-      fecha_baja: item.fecha_baja ? new Date(item.fecha_baja as string) : null,
-      rol_id: Number(item.rol_id),
-    })) as Partial<Usuario>[];
+
+    const salt = await bcrypt.genSalt();
+
+    const mappedData = await Promise.all(
+      data.map(async (item) => ({
+        dni: Number(item.dni),
+        nombre: String(item.nombre),
+        apellido: String(item.apellido),
+        email: String(item.email),
+        password: await bcrypt.hash(item.password as string, salt),
+        isActive: item.isActive === 'true',
+        tokenVersion: Number(item.tokenVersion),
+        fecha_alta: new Date(item.fecha_alta as string),
+        fecha_baja: item.fecha_baja
+          ? new Date(item.fecha_baja as string)
+          : null,
+        rol_id: Number(item.rol_id),
+      })),
+    );
     await this.usuarioRepository.save(mappedData);
     this.logger.log(`✓ ${data.length} usuarios cargados`);
     return data.length;

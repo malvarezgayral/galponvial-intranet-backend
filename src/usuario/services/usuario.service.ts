@@ -6,6 +6,7 @@ import { Rol } from '../entities/rol.entity';
 import { UsuarioVehiculo } from '../entities/usuario-vehiculo.entity';
 import { ReporteIncidente } from '../entities/reporte-incidente.entity';
 import { Servicio } from '../entities/servicio.entity';
+import { RefreshToken } from '../entities/refresh-token.entity';
 import {
   CreateUsuarioDto,
   CreateUsuarioVehiculoDto,
@@ -18,6 +19,7 @@ import { LoginUserDto } from '../dto/login.dto';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
 import { ObjectServiceResponse } from '../interfaces/object-service-response.interface';
+import { DeActivateUserDto } from '../dto/de-activate.dto';
 
 @Injectable()
 export class UsuarioService {
@@ -34,6 +36,8 @@ export class UsuarioService {
     private reporteIncidenteRepository: Repository<ReporteIncidente>,
     @InjectRepository(Servicio)
     private servicioRepository: Repository<Servicio>,
+    @InjectRepository(RefreshToken)
+    private refreshTokenRepository: Repository<RefreshToken>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -99,30 +103,33 @@ export class UsuarioService {
     }
   }
 
-  async activarDesactivarUsuario(
-    dni: number,
-    flag: boolean,
-  ): Promise<ObjectServiceResponse<Usuario>> {
+  async activarDesactivarUsuario({
+    dni,
+    isActive,
+  }: DeActivateUserDto): Promise<ObjectServiceResponse<Usuario>> {
     try {
       const usuario = await this.usuarioRepository.findOne({ where: { dni } });
       if (!usuario) throw new Error(`Usuario with dni ${dni} not found`);
-      if (flag == usuario.isActive) {
+      if (isActive == usuario.isActive) {
         return {
           success: false,
           data: usuario,
-          message: flag
+          message: isActive
             ? 'El usuario ya está activo'
             : 'El usuario ya está inactivo',
         }; // se retorna si no precisa cambios
       }
-      usuario.isActive = flag;
-      usuario.refreshToken = null; // se invalida su token, similar a invalidar sesión
-      if (flag) usuario.fecha_baja = null;
+      usuario.isActive = isActive;
+      // se elimina el ref token para simular lo que seria un invalidar sesion
+      if (usuario.refreshToken) {
+        await this.refreshTokenRepository.remove(usuario.refreshToken);
+      }
+      if (isActive) usuario.fecha_baja = null;
       else usuario.fecha_baja = new Date();
       return {
         success: true,
         data: await this.usuarioRepository.save(usuario),
-        message: flag
+        message: isActive
           ? 'Usuario activado correctamente'
           : 'Usuario desactivado correctamente',
       };

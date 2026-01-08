@@ -10,9 +10,9 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
+    //private logger = new Logger(JwtStrategy.name),
     @InjectRepository(Usuario)
     private readonly userRepository: Repository<Usuario>,
-
     configService: ConfigService,
   ) {
     const jwtSecret =
@@ -35,7 +35,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       where: { dni },
       relations: ['rol'],
     });
-
+    console.log('user is: ', user);
     if (!user) throw new UnauthorizedException('Token not valid');
 
     if (!user.isActive)
