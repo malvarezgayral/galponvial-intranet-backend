@@ -10,7 +10,7 @@ import {
   MaxLength,
   Matches,
 } from 'class-validator';
-import { Permisos, ValidRoles, FallaIncidente } from '../enums/usuario.enum';
+import { ValidRoles, FallaIncidente } from '../enums/usuario.enum';
 
 export class CreateUsuarioDto {
   @IsNotEmpty()

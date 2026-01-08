@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Injectable,
   NotFoundException,
@@ -55,6 +58,7 @@ export class ServicioService {
       }
 
       // Cambiar status del vehículo a EN_TALLER
+
       const statusViejo: VehiculoStatus = vehiculo.status;
 
       if (statusViejo !== VehiculoStatus.EN_TALLER) {
