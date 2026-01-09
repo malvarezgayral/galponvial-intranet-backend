@@ -34,7 +34,7 @@ import { RolService } from './services/rol.service';
         return {
           secret: configService.get('JWT_SECRET'),
           signOptions: {
-            expiresIn: '1h',
+            expiresIn: '15m',
           },
         };
       },

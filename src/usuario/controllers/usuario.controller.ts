@@ -27,7 +27,7 @@ import { LoginUserDto } from '../dto/login.dto';
 import { Auth } from '../decorators/auth.decorator';
 import { GetUser } from '../decorators/get-user.decorator';
 import { ValidRoles } from '../enums/usuario.enum';
-import { ObjectServiceResponse } from '../interfaces/object-service-response.interface';
+import { JwtLoginResponse, ObjectServiceResponse } from '../interfaces/object-service-response.interface';
 import { DeActivateUserDto } from '../dto/de-activate.dto';
 
 @Controller('usuario')
@@ -76,7 +76,7 @@ export class UsuarioController {
   @Post('login')
   async loginUser(
     @Body() loginUserDto: LoginUserDto,
-  ): Promise<{ dni: number; token: string }> {
+  ): Promise<ObjectServiceResponse<JwtLoginResponse>> {
     try {
       const dni = loginUserDto.dni;
       const usuario = await this.usuarioService.obtenerUsuarioPorDni(dni);

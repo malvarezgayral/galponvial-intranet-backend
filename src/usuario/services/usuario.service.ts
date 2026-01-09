@@ -24,7 +24,11 @@ import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from '../dto/login.dto';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
-import { ObjectServiceResponse } from '../interfaces/object-service-response.interface';
+import type { JwtSignOptions } from '@nestjs/jwt';
+import {
+  JwtLoginResponse,
+  ObjectServiceResponse,
+} from '../interfaces/object-service-response.interface';
 import { DeActivateUserDto } from '../dto/de-activate.dto';
 import { ValidRoles } from '../enums/usuario.enum';
 
@@ -82,7 +86,9 @@ export class UsuarioService {
     });
   }
 
-  async login(loginUserDto: LoginUserDto) {
+  async login(
+    loginUserDto: LoginUserDto,
+  ): Promise<ObjectServiceResponse<JwtLoginResponse>> {
     const { password, dni } = loginUserDto;
 
     try {
@@ -97,9 +103,23 @@ export class UsuarioService {
         throw new UnauthorizedException('Credentials are not valid (password)');
 
       this.logger.log(`Usuario ${user.dni} logged in successfully`);
-      return {
+
+      const accessToken = this.getJwtToken(
+        { dni: user.dni },
+        { expiresIn: '15m' },
+      );
+      const refreshToken = this.getJwtToken(
+        { dni: user.dni },
+        { expiresIn: '7d' },
+      );
+      const jwtResponse: JwtLoginResponse = {
         dni: user.dni,
-        token: this.getJwtToken({ dni: user.dni }),
+        accessToken,
+        refreshToken,
+      };
+      return {
+        success: true,
+        data: jwtResponse,
       };
     } catch (error) {
       this.logger.error(
@@ -114,7 +134,6 @@ export class UsuarioService {
     { dni, isActive }: DeActivateUserDto,
     currentUserDni: number,
   ): Promise<ObjectServiceResponse<Usuario | number>> {
-    console.log('current user dni: ', currentUserDni);
     try {
       // Validar que no intente modificarse a sí mismo
       if (dni == currentUserDni) {
@@ -241,8 +260,8 @@ export class UsuarioService {
     }
   }
 
-  private getJwtToken(payload: JwtPayload) {
-    const token = this.jwtService.sign(payload);
+  private getJwtToken(payload: JwtPayload, options: JwtSignOptions) {
+    const token = this.jwtService.sign(payload, options);
     return token;
   }
 

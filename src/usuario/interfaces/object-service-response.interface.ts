@@ -3,3 +3,9 @@ export interface ObjectServiceResponse<T> {
   data: T;
   message?: string;
 }
+
+export interface JwtLoginResponse {
+  dni: number;
+  accessToken: string;
+  refreshToken: string;
+}
