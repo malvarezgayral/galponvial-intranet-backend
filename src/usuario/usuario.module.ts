@@ -33,9 +33,6 @@ import { RolService } from './services/rol.service';
       useFactory: (configService: ConfigService) => {
         return {
           secret: configService.get('JWT_SECRET'),
-          signOptions: {
-            expiresIn: '15m',
-          },
         };
       },
     }),
