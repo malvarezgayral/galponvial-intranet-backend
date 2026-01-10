@@ -12,8 +12,9 @@ import { UsuarioController } from './controllers/usuario.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from './authStrategies/jwt.strategy';
 import { RolService } from './services/rol.service';
+import { JwtAccessStrategy } from './authStrategies/jwt-access.strategy';
+import { JwtRefreshStrategy } from './authStrategies/jwt-refresh.strategy';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { RolService } from './services/rol.service';
       Servicio,
       RefreshToken,
     ]),
-    PassportModule.register({ defaultStrategy: 'jwt' }),
+    PassportModule.register({ defaultStrategy: 'jwt-access' }),
 
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -37,13 +38,20 @@ import { RolService } from './services/rol.service';
       },
     }),
   ],
-  providers: [UsuarioService, RolService, UsuarioVehiculoService, JwtStrategy],
+  providers: [
+    UsuarioService,
+    RolService,
+    UsuarioVehiculoService,
+    JwtAccessStrategy,
+    JwtRefreshStrategy,
+  ],
   controllers: [UsuarioController],
   exports: [
     UsuarioService,
     UsuarioVehiculoService,
     TypeOrmModule,
-    JwtStrategy,
+    JwtAccessStrategy,
+    JwtRefreshStrategy,
     PassportModule,
     JwtModule,
   ],

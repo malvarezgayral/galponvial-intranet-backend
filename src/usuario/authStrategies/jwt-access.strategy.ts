@@ -1,29 +1,31 @@
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Strategy, ExtractJwt } from 'passport-jwt';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { Usuario } from '../entities/usuario.entity';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtAccessStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-access',
+) {
   constructor(
-    //private logger = new Logger(JwtStrategy.name),
     @InjectRepository(Usuario)
     private readonly userRepository: Repository<Usuario>,
     configService: ConfigService,
   ) {
-    const jwtSecret =
-      configService.get<string>('JWT_SECRET') || process.env.JWT_SECRET;
+    const jwtAccessSecret =
+      configService.get<string>('jwtAccessSecret') ||
+      process.env.JWT_ACCESS_SECRET;
 
-    if (!jwtSecret) {
+    if (!jwtAccessSecret) {
       throw new Error('JWT_SECRET is not defined in environment variables');
     }
-
     super({
-      secretOrKey: jwtSecret,
+      secretOrKey: jwtAccessSecret,
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     });
   }
@@ -35,11 +37,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       where: { dni },
       relations: ['rol'],
     });
-    console.log('user is: ', user);
-    if (!user) throw new UnauthorizedException('Token not valid');
 
-    if (!user.isActive)
-      throw new UnauthorizedException('User is inactive, talk with an admin');
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException();
+    }
 
     return user;
   }
