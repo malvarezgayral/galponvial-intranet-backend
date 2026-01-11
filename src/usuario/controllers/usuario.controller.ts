@@ -136,9 +136,9 @@ export class UsuarioController {
   @UseGuards(RefreshAuthGuard)
   @Post('refresh')
   refreshToken(
-    @Body() dni: number,
+    @GetUser() user: Usuario,
   ): ObjectServiceResponse<{ accessToken: string }> {
-    return this.usuarioService.refreshToken(dni);
+    return this.usuarioService.refreshToken(user.dni);
   }
 
   // Roles
