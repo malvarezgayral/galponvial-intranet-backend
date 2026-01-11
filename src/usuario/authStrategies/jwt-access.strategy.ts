@@ -3,7 +3,6 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { Usuario } from '../entities/usuario.entity';
-import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -15,11 +14,8 @@ export class JwtAccessStrategy extends PassportStrategy(
   constructor(
     @InjectRepository(Usuario)
     private readonly userRepository: Repository<Usuario>,
-    configService: ConfigService,
   ) {
-    const jwtAccessSecret =
-      configService.get<string>('jwtAccessSecret') ||
-      process.env.JWT_ACCESS_SECRET;
+    const jwtAccessSecret = process.env.JWT_ACCESS_SECRET;
 
     if (!jwtAccessSecret) {
       throw new Error('JWT_SECRET is not defined in environment variables');
@@ -27,6 +23,7 @@ export class JwtAccessStrategy extends PassportStrategy(
     super({
       secretOrKey: jwtAccessSecret,
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
     });
   }
 

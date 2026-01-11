@@ -8,6 +8,8 @@ import {
   Logger,
   Patch,
   Put,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { UsuarioService } from '../services/usuario.service';
 import {
@@ -32,6 +34,7 @@ import {
   ObjectServiceResponse,
 } from '../interfaces/object-service-response.interface';
 import { DeActivateUserDto } from '../dto/de-activate.dto';
+import { RefreshAuthGuard } from '../guards/refresh-auth.guard';
 
 @Controller('usuario')
 export class UsuarioController {
@@ -128,6 +131,14 @@ export class UsuarioController {
     @Body() dto: UpdateUsuarioDto,
   ): Promise<ObjectServiceResponse<Usuario | null>> {
     return this.usuarioService.updateUsuario(dni, dto, currentUser.rol.rol);
+  }
+
+  @UseGuards(RefreshAuthGuard)
+  @Post('refresh')
+  refreshToken(
+    @Body() dni: number,
+  ): ObjectServiceResponse<{ accessToken: string }> {
+    return this.usuarioService.refreshToken(dni);
   }
 
   // Roles

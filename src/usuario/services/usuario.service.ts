@@ -106,11 +106,11 @@ export class UsuarioService {
 
       const accessToken = this.getJwtToken(
         { dni: user.dni },
-        { expiresIn: '15m' },
+        { secret: process.env.JWT_ACCESS_SECRET, expiresIn: '60s' },
       );
       const refreshToken = this.getJwtToken(
         { dni: user.dni },
-        { expiresIn: '7d' },
+        { secret: process.env.JWT_REFRESH_SECRET, expiresIn: '5m' },
       );
       const jwtResponse: JwtLoginResponse = {
         dni: user.dni,
@@ -260,9 +260,21 @@ export class UsuarioService {
     }
   }
 
-  private getJwtToken(payload: JwtPayload, options: JwtSignOptions) {
+  private getJwtToken(payload: JwtPayload, options?: JwtSignOptions) {
     const token = this.jwtService.sign(payload, options);
     return token;
+  }
+
+  public refreshToken(dni: number) {
+    const accessToken = this.getJwtToken(
+      { dni },
+      { secret: process.env.JWT_ACCESS_SECRET, expiresIn: '15m' },
+    );
+    return {
+      success: true,
+      data: { accessToken },
+      message: 'Token refreshed successfully',
+    };
   }
 
   // Roles
