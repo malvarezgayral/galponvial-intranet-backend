@@ -106,11 +106,17 @@ export class UsuarioService {
 
       const accessToken = this.getJwtToken(
         { dni: user.dni },
-        { secret: process.env.JWT_ACCESS_SECRET, expiresIn: '60s' },
+        {
+          secret: process.env.JWT_ACCESS_SECRET,
+          expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '60s') as never,
+        },
       );
       const refreshToken = this.getJwtToken(
         { dni: user.dni },
-        { secret: process.env.JWT_REFRESH_SECRET, expiresIn: '5m' },
+        {
+          secret: process.env.JWT_REFRESH_SECRET,
+          expiresIn: (process.env.JWT_REFRESH_EXPIRATION || '5m') as never,
+        },
       );
       const jwtResponse: JwtLoginResponse = {
         dni: user.dni,
@@ -268,7 +274,10 @@ export class UsuarioService {
   public refreshToken(dni: number) {
     const accessToken = this.getJwtToken(
       { dni },
-      { secret: process.env.JWT_ACCESS_SECRET, expiresIn: '15m' },
+      {
+        secret: process.env.JWT_REFRESH_SECRET,
+        expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '60s') as never,
+      },
     );
     return {
       success: true,
