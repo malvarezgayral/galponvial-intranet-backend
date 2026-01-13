@@ -47,4 +47,14 @@ export class SeedController {
   }> {
     return this.seedService.seedRolesByUser();
   }
+
+  @Post('run/usuarios')
+  @Auth()
+  @HttpCode(HttpStatus.OK)
+  runSeedUsuarios(): Promise<{
+    message: string;
+    results: Record<string, number>;
+  }> {
+    return this.seedService.seedUsers();
+  }
 }

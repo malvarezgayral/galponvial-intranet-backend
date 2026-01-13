@@ -102,8 +102,18 @@ export class UpdateUsuarioDto {
     example: '2025-01-10',
   })
   @IsOptional()
-  @IsDateString()
-  fecha_baja?: string;
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  @MaxLength(50)
+  @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+    message:
+      'The password must have a Uppercase, lowercase letter and a number',
+  })
+  password?: string;
 
   @ApiPropertyOptional({
     description: 'ID del rol asignado',
@@ -111,7 +121,11 @@ export class UpdateUsuarioDto {
   })
   @IsOptional()
   @IsNumber()
-  rol_id?: number;
+  tokenVersion?: number;
+
+  @IsOptional()
+  @IsEnum(ValidRoles)
+  rol?: ValidRoles;
 }
 
 /* =========================

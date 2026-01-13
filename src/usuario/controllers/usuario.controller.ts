@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Controller,
   Get,
@@ -7,6 +9,8 @@ import {
   Logger,
   Patch,
   BadRequestException,
+  Put,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,6 +26,7 @@ import {
   CreateReporteIncidenteDto,
   CreateServicioDto,
   AssignRolDto,
+  UpdateUsuarioDto,
 } from '../dto/usuario.dto';
 import { Usuario } from '../entities/usuario.entity';
 import { Rol } from '../entities/rol.entity';
@@ -30,7 +35,11 @@ import { ReporteIncidente } from '../entities/reporte-incidente.entity';
 import { Servicio } from '../entities/servicio.entity';
 import { LoginUserDto } from '../dto/login.dto';
 import { Auth } from '../decorators/auth.decorator';
+import { GetUser } from '../decorators/get-user.decorator';
 import { ValidRoles } from '../enums/usuario.enum';
+import { ObjectServiceResponse } from '../interfaces/object-service-response.interface';
+import { DeActivateUserDto } from '../dto/de-activate.dto';
+import { RefreshAuthGuard } from '../guards/refresh-auth.guard';
 
 @ApiTags('Usuarios')
 @Controller('usuario')
@@ -153,6 +162,35 @@ export class UsuarioController {
 
   // ==================== ROLES ====================
 
+  @Put()
+  @Auth(ValidRoles.admin)
+  activarDesactivarUsuario(
+    @GetUser() currentUser: Usuario,
+    @Body() dto: DeActivateUserDto,
+  ): Promise<ObjectServiceResponse<Usuario | number>> {
+    return this.usuarioService.activarDesactivarUsuario(dto, currentUser.dni);
+  }
+
+  @Put(':dni')
+  @Auth()
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async updateUsuario(
+    @Param('dni') dni: number,
+    @GetUser() currentUser: Usuario,
+    @Body() dto: UpdateUsuarioDto,
+  ): Promise<ObjectServiceResponse<Usuario | null>> {
+    return this.usuarioService.updateUsuario(dni, dto, currentUser.rol.rol);
+  }
+
+  @UseGuards(RefreshAuthGuard)
+  @Post('refresh')
+  refreshToken(
+    @GetUser() user: Usuario,
+  ): ObjectServiceResponse<{ accessToken: string }> {
+    return this.usuarioService.refreshToken(user.dni);
+  }
+
+  // Roles
   @ApiOperation({ summary: 'Asignar rol a un usuario' })
   @ApiParam({
     name: 'dni',
