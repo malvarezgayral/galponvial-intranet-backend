@@ -6,6 +6,9 @@ import {
   Param,
   Logger,
   Patch,
+  Put,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -21,6 +24,7 @@ import {
   CreateReporteIncidenteDto,
   CreateServicioDto,
   AssignRolDto,
+  UpdateUsuarioDto,
 } from '../dto/usuario.dto';
 import { Usuario } from '../entities/usuario.entity';
 import { Rol } from '../entities/rol.entity';
@@ -29,7 +33,14 @@ import { ReporteIncidente } from '../entities/reporte-incidente.entity';
 import { Servicio } from '../entities/servicio.entity';
 import { LoginUserDto } from '../dto/login.dto';
 import { Auth } from '../decorators/auth.decorator';
+import { GetUser } from '../decorators/get-user.decorator';
 import { ValidRoles } from '../enums/usuario.enum';
+import {
+  JwtLoginResponse,
+  ObjectServiceResponse,
+} from '../interfaces/object-service-response.interface';
+import { DeActivateUserDto } from '../dto/de-activate.dto';
+import { RefreshAuthGuard } from '../guards/refresh-auth.guard';
 
 @ApiTags('Usuarios')
 @Controller('usuario')
@@ -62,8 +73,24 @@ export class UsuarioController {
   @Post('login')
   async loginUser(
     @Body() loginUserDto: LoginUserDto,
-  ): Promise<{ dni: number; token: string }> {
-    return this.usuarioService.login(loginUserDto);
+  ): Promise<ObjectServiceResponse<JwtLoginResponse>> {
+    try {
+      const dni = loginUserDto.dni;
+      const usuario = await this.usuarioService.obtenerUsuarioPorDni(dni);
+      if (!usuario) {
+        throw new BadRequestException('Invalid credentials');
+      }
+      if (usuario && !usuario.isActive) {
+        throw new BadRequestException('El usuario no está activo');
+      }
+      return this.usuarioService.login(loginUserDto);
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioController.crearUsuario',
+      );
+      throw error;
+    }
   }
 
   @ApiOperation({ summary: 'Obtener todos los usuarios' })
@@ -98,6 +125,34 @@ export class UsuarioController {
 
   // ==================== ROLES ====================
 
+  @Put()
+  @Auth(ValidRoles.admin)
+  activarDesactivarUsuario(
+    @GetUser() currentUser: Usuario,
+    @Body() dto: DeActivateUserDto,
+  ): Promise<ObjectServiceResponse<Usuario | number>> {
+    return this.usuarioService.activarDesactivarUsuario(dto, currentUser.dni);
+  }
+
+  @Put(':dni')
+  @Auth()
+  async updateUsuario(
+    @Param('dni') dni: number,
+    @GetUser() currentUser: Usuario,
+    @Body() dto: UpdateUsuarioDto,
+  ): Promise<ObjectServiceResponse<Usuario | null>> {
+    return this.usuarioService.updateUsuario(dni, dto, currentUser.rol.rol);
+  }
+
+  @UseGuards(RefreshAuthGuard)
+  @Post('refresh')
+  refreshToken(
+    @GetUser() user: Usuario,
+  ): ObjectServiceResponse<{ accessToken: string }> {
+    return this.usuarioService.refreshToken(user.dni);
+  }
+
+  // Roles
   @ApiOperation({ summary: 'Asignar rol a un usuario' })
   @ApiParam({
     name: 'dni',
