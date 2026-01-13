@@ -6,6 +6,7 @@ import {
   Param,
   Logger,
   Patch,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -40,6 +41,7 @@ export class UsuarioController {
 
   // ==================== USUARIOS ====================
 
+  @Post('register')
   @ApiOperation({ summary: 'Registrar un nuevo usuario' })
   @ApiBody({ type: CreateUsuarioDto })
   @ApiResponse({ status: 201, description: 'Usuario creado correctamente' })
@@ -47,23 +49,76 @@ export class UsuarioController {
     status: 400,
     description: 'Datos inválidos o usuario existente',
   })
-  @Post('register')
   async crearUsuario(@Body() createUserDto: CreateUsuarioDto) {
-    return this.usuarioService.crearUsuario(createUserDto);
+    try {
+      const {
+        password,
+        repeatedPassword,
+        email: userEmail,
+        dni: userDni,
+      } = createUserDto;
+
+      if (password !== repeatedPassword) {
+        throw new BadRequestException('Passwords do not match');
+      }
+
+      const usuarioPorDni =
+        await this.usuarioService.obtenerUsuarioPorDni(userDni);
+      if (usuarioPorDni) {
+        throw new BadRequestException('User with this DNI already exists');
+      }
+
+      const usuarioPorEmail =
+        await this.usuarioService.obtenerUsuarioPorEmail(userEmail);
+      if (usuarioPorEmail) {
+        throw new BadRequestException('Email is already in use');
+      }
+
+      return this.usuarioService.crearUsuario(createUserDto);
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioController.crearUsuario',
+      );
+      throw error;
+    }
   }
 
+  @Post('login')
   @ApiOperation({ summary: 'Login de usuario' })
   @ApiBody({ type: LoginUserDto })
   @ApiResponse({
     status: 200,
     description: 'Login exitoso, devuelve token JWT',
   })
-  @ApiResponse({ status: 400, description: 'Credenciales inválidas' })
-  @Post('login')
+  @ApiResponse({
+    status: 400,
+    description: 'Credenciales inválidas',
+  })
   async loginUser(
     @Body() loginUserDto: LoginUserDto,
   ): Promise<{ dni: number; token: string }> {
-    return this.usuarioService.login(loginUserDto);
+    try {
+      const dni = loginUserDto.dni;
+
+      const usuario = await this.usuarioService.obtenerUsuarioPorDni(dni);
+
+      if (!usuario) {
+        throw new BadRequestException('Invalid credentials');
+      }
+
+      if (usuario && !usuario.isActive) {
+        throw new BadRequestException('El usuario no está activo');
+      }
+
+      return this.usuarioService.login(loginUserDto);
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioController.crearUsuario',
+      );
+      throw error;
+    }
   }
 
   @ApiOperation({ summary: 'Obtener todos los usuarios' })
