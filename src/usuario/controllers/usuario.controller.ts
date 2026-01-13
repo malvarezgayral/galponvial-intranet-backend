@@ -7,6 +7,9 @@ import {
   BadRequestException,
   Logger,
   Patch,
+  Put,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { UsuarioService } from '../services/usuario.service';
 import {
@@ -15,6 +18,7 @@ import {
   CreateReporteIncidenteDto,
   CreateServicioDto,
   AssignRolDto,
+  UpdateUsuarioDto,
 } from '../dto/usuario.dto';
 import { Usuario } from '../entities/usuario.entity';
 import { Rol } from '../entities/rol.entity';
@@ -23,7 +27,14 @@ import { ReporteIncidente } from '../entities/reporte-incidente.entity';
 import { Servicio } from '../entities/servicio.entity';
 import { LoginUserDto } from '../dto/login.dto';
 import { Auth } from '../decorators/auth.decorator';
+import { GetUser } from '../decorators/get-user.decorator';
 import { ValidRoles } from '../enums/usuario.enum';
+import {
+  JwtLoginResponse,
+  ObjectServiceResponse,
+} from '../interfaces/object-service-response.interface';
+import { DeActivateUserDto } from '../dto/de-activate.dto';
+import { RefreshAuthGuard } from '../guards/refresh-auth.guard';
 
 @Controller('usuario')
 export class UsuarioController {
@@ -71,7 +82,7 @@ export class UsuarioController {
   @Post('login')
   async loginUser(
     @Body() loginUserDto: LoginUserDto,
-  ): Promise<{ dni: number; token: string }> {
+  ): Promise<ObjectServiceResponse<JwtLoginResponse>> {
     try {
       const dni = loginUserDto.dni;
       const usuario = await this.usuarioService.obtenerUsuarioPorDni(dni);
@@ -101,6 +112,33 @@ export class UsuarioController {
   @Auth()
   obtenerUsuarioPorDni(@Param('dni') dni: number): Promise<Usuario | null> {
     return this.usuarioService.obtenerUsuarioPorDni(dni);
+  }
+
+  @Put()
+  @Auth(ValidRoles.admin)
+  activarDesactivarUsuario(
+    @GetUser() currentUser: Usuario,
+    @Body() dto: DeActivateUserDto,
+  ): Promise<ObjectServiceResponse<Usuario | number>> {
+    return this.usuarioService.activarDesactivarUsuario(dto, currentUser.dni);
+  }
+
+  @Put(':dni')
+  @Auth()
+  async updateUsuario(
+    @Param('dni') dni: number,
+    @GetUser() currentUser: Usuario,
+    @Body() dto: UpdateUsuarioDto,
+  ): Promise<ObjectServiceResponse<Usuario | null>> {
+    return this.usuarioService.updateUsuario(dni, dto, currentUser.rol.rol);
+  }
+
+  @UseGuards(RefreshAuthGuard)
+  @Post('refresh')
+  refreshToken(
+    @GetUser() user: Usuario,
+  ): ObjectServiceResponse<{ accessToken: string }> {
+    return this.usuarioService.refreshToken(user.dni);
   }
 
   // Roles
