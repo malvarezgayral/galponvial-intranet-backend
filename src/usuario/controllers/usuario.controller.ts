@@ -11,6 +11,7 @@ import {
   BadRequestException,
   Put,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -138,8 +139,11 @@ export class UsuarioController {
   })
   @Get()
   @Auth()
-  obtenerUsuarios(): Promise<Usuario[]> {
-    return this.usuarioService.obtenerUsuarios();
+  obtenerUsuarios(
+    @Query('page') page?: number,
+    @Query('pageSize') pageSize?: number,
+  ): Promise<Usuario[]> {
+    return this.usuarioService.obtenerUsuarios(page, pageSize);
   }
 
   @ApiOperation({ summary: 'Obtener usuario por DNI' })
