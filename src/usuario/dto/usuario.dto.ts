@@ -58,12 +58,26 @@ export class UpdateUsuarioDto {
   apellido?: string;
 
   @IsOptional()
-  @IsDateString()
-  fecha_baja?: string;
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  @MaxLength(50)
+  @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+    message:
+      'The password must have a Uppercase, lowercase letter and a number',
+  })
+  password?: string;
 
   @IsOptional()
   @IsNumber()
-  rol_id?: number;
+  tokenVersion?: number;
+
+  @IsOptional()
+  @IsEnum(ValidRoles)
+  rol?: ValidRoles;
 }
 
 export class AssignRolDto {

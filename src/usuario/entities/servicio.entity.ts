@@ -24,15 +24,15 @@ export class Servicio {
   fecha_inicio: Date;
 
   @Column({ type: 'date', nullable: true })
-  fecha_hasta: Date | null; // ← Cambiado a "Date | null"
+  fecha_hasta: Date | null; 
 
   @Column({ type: 'text' })
   descripcion: string;
 
-  @Column()
-  incidente_id: number;
+  @Column({ nullable: true })
+  incidente_id?: number;
 
   @ManyToOne(() => ReporteIncidente, (incidente) => incidente.servicios)
   @JoinColumn({ name: 'incidente_id' })
-  incidente: ReporteIncidente;
+  incidente: ReporteIncidente | null;
 }

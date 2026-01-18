@@ -23,17 +23,38 @@ export class ServicioService {
   ) {}
 
   async create(createServicioDto: CreateServicioDto): Promise<Servicio> {
-    const incidente = await this.reporteIncidenteService.findOne(
-      createServicioDto.incidente_id,
-    );
-
-    const vehiculo = await this.vehiculosService.findOne(incidente.id_vehiculo);
+    // Obtener el vehículo según si hay incidente o no
+    let vehiculo;
+    let incidente;
 
     try {
-      await this.reporteIncidenteService.marcarEnTratamiento(
-        createServicioDto.incidente_id,
-      );
+      // Caso 1: Si hay incidente, obtener vehículo desde el incidente
+      if (createServicioDto.incidente_id) {
+        incidente = await this.reporteIncidenteService.findOne(
+          createServicioDto.incidente_id,
+        );
+        if (incidente) {
+          vehiculo = await this.vehiculosService.findOne(incidente.id_vehiculo);
+        }
 
+        // Marcar incidente como "en tratamiento"
+        await this.reporteIncidenteService.marcarEnTratamiento(
+          createServicioDto.incidente_id,
+        );
+      }
+      // Caso 2: Si no hay incidente, usar id_vehiculo directamente
+      else {
+        if (!createServicioDto.id_vehiculo) {
+          throw new BadRequestException(
+            'Debe proporcionar id_vehiculo si no está asociado a un incidente',
+          );
+        }
+        vehiculo = await this.vehiculosService.findOne(
+          createServicioDto.id_vehiculo,
+        );
+      }
+
+      // Cambiar status del vehículo a EN_TALLER
       const statusViejo: VehiculoStatus = vehiculo.status;
 
       if (statusViejo !== VehiculoStatus.EN_TALLER) {
@@ -41,12 +62,9 @@ export class ServicioService {
           vehiculo.id_vehiculo,
           VehiculoStatus.EN_TALLER,
         );
-        
-    
-        await this.statusUpdateService.crearStatusUpdate(
-          vehiculo,
-          VehiculoStatus.EN_TALLER, 
-        );
+
+        // Crear registro de status update
+        await this.statusUpdateService.crearStatusUpdate(vehiculo, statusViejo);
       }
 
       const servicio = this.servicioRepository.create({
