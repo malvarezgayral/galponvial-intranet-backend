@@ -38,7 +38,10 @@ import { LoginUserDto } from '../dto/login.dto';
 import { Auth } from '../decorators/auth.decorator';
 import { GetUser } from '../decorators/get-user.decorator';
 import { ValidRoles } from '../enums/usuario.enum';
-import { ObjectServiceResponse } from '../interfaces/object-service-response.interface';
+import {
+  JwtLoginResponse,
+  ObjectServiceResponse,
+} from '../interfaces/object-service-response.interface';
 import { DeActivateUserDto } from '../dto/de-activate.dto';
 import { RefreshAuthGuard } from '../guards/refresh-auth.guard';
 
@@ -61,29 +64,6 @@ export class UsuarioController {
   })
   async crearUsuario(@Body() createUserDto: CreateUsuarioDto) {
     try {
-      const {
-        password,
-        repeatedPassword,
-        email: userEmail,
-        dni: userDni,
-      } = createUserDto;
-
-      if (password !== repeatedPassword) {
-        throw new BadRequestException('Passwords do not match');
-      }
-
-      const usuarioPorDni =
-        await this.usuarioService.obtenerUsuarioPorDni(userDni);
-      if (usuarioPorDni) {
-        throw new BadRequestException('User with this DNI already exists');
-      }
-
-      const usuarioPorEmail =
-        await this.usuarioService.obtenerUsuarioPorEmail(userEmail);
-      if (usuarioPorEmail) {
-        throw new BadRequestException('Email is already in use');
-      }
-
       return this.usuarioService.crearUsuario(createUserDto);
     } catch (error) {
       this.logger.error(
@@ -107,20 +87,8 @@ export class UsuarioController {
   })
   async loginUser(
     @Body() loginUserDto: LoginUserDto,
-  ): Promise<{ dni: number; token: string }> {
+  ): Promise<ObjectServiceResponse<JwtLoginResponse>> {
     try {
-      const dni = loginUserDto.dni;
-
-      const usuario = await this.usuarioService.obtenerUsuarioPorDni(dni);
-
-      if (!usuario) {
-        throw new BadRequestException('Invalid credentials');
-      }
-
-      if (usuario && !usuario.isActive) {
-        throw new BadRequestException('El usuario no está activo');
-      }
-
       return this.usuarioService.login(loginUserDto);
     } catch (error) {
       this.logger.error(
