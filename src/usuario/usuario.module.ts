@@ -34,7 +34,7 @@ import { JwtRefreshStrategy } from './authStrategies/jwt-refresh.strategy';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_ACCESS_SECRET'),
         signOptions: {
-          expiresIn: configService.get('JWT_ACCESS_EXPIRES_IN') ?? '30s',
+          expiresIn: configService.get('JWT_ACCESS_EXPIRES_IN') ?? '60m',
         },
       }),
     }),
