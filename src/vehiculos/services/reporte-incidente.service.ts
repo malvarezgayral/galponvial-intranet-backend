@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, FindOptionsWhere } from 'typeorm';
 import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
 import { CreateReporteIncidenteDto } from '../dto/create-reporte-incidente.dto';
-import { FiltrosIncidenteDto } from '../dto/filtros.dto'; 
+import { FiltrosIncidenteDto } from '../dto/filtros.dto';
 import { VehiculoStatus, StatusIncidente } from '../enums/vehiculo.enum';
 import { FallaIncidente } from 'src/usuario/enums/usuario.enum';
 import { StatusUpdateService } from './status-update.service';
@@ -60,12 +60,15 @@ export class ReporteIncidenteService {
 
       // 4. Si la falla es CRÍTICA, cambiar status del vehículo
       if (createDto.falla === FallaIncidente.CRITICA) {
-        const statusViejo: VehiculoStatus = vehiculo.status;
         await this.vehiculosService.updateStatus(
           vehiculo.id_vehiculo,
           VehiculoStatus.FUERA_DE_SERVICIO,
         );
-        await this.statusUpdateService.crearStatusUpdate(vehiculo, statusViejo);
+        // Registrar el NUEVO status
+        await this.statusUpdateService.crearStatusUpdate(
+          vehiculo,
+          VehiculoStatus.FUERA_DE_SERVICIO, // ← Status NUEVO
+        );
       }
 
       // 5. Retornar con relaciones
@@ -132,45 +135,45 @@ export class ReporteIncidenteService {
   }
 
   async marcarEnTratamiento(id: number): Promise<ReporteIncidente> {
-  const incidente = await this.reporteIncidenteRepository.findOne({
-    where: { id },
-  });
+    const incidente = await this.reporteIncidenteRepository.findOne({
+      where: { id },
+    });
 
-  if (!incidente) {
-    throw new NotFoundException(`Incidente con ID ${id} no encontrado`);
+    if (!incidente) {
+      throw new NotFoundException(`Incidente con ID ${id} no encontrado`);
+    }
+
+    // Mantener como PENDIENTE (está en tratamiento pero no resuelto)
+    incidente.estado = StatusIncidente.PENDIENTE;
+
+    return await this.reporteIncidenteRepository.save(incidente);
   }
 
-  // Mantener como PENDIENTE (está en tratamiento pero no resuelto)
-  incidente.estado = StatusIncidente.PENDIENTE;
+  async marcarResuelto(id: number): Promise<ReporteIncidente> {
+    const incidente = await this.reporteIncidenteRepository.findOne({
+      where: { id },
+    });
 
-  return await this.reporteIncidenteRepository.save(incidente);
-}
+    if (!incidente) {
+      throw new NotFoundException(`Incidente con ID ${id} no encontrado`);
+    }
 
-async marcarResuelto(id: number): Promise<ReporteIncidente> {
-  const incidente = await this.reporteIncidenteRepository.findOne({
-    where: { id },
-  });
+    incidente.estado = StatusIncidente.RESUELTO;
 
-  if (!incidente) {
-    throw new NotFoundException(`Incidente con ID ${id} no encontrado`);
+    return await this.reporteIncidenteRepository.save(incidente);
   }
 
-  incidente.estado = StatusIncidente.RESUELTO;
+  async marcarCerrado(id: number): Promise<ReporteIncidente> {
+    const incidente = await this.reporteIncidenteRepository.findOne({
+      where: { id },
+    });
 
-  return await this.reporteIncidenteRepository.save(incidente);
-}
+    if (!incidente) {
+      throw new NotFoundException(`Incidente con ID ${id} no encontrado`);
+    }
 
-async marcarCerrado(id: number): Promise<ReporteIncidente> {
-  const incidente = await this.reporteIncidenteRepository.findOne({
-    where: { id },
-  });
+    incidente.estado = StatusIncidente.CERRADO;
 
-  if (!incidente) {
-    throw new NotFoundException(`Incidente con ID ${id} no encontrado`);
+    return await this.reporteIncidenteRepository.save(incidente);
   }
-
-  incidente.estado = StatusIncidente.CERRADO;
-
-  return await this.reporteIncidenteRepository.save(incidente);
-}
 }

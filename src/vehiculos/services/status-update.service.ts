@@ -14,14 +14,17 @@ export class StatusUpdateService {
 
   async crearStatusUpdate(
     vehiculo: Vehiculo,
-    statusViejo: VehiculoStatus,
-  ): Promise<StatusUpdate | null> {
+    nuevoStatus: VehiculoStatus,
+  ): Promise<StatusUpdate> {
     const lastStatus = await this.obtenerUltimoStatus(vehiculo.id_vehiculo);
+    if (lastStatus) {
+      lastStatus.fecha_hasta = new Date();
+      await this.statusUpdateRepository.save(lastStatus);
+    }
 
     const newStatusUpdate = this.statusUpdateRepository.create({
-      tipo: statusViejo,
-      fecha_desde: lastStatus?.fecha_hasta || vehiculo.created_at,
-      fecha_hasta: new Date(),
+      tipo: nuevoStatus,
+      fecha_desde: new Date(),
       vehiculo,
     });
 

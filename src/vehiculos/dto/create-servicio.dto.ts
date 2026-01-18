@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsString, IsEnum, IsDateString, IsOptional, IsInt } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsEnum,
+  IsDateString,
+  IsOptional,
+  IsInt,
+} from 'class-validator';
 import { TipoServicio } from '../enums/vehiculo.enum';
 
 export class CreateServicioDto {
@@ -20,5 +27,5 @@ export class CreateServicioDto {
 
   @IsNotEmpty()
   @IsInt()
-  incidente_id: number; 
+  incidente_id: number;
 }

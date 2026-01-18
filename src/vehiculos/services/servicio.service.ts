@@ -27,9 +27,7 @@ export class ServicioService {
       createServicioDto.incidente_id,
     );
 
-    const vehiculo = await this.vehiculosService.findOne(
-      incidente.id_vehiculo,
-    );
+    const vehiculo = await this.vehiculosService.findOne(incidente.id_vehiculo);
 
     try {
       await this.reporteIncidenteService.marcarEnTratamiento(
@@ -37,14 +35,18 @@ export class ServicioService {
       );
 
       const statusViejo: VehiculoStatus = vehiculo.status;
-      
+
       if (statusViejo !== VehiculoStatus.EN_TALLER) {
         await this.vehiculosService.updateStatus(
           vehiculo.id_vehiculo,
           VehiculoStatus.EN_TALLER,
         );
         
-        await this.statusUpdateService.crearStatusUpdate(vehiculo, statusViejo);
+    
+        await this.statusUpdateService.crearStatusUpdate(
+          vehiculo,
+          VehiculoStatus.EN_TALLER, 
+        );
       }
 
       const servicio = this.servicioRepository.create({
@@ -112,10 +114,10 @@ export class ServicioService {
     await this.vehiculosService.findOne(idVehiculo);
 
     return await this.servicioRepository.find({
-      where: { 
-        incidente: { 
-          id_vehiculo: idVehiculo 
-        } 
+      where: {
+        incidente: {
+          id_vehiculo: idVehiculo,
+        },
       },
       relations: ['incidente', 'incidente.vehiculo', 'incidente.usuario'],
       order: { fecha_inicio: 'DESC' },

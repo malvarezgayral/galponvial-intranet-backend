@@ -193,14 +193,14 @@ export class VehiculosService {
       );
     }
 
-    const statusViejo: VehiculoStatus = vehiculo.status;
-    vehiculo.status = VehiculoStatus.FUERA_DE_SERVICIO;
 
+    vehiculo.status = VehiculoStatus.FUERA_DE_SERVICIO;
     const vehiculoActualizado = await this.vehiculoRepository.save(vehiculo);
 
+ 
     await this.statusUpdateService.crearStatusUpdate(
       vehiculoActualizado,
-      statusViejo,
+      VehiculoStatus.FUERA_DE_SERVICIO,
     );
 
     return vehiculoActualizado;
@@ -223,14 +223,12 @@ export class VehiculosService {
       );
     }
 
-    const statusViejo: VehiculoStatus = vehiculo.status;
     vehiculo.status = VehiculoStatus.DISPONIBLE;
-
     const vehiculoActualizado = await this.vehiculoRepository.save(vehiculo);
-
++
     await this.statusUpdateService.crearStatusUpdate(
       vehiculoActualizado,
-      statusViejo,
+      VehiculoStatus.DISPONIBLE, 
     );
 
     return vehiculoActualizado;
