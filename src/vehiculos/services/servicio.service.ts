@@ -72,14 +72,14 @@ export class ServicioService {
       }
 
       // Crear el servicio
-      const servicioData: any = {
+      const servicioData: Partial<Servicio> = {
         tipo: createServicioDto.tipo,
         fecha_inicio: new Date(createServicioDto.fecha_inicio),
         fecha_hasta: createServicioDto.fecha_hasta
           ? new Date(createServicioDto.fecha_hasta)
           : null,
         descripcion: createServicioDto.descripcion,
-        incidente_id: createServicioDto.incidente_id || null,
+        incidente_id: createServicioDto?.incidente_id,
       };
 
       if (incidente) {
