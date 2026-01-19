@@ -3,6 +3,9 @@ import {
   Get,
   Post,
   Body,
+  // Param,
+  // Query,
+  // ParseIntPipe,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -48,8 +51,9 @@ export class ReporteIncidenteController {
     return this.reporteIncidenteService.findAll(filtros);
   }
 
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.reporteIncidenteService.findOne(id);
+    // @Get(':id')
+    // findOne(@Param('id', ParseIntPipe) id: number) {
+    //   return this.reporteIncidenteService.findOne(id);
+    // }
   }
 }

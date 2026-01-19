@@ -13,6 +13,9 @@ import { UpdateVehiculoDto } from '../dto/update-vehiculo.dto';
 import { VehiculoStatus } from '../enums/vehiculo.enum';
 import { CreateInfoAdicionalDataDto } from '../dto/create-info-adicional-data.dto';
 import { StatusUpdateService } from './status-update.service';
+import { Recordatorio } from '../entities/recordatorio.entity';
+import { CreateRecordatorioDto } from '../dto/create-recordatorio.dto';
+import { UpdateRecordatorioDto } from '../dto/update-recordatorio.dto';
 
 @Injectable()
 export class VehiculosService {
@@ -24,6 +27,8 @@ export class VehiculosService {
     @InjectRepository(Sector)
     private readonly sectorRepository: Repository<Sector>,
     private readonly statusUpdateService: StatusUpdateService,
+    @InjectRepository(Recordatorio)
+    private readonly recordatorioRepository: Repository<Recordatorio>,
   ) {}
 
   async create(createVehiculoDto: CreateVehiculoDto): Promise<Vehiculo> {
@@ -210,5 +215,64 @@ export class VehiculosService {
     );
 
     return vehiculoActualizado;
+  }
+
+  async agregarRecordatorio(
+    idVehiculo: number,
+    data: CreateRecordatorioDto,
+  ): Promise<Recordatorio> {
+    const vehiculo = await this.vehiculoRepository.findOne({
+      where: { id_vehiculo: idVehiculo },
+    });
+
+    if (!vehiculo) {
+      throw new NotFoundException(
+        `Vehículo con ID ${idVehiculo} no encontrado`,
+      );
+    }
+
+    const recordatorio = this.recordatorioRepository.create({
+      fecha: data.fecha,
+      descripcion: data.descripcion,
+      vehiculo,
+    });
+
+    return await this.recordatorioRepository.save(recordatorio);
+  }
+
+  async getRecordatoriosByVehiculo(
+    vehiculoId: number,
+  ): Promise<Recordatorio[]> {
+    return this.recordatorioRepository.find({
+      where: {
+        vehiculo: { id_vehiculo: vehiculoId },
+      },
+      order: {
+        fecha: 'ASC',
+      },
+    });
+  }
+
+  async updateRecordatorio(
+    recordatorioId: number,
+    data: UpdateRecordatorioDto,
+  ): Promise<Recordatorio> {
+    const recordatorio = await this.recordatorioRepository.findOne({
+      where: { id: recordatorioId },
+    });
+
+    if (!recordatorio) {
+      throw new NotFoundException('Recordatorio no encontrado');
+    }
+
+    if (data.fecha !== undefined) {
+      recordatorio.fecha = new Date(data.fecha);
+    }
+
+    if (data.descripcion !== undefined) {
+      recordatorio.descripcion = data.descripcion;
+    }
+
+    return this.recordatorioRepository.save(recordatorio);
   }
 }
