@@ -9,48 +9,66 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { VehiculoStatus, TipoVehiculo } from '../enums/vehiculo.enum';
 import { InfoAdicionalDto } from './info-adicional.dto';
 
 export class CreateVehiculoDto {
+  @ApiProperty({ example: 'Camión Iveco' })
   @IsString()
-  @IsNotEmpty({ message: 'El nombre es requerido' })
+  @IsNotEmpty()
   @MaxLength(100)
   nombre: string;
 
+  @ApiProperty({ example: 'Iveco' })
   @IsString()
-  @IsNotEmpty({ message: 'La marca es requerida' })
+  @IsNotEmpty()
   @MaxLength(50)
   marca: string;
 
+  @ApiProperty({ example: 'Tector 170E' })
   @IsString()
-  @IsNotEmpty({ message: 'El modelo es requerido' })
+  @IsNotEmpty()
   @MaxLength(50)
   modelo: string;
 
+  @ApiProperty({ example: 2022 })
   @IsNumber()
-  @Min(1900, { message: 'El año debe ser mayor a 1900' })
+  @Min(1900)
   @Max(new Date().getFullYear() + 1)
   anio: number;
 
+  @ApiProperty({
+    enum: TipoVehiculo,
+    example: TipoVehiculo.CAMION,
+  })
   @IsEnum(TipoVehiculo)
   tipo_vehiculo: TipoVehiculo;
 
+  @ApiPropertyOptional({
+    enum: VehiculoStatus,
+    example: VehiculoStatus.DISPONIBLE,
+  })
   @IsEnum(VehiculoStatus)
   @IsOptional()
   status?: VehiculoStatus;
 
+  @ApiPropertyOptional({ example: 12.5 })
   @IsNumber()
   @IsOptional()
   @Min(0)
   uso_combustible?: number;
 
+  @ApiPropertyOptional({ example: 150000 })
   @IsNumber()
   @IsOptional()
   @Min(0)
   uso_km?: number;
 
+  @ApiProperty({
+    type: () => InfoAdicionalDto,
+  })
   @ValidateNested()
   @Type(() => InfoAdicionalDto)
   @IsNotEmpty()

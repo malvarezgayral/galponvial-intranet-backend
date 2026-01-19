@@ -6,18 +6,24 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginUserDto {
+  @ApiProperty({
+    description: 'DNI del usuario',
+    example: 34567890,
+  })
   @IsNotEmpty()
-  @IsNumber() //hacer un validator para dni
+  @IsNumber()
   dni: number;
 
+  @ApiProperty({
+    description: 'Contraseña del usuario',
+    example: 'Password123',
+  })
   @IsString()
   @MinLength(6)
   @MaxLength(50)
-  @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-    message:
-      'The password must have a Uppercase, lowercase letter and a number',
-  })
+  @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/)
   password: string;
 }

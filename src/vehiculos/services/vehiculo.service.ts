@@ -181,7 +181,10 @@ export class VehiculosService {
     return vehiculo;
   }
 
-  async darDeBaja(idVehiculo: number): Promise<Vehiculo> {
+  async cambiarStatus(
+    idVehiculo: number,
+    isActive: boolean,
+  ): Promise<Vehiculo> {
     const vehiculo = await this.vehiculoRepository.findOne({
       where: { id_vehiculo: idVehiculo },
     });
@@ -192,45 +195,18 @@ export class VehiculosService {
       );
     }
 
-    if (vehiculo.status === VehiculoStatus.FUERA_DE_SERVICIO) {
+    const nuevoStatus = isActive
+      ? VehiculoStatus.DISPONIBLE
+      : VehiculoStatus.FUERA_DE_SERVICIO;
+
+    if (vehiculo.status === nuevoStatus) {
+      const accion = isActive ? 'dado de alta' : 'dado de baja';
       throw new BadRequestException(
-        `El vehículo con ID ${idVehiculo} ya está dado de baja`,
+        `El vehículo con ID ${idVehiculo} ya está ${accion}`,
       );
     }
-
     const statusViejo: VehiculoStatus = vehiculo.status;
-    vehiculo.status = VehiculoStatus.FUERA_DE_SERVICIO;
-
-    const vehiculoActualizado = await this.vehiculoRepository.save(vehiculo);
-
-    await this.statusUpdateService.crearStatusUpdate(
-      vehiculoActualizado,
-      statusViejo,
-    );
-
-    return vehiculoActualizado;
-  }
-
-  async darDeAlta(idVehiculo: number): Promise<Vehiculo> {
-    const vehiculo = await this.vehiculoRepository.findOne({
-      where: { id_vehiculo: idVehiculo },
-    });
-
-    if (!vehiculo) {
-      throw new NotFoundException(
-        `Vehículo con ID ${idVehiculo} no encontrado`,
-      );
-    }
-
-    if (vehiculo.status !== VehiculoStatus.FUERA_DE_SERVICIO) {
-      throw new BadRequestException(
-        `El vehículo con ID ${idVehiculo} no está dado de baja`,
-      );
-    }
-
-    const statusViejo: VehiculoStatus = vehiculo.status;
-    vehiculo.status = VehiculoStatus.DISPONIBLE;
-
+    vehiculo.status = nuevoStatus;
     const vehiculoActualizado = await this.vehiculoRepository.save(vehiculo);
 
     await this.statusUpdateService.crearStatusUpdate(

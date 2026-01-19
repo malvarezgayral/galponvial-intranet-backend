@@ -1,4 +1,9 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 import { Usuario } from '../entities/usuario.entity';
@@ -6,17 +11,26 @@ import { Rol } from '../entities/rol.entity';
 import { UsuarioVehiculo } from '../entities/usuario-vehiculo.entity';
 import { ReporteIncidente } from '../entities/reporte-incidente.entity';
 import { Servicio } from '../entities/servicio.entity';
+import { RefreshToken } from '../entities/refresh-token.entity';
 import {
   CreateUsuarioDto,
   CreateUsuarioVehiculoDto,
   CreateReporteIncidenteDto,
   CreateServicioDto,
   AssignRolDto,
+  UpdateUsuarioDto,
 } from '../dto/usuario.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from '../dto/login.dto';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
+import type { JwtSignOptions } from '@nestjs/jwt';
+import {
+  JwtLoginResponse,
+  ObjectServiceResponse,
+} from '../interfaces/object-service-response.interface';
+import { DeActivateUserDto } from '../dto/de-activate.dto';
+import { ValidRoles } from '../enums/usuario.enum';
 
 @Injectable()
 export class UsuarioService {
@@ -33,11 +47,34 @@ export class UsuarioService {
     private reporteIncidenteRepository: Repository<ReporteIncidente>,
     @InjectRepository(Servicio)
     private servicioRepository: Repository<Servicio>,
+    @InjectRepository(RefreshToken)
+    private refreshTokenRepository: Repository<RefreshToken>,
     private readonly jwtService: JwtService,
   ) {}
 
   // Usuarios
   async crearUsuario(CreateUsuarioDto: CreateUsuarioDto) {
+    const {
+      dni: userDni,
+      email: userEmail,
+      password,
+      repeatedPassword,
+    } = CreateUsuarioDto;
+
+    if (password !== repeatedPassword) {
+      throw new BadRequestException('Passwords do not match');
+    }
+
+    const usuarioPorDni = await this.obtenerUsuarioPorDni(userDni);
+    if (usuarioPorDni) {
+      throw new BadRequestException('User with this DNI already exists');
+    }
+
+    const usuarioPorEmail = await this.obtenerUsuarioPorEmail(userEmail);
+    if (usuarioPorEmail) {
+      throw new BadRequestException('Email is already in use');
+    }
+
     const pass = CreateUsuarioDto.password;
     const salt = await bcrypt.genSalt();
     const hash = await bcrypt.hash(pass, salt);
@@ -52,8 +89,17 @@ export class UsuarioService {
     return await this.usuarioRepository.save(usuario);
   }
 
-  async obtenerUsuarios(): Promise<Usuario[]> {
-    return await this.usuarioRepository.find({ relations: ['rol'] });
+  async obtenerUsuarios(page?: number, pageSize?: number): Promise<Usuario[]> {
+    const query = this.usuarioRepository
+      .createQueryBuilder('usuario')
+      .leftJoinAndSelect('usuario.rol', 'rol');
+
+    if (page && pageSize) {
+      const skip = (page - 1) * pageSize;
+      query.skip(skip).take(pageSize);
+    }
+
+    return await query.getMany();
   }
 
   async obtenerUsuarioPorDni(dni: number): Promise<Usuario | null> {
@@ -70,24 +116,51 @@ export class UsuarioService {
     });
   }
 
-  async login(loginUserDto: LoginUserDto) {
+  async login(
+    loginUserDto: LoginUserDto,
+  ): Promise<ObjectServiceResponse<JwtLoginResponse>> {
     const { password, dni } = loginUserDto;
 
     try {
       const user = await this.usuarioRepository.findOne({
         where: { dni },
-        select: { dni: true, password: true },
+        select: { dni: true, password: true, isActive: true },
       });
 
-      if (!user) throw new UnauthorizedException('Credentials are not valid');
+      if (!user) {
+        throw new BadRequestException('Invalid credentials');
+      }
+      if (user && !user.isActive) {
+        throw new BadRequestException('El usuario no está activo');
+      }
 
       if (!bcrypt.compareSync(password, user.password))
         throw new UnauthorizedException('Credentials are not valid (password)');
 
       this.logger.log(`Usuario ${user.dni} logged in successfully`);
-      return {
+
+      const accessToken = this.getJwtToken(
+        { dni: user.dni },
+        {
+          secret: process.env.JWT_ACCESS_SECRET,
+          expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '60m') as never,
+        },
+      );
+      const refreshToken = this.getJwtToken(
+        { dni: user.dni },
+        {
+          secret: process.env.JWT_REFRESH_SECRET,
+          expiresIn: (process.env.JWT_REFRESH_EXPIRATION || '2d') as never,
+        },
+      );
+      const jwtResponse: JwtLoginResponse = {
         dni: user.dni,
-        token: this.getJwtToken({ dni: user.dni }),
+        accessToken,
+        refreshToken,
+      };
+      return {
+        success: true,
+        data: jwtResponse,
       };
     } catch (error) {
       this.logger.error(
@@ -98,9 +171,154 @@ export class UsuarioService {
     }
   }
 
-  private getJwtToken(payload: JwtPayload) {
-    const token = this.jwtService.sign(payload);
+  async activarDesactivarUsuario(
+    { dni, isActive }: DeActivateUserDto,
+    currentUserDni: number,
+  ): Promise<ObjectServiceResponse<Usuario | number>> {
+    try {
+      // Validar que no intente modificarse a sí mismo
+      if (dni == currentUserDni) {
+        return {
+          success: false,
+          data: dni,
+          message: 'El usuario no puede activarse/desactivarse a sí mismo',
+        }; // se retorna si no precisa cambios
+      }
+
+      const usuario = await this.usuarioRepository.findOne({ where: { dni } });
+      if (!usuario) throw new Error(`Usuario with dni ${dni} not found`);
+
+      if (isActive == usuario.isActive) {
+        return {
+          success: false,
+          data: usuario,
+          message: isActive
+            ? 'El usuario ya está activo'
+            : 'El usuario ya está inactivo',
+        }; // se retorna si no precisa cambios
+      }
+      usuario.isActive = isActive;
+      // se elimina el ref token para simular lo que seria un invalidar sesion
+      if (usuario.refreshToken) {
+        await this.refreshTokenRepository.remove(usuario.refreshToken);
+      }
+      if (isActive) usuario.fecha_baja = null;
+      else usuario.fecha_baja = new Date();
+      return {
+        success: true,
+        data: await this.usuarioRepository.save(usuario),
+        message: isActive
+          ? 'Usuario activado correctamente'
+          : 'Usuario desactivado correctamente',
+      };
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioService.activarDesactivarUsuario',
+      );
+      throw error;
+    }
+  }
+
+  async updateUsuario(
+    dni: number,
+    updateDto: UpdateUsuarioDto,
+    currentUserRol: ValidRoles,
+  ): Promise<ObjectServiceResponse<Usuario | null>> {
+    try {
+      // campos solo para admin
+      const adminOnlyFields = ['password', 'tokenVersion', 'rol'];
+      const hasAdminFields = adminOnlyFields.some(
+        (field) => updateDto[field] !== undefined,
+      );
+
+      // se verifica el caso de que se quiera modificar un campo de admin sin ser admin
+      if (hasAdminFields && currentUserRol !== ValidRoles.admin) {
+        return {
+          success: false,
+          data: null,
+          message: 'No tienes permisos para modificar esos campos',
+        };
+      }
+
+      const usuario = await this.usuarioRepository.findOne({
+        where: { dni },
+        relations: ['rol'],
+      });
+
+      if (!usuario) {
+        throw new BadRequestException(`Usuario con DNI ${dni} no encontrado`);
+      }
+
+      // esto quizas no sea necesario verificar ya que el dto no tiene isActive
+      if ('isActive' in updateDto && updateDto.isActive !== undefined) {
+        throw new BadRequestException(
+          'No puedes modificar isActive. Usa el endpoint de activar/desactivar',
+        );
+      }
+
+      // Actualizar campos genéricos
+      if (updateDto.nombre !== undefined) usuario.nombre = updateDto.nombre;
+      if (updateDto.apellido !== undefined)
+        usuario.apellido = updateDto.apellido;
+      if (updateDto.email !== undefined) usuario.email = updateDto.email;
+
+      // Actualizar campos solo admin
+      if (updateDto.password !== undefined) {
+        const salt = await bcrypt.genSalt();
+        usuario.password = await bcrypt.hash(updateDto.password, salt);
+      }
+
+      //esto luego hay que verificar que solo haga un +1 o un reset
+      if (updateDto.tokenVersion !== undefined) {
+        usuario.tokenVersion = updateDto.tokenVersion;
+      }
+
+      if (updateDto.rol !== undefined) {
+        const rol = await this.rolRepository.findOne({
+          where: { rol: updateDto.rol },
+        });
+        if (!rol) {
+          throw new BadRequestException(`Rol ${updateDto.rol} no existe`);
+        }
+        usuario.rol = rol;
+      }
+
+      // Guardar cambios
+      const usuarioActualizado = await this.usuarioRepository.save(usuario);
+
+      return {
+        success: true,
+        data: usuarioActualizado,
+        message: 'Usuario actualizado correctamente',
+      };
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioService.updateUsuario',
+      );
+      throw error;
+    }
+  }
+
+  private getJwtToken(payload: JwtPayload, options?: JwtSignOptions) {
+    const token = this.jwtService.sign(payload, options);
     return token;
+  }
+
+  public refreshToken(dni: number) {
+    const accessToken = this.getJwtToken(
+      { dni },
+      {
+        secret: process.env.JWT_REFRESH_SECRET,
+        expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '60m') as never,
+      },
+    );
+    return {
+      success: true,
+      data: { accessToken },
+      message: 'Token refreshed successfully',
+    };
   }
 
   // Roles

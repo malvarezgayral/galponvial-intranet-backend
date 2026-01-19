@@ -58,7 +58,6 @@ export class ServicioService {
       }
 
       // Cambiar status del vehículo a EN_TALLER
-
       const statusViejo: VehiculoStatus = vehiculo.status;
 
       if (statusViejo !== VehiculoStatus.EN_TALLER) {
