@@ -12,6 +12,7 @@ import { CreateVehiculoDto } from '../dto/create-vehiculo.dto';
 import { UpdateVehiculoDto } from '../dto/update-vehiculo.dto';
 import { VehiculoStatus } from '../enums/vehiculo.enum';
 import { CreateInfoAdicionalDataDto } from '../dto/create-info-adicional-data.dto';
+import { StatusUpdateService } from './status-update.service';
 
 @Injectable()
 export class VehiculosService {
@@ -22,12 +23,12 @@ export class VehiculosService {
     private readonly infoAdicionalRepository: Repository<InfoAdicional>,
     @InjectRepository(Sector)
     private readonly sectorRepository: Repository<Sector>,
+    private readonly statusUpdateService: StatusUpdateService,
   ) {}
 
   async create(createVehiculoDto: CreateVehiculoDto): Promise<Vehiculo> {
     const { infoAdicional, ...vehiculoData } = createVehiculoDto;
 
-    // Validar y obtener el sector si se proporciona
     let sector: Sector | undefined;
     if (infoAdicional.id_sector_pertenencia) {
       const foundSector = await this.sectorRepository.findOne({
@@ -43,7 +44,6 @@ export class VehiculosService {
     }
 
     try {
-      // 1. Crear vehículo con status inicial DISPONIBLE
       const vehiculo = this.vehiculoRepository.create({
         ...vehiculoData,
         status: VehiculoStatus.DISPONIBLE,
@@ -53,7 +53,6 @@ export class VehiculosService {
 
       const vehiculoGuardado = await this.vehiculoRepository.save(vehiculo);
 
-      // info adicional creada, se usa deep partial para hacer mas permisivo el create
       const infoData: Partial<CreateInfoAdicionalDataDto> = {
         numero_serie: infoAdicional.numero_serie,
         licencia_conductor: infoAdicional.licencia_conductor,
@@ -63,7 +62,6 @@ export class VehiculosService {
         vehiculo: vehiculoGuardado,
       };
 
-      // solo se asigna sector en caso que exista
       if (sector) {
         infoData.sector = sector;
       }
@@ -72,7 +70,6 @@ export class VehiculosService {
         this.infoAdicionalRepository.create(infoData);
       await this.infoAdicionalRepository.save(infoAdicionalCreated);
 
-      // 3. Retornar vehículo completo con relaciones
       const vehiculoCompleto = await this.vehiculoRepository.findOne({
         where: { id_vehiculo: vehiculoGuardado.id_vehiculo },
         relations: ['infoAdicional', 'infoAdicional.sector'],
@@ -82,11 +79,11 @@ export class VehiculosService {
         throw new NotFoundException('Error al recuperar el vehículo creado');
       }
 
-      return vehiculoCompleto; // ← ESTE ES EL RETURN QUE FALTABA
+      return vehiculoCompleto;
     } catch (error) {
       throw new BadRequestException(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        'Error al crear el vehículo: ' + error.message,
+        'Error al crear el vehículo: ' +
+          (error instanceof Error ? error.message : 'Error desconocido'),
       );
     }
   }
@@ -95,7 +92,6 @@ export class VehiculosService {
     id: number,
     updateVehiculoDto: UpdateVehiculoDto,
   ): Promise<Vehiculo> {
-    // 1. Buscar vehículo existente
     const vehiculo = await this.vehiculoRepository.findOne({
       where: { id_vehiculo: id },
       relations: ['infoAdicional'],
@@ -142,8 +138,8 @@ export class VehiculosService {
       return vehiculoActualizado;
     } catch (error) {
       throw new BadRequestException(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        'Error al actualizar el vehículo: ' + error.message,
+        'Error al actualizar el vehículo: ' +
+          (error instanceof Error ? error.message : 'Error desconocido'),
       );
     }
   }
@@ -178,5 +174,41 @@ export class VehiculosService {
     }
 
     return vehiculo;
+  }
+
+  async cambiarStatus(
+    idVehiculo: number,
+    isActive: boolean,
+  ): Promise<Vehiculo> {
+    const vehiculo = await this.vehiculoRepository.findOne({
+      where: { id_vehiculo: idVehiculo },
+    });
+
+    if (!vehiculo) {
+      throw new NotFoundException(
+        `Vehículo con ID ${idVehiculo} no encontrado`,
+      );
+    }
+
+    const nuevoStatus = isActive
+      ? VehiculoStatus.DISPONIBLE
+      : VehiculoStatus.FUERA_DE_SERVICIO;
+
+    if (vehiculo.status === nuevoStatus) {
+      const accion = isActive ? 'dado de alta' : 'dado de baja';
+      throw new BadRequestException(
+        `El vehículo con ID ${idVehiculo} ya está ${accion}`,
+      );
+    }
+    const statusViejo: VehiculoStatus = vehiculo.status;
+    vehiculo.status = nuevoStatus;
+    const vehiculoActualizado = await this.vehiculoRepository.save(vehiculo);
+
+    await this.statusUpdateService.crearStatusUpdate(
+      vehiculoActualizado,
+      statusViejo,
+    );
+
+    return vehiculoActualizado;
   }
 }
