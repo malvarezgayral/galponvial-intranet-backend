@@ -37,12 +37,12 @@ export class VehiculosController {
   @Patch(':id/baja')
   @HttpCode(HttpStatus.OK)
   darDeBaja(@Param('id', ParseIntPipe) id: number) {
-    return this.vehiculosService.darDeBaja(id);
+    return this.vehiculosService.cambiarStatus(id, false);
   }
 
   @Patch(':id/alta')
   @HttpCode(HttpStatus.OK)
   darDeAlta(@Param('id', ParseIntPipe) id: number) {
-    return this.vehiculosService.darDeAlta(id);
+    return this.vehiculosService.cambiarStatus(id, true);
   }
 }
