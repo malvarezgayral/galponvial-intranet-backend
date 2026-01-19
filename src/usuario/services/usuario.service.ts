@@ -68,8 +68,17 @@ export class UsuarioService {
     return await this.usuarioRepository.save(usuario);
   }
 
-  async obtenerUsuarios(): Promise<Usuario[]> {
-    return await this.usuarioRepository.find({ relations: ['rol'] });
+  async obtenerUsuarios(page?: number, pageSize?: number): Promise<Usuario[]> {
+    const query = this.usuarioRepository
+      .createQueryBuilder('usuario')
+      .leftJoinAndSelect('usuario.rol', 'rol');
+
+    if (page && pageSize) {
+      const skip = (page - 1) * pageSize;
+      query.skip(skip).take(pageSize);
+    }
+
+    return await query.getMany();
   }
 
   async obtenerUsuarioPorDni(dni: number): Promise<Usuario | null> {
@@ -108,14 +117,14 @@ export class UsuarioService {
         { dni: user.dni },
         {
           secret: process.env.JWT_ACCESS_SECRET,
-          expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '60s') as never,
+          expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '60m') as never,
         },
       );
       const refreshToken = this.getJwtToken(
         { dni: user.dni },
         {
           secret: process.env.JWT_REFRESH_SECRET,
-          expiresIn: (process.env.JWT_REFRESH_EXPIRATION || '5m') as never,
+          expiresIn: (process.env.JWT_REFRESH_EXPIRATION || '2d') as never,
         },
       );
       const jwtResponse: JwtLoginResponse = {
@@ -276,7 +285,7 @@ export class UsuarioService {
       { dni },
       {
         secret: process.env.JWT_REFRESH_SECRET,
-        expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '60s') as never,
+        expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '60m') as never,
       },
     );
     return {
