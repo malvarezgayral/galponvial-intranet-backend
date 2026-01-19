@@ -54,6 +54,27 @@ export class UsuarioService {
 
   // Usuarios
   async crearUsuario(CreateUsuarioDto: CreateUsuarioDto) {
+    const {
+      dni: userDni,
+      email: userEmail,
+      password,
+      repeatedPassword,
+    } = CreateUsuarioDto;
+
+    if (password !== repeatedPassword) {
+      throw new BadRequestException('Passwords do not match');
+    }
+
+    const usuarioPorDni = await this.obtenerUsuarioPorDni(userDni);
+    if (usuarioPorDni) {
+      throw new BadRequestException('User with this DNI already exists');
+    }
+
+    const usuarioPorEmail = await this.obtenerUsuarioPorEmail(userEmail);
+    if (usuarioPorEmail) {
+      throw new BadRequestException('Email is already in use');
+    }
+
     const pass = CreateUsuarioDto.password;
     const salt = await bcrypt.genSalt();
     const hash = await bcrypt.hash(pass, salt);
@@ -103,10 +124,15 @@ export class UsuarioService {
     try {
       const user = await this.usuarioRepository.findOne({
         where: { dni },
-        select: { dni: true, password: true },
+        select: { dni: true, password: true, isActive: true },
       });
 
-      if (!user) throw new UnauthorizedException('Credentials are not valid');
+      if (!user) {
+        throw new BadRequestException('Invalid credentials');
+      }
+      if (user && !user.isActive) {
+        throw new BadRequestException('El usuario no está activo');
+      }
 
       if (!bcrypt.compareSync(password, user.password))
         throw new UnauthorizedException('Credentials are not valid (password)');
