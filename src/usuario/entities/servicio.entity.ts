@@ -24,7 +24,7 @@ export class Servicio {
   fecha_inicio: Date;
 
   @Column({ type: 'date', nullable: true })
-  fecha_hasta: Date | null; 
+  fecha_hasta: Date | null;
 
   @Column({ type: 'text' })
   descripcion: string;

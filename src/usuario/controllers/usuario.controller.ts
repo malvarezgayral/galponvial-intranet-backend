@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Controller,
   Get,
@@ -8,7 +6,6 @@ import {
   Param,
   Logger,
   Patch,
-  BadRequestException,
   Put,
   UseGuards,
   Query,
@@ -145,7 +142,6 @@ export class UsuarioController {
 
   @Put(':dni')
   @Auth()
-  // eslint-disable-next-line @typescript-eslint/require-await
   async updateUsuario(
     @Param('dni') dni: number,
     @GetUser() currentUser: Usuario,

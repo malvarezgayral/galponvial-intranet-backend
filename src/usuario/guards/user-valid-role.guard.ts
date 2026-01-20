@@ -6,9 +6,14 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { Observable } from 'rxjs';
 import { META_ROLES } from '../decorators/role-protected.decorator';
 import { Usuario } from '../entities/usuario.entity';
+
+interface RequestWithUser extends Request {
+  user: Usuario;
+}
 
 @Injectable()
 export class UserValidRoleGuard implements CanActivate {
@@ -25,8 +30,8 @@ export class UserValidRoleGuard implements CanActivate {
     if (!validRoles) return true;
     if (validRoles.length === 0) return true;
 
-    const req = context.switchToHttp().getRequest();
-    const user = req.user as Usuario;
+    const req = context.switchToHttp().getRequest<RequestWithUser>();
+    const user = req.user;
 
     if (!user) throw new BadRequestException('User not found');
 
@@ -36,8 +41,10 @@ export class UserValidRoleGuard implements CanActivate {
       return true;
     }
 
+    validRoles.join(', ');
+
     throw new ForbiddenException(
-      `User ${user.nombre} need a valid role: ${validRoles}`,
+      `User ${user.nombre} need a valid role: ${validRoles.join(', ')}`,
     );
   }
 }

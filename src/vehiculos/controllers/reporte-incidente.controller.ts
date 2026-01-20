@@ -3,11 +3,11 @@ import {
   Get,
   Post,
   Body,
-  // Param,
-  // Query,
-  // ParseIntPipe,
   HttpCode,
   HttpStatus,
+  Param,
+  ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { ReporteIncidenteService } from '../services/reporte-incidente.service';
@@ -51,9 +51,8 @@ export class ReporteIncidenteController {
     return this.reporteIncidenteService.findAll(filtros);
   }
 
-    // @Get(':id')
-    // findOne(@Param('id', ParseIntPipe) id: number) {
-    //   return this.reporteIncidenteService.findOne(id);
-    // }
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.reporteIncidenteService.findOne(id);
   }
 }
