@@ -7,8 +7,8 @@ import request from 'supertest';
 import { typeOrmAlmacenTestConfig } from '../src/database/test/typeorm-almacen.config';
 import { AlmacenModule } from '../src/almacen/almacen.module';
 import { UserValidRoleGuard } from 'src/usuario/guards/user-valid-role.guard';
+import { JwtAuthGuard } from 'src/usuario/guards/jwt-auth.guard';
 
-// Esta clase "engaña" a Passport registrándose como 'jwt-access'
 
 describe('Almacen E2E', () => {
   let app: INestApplication;
@@ -26,25 +26,19 @@ beforeAll(async () => {
         }
       ],
     })
-      // --- AQUI ESTA LA MAGIA ---
-      
-      // 1. Sobrescribimos el Guard de JWT (La puerta de entrada)
-      .overrideGuard(UserValidRoleGuard) // <--- Asegúrate de usar la clase correcta que importaste
+      .overrideGuard(JwtAuthGuard) 
       .useValue({
         canActivate: (context: ExecutionContext) => {
           const req = context.switchToHttp().getRequest();
-          // Inyectamos el usuario "a la fuerza" en la request
           req.user = { 
             id: 1, 
             dni: '12345678', 
-            rol: { rol: 'ADMIN' } 
+            rol: { rol: 'ADMIN' }
           };
-          return true; // Dejar pasar siempre
+          return true;
         },
       })
-      
-      // 2. Sobrescribimos el Guard de Roles (por si acaso)
-      .overrideGuard(UserValidRoleGuard)
+      .overrideGuard(UserValidRoleGuard) 
       .useValue({ canActivate: () => true })
       
       .compile();
