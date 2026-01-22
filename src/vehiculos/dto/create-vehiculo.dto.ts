@@ -15,6 +15,12 @@ import { VehiculoStatus, TipoVehiculo } from '../enums/vehiculo.enum';
 import { InfoAdicionalDto } from './info-adicional.dto';
 
 export class CreateVehiculoDto {
+  @ApiProperty({ example: 'CAM-001' })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(20)
+  codigo: string;
+
   @ApiProperty({ example: 'Camión Iveco' })
   @IsString()
   @IsNotEmpty()

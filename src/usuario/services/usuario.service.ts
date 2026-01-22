@@ -54,16 +54,7 @@ export class UsuarioService {
 
   // Usuarios
   async crearUsuario(CreateUsuarioDto: CreateUsuarioDto) {
-    const {
-      dni: userDni,
-      email: userEmail,
-      password,
-      repeatedPassword,
-    } = CreateUsuarioDto;
-
-    if (password !== repeatedPassword) {
-      throw new BadRequestException('Passwords do not match');
-    }
+    const { dni: userDni, email: userEmail, password } = CreateUsuarioDto;
 
     const usuarioPorDni = await this.obtenerUsuarioPorDni(userDni);
     if (usuarioPorDni) {
@@ -75,9 +66,8 @@ export class UsuarioService {
       throw new BadRequestException('Email is already in use');
     }
 
-    const pass = CreateUsuarioDto.password;
     const salt = await bcrypt.genSalt();
-    const hash = await bcrypt.hash(pass, salt);
+    const hash = await bcrypt.hash(password, salt);
 
     const usuario: DeepPartial<Usuario> = {
       ...CreateUsuarioDto,
@@ -119,42 +109,42 @@ export class UsuarioService {
   async login(
     loginUserDto: LoginUserDto,
   ): Promise<ObjectServiceResponse<JwtLoginResponse>> {
-    const { password, dni } = loginUserDto;
+    const { password, email } = loginUserDto;
 
     try {
       const user = await this.usuarioRepository.findOne({
-        where: { dni },
-        select: { dni: true, password: true, isActive: true },
+        where: { email },
+        select: { email: true, password: true, isActive: true },
       });
 
       if (!user) {
-        throw new BadRequestException('Invalid credentials');
+        throw new BadRequestException('Credenciales inválidas');
       }
       if (user && !user.isActive) {
         throw new BadRequestException('El usuario no está activo');
       }
 
       if (!bcrypt.compareSync(password, user.password))
-        throw new UnauthorizedException('Credentials are not valid (password)');
+        throw new UnauthorizedException('Credenciales inválidas (contraseña)');
 
-      this.logger.log(`Usuario ${user.dni} logged in successfully`);
+      this.logger.log(`Usuario ${user.email} logged in successfully`);
 
       const accessToken = this.getJwtToken(
-        { dni: user.dni },
+        { email: user.email },
         {
           secret: process.env.JWT_ACCESS_SECRET,
           expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '60m') as never,
         },
       );
       const refreshToken = this.getJwtToken(
-        { dni: user.dni },
+        { email: user.email },
         {
           secret: process.env.JWT_REFRESH_SECRET,
           expiresIn: (process.env.JWT_REFRESH_EXPIRATION || '2d') as never,
         },
       );
       const jwtResponse: JwtLoginResponse = {
-        dni: user.dni,
+        email: user.email,
         accessToken,
         refreshToken,
       };
@@ -306,9 +296,9 @@ export class UsuarioService {
     return token;
   }
 
-  public refreshToken(dni: number) {
+  public refreshToken(email: string) {
     const accessToken = this.getJwtToken(
-      { dni },
+      { email },
       {
         secret: process.env.JWT_REFRESH_SECRET,
         expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '60m') as never,

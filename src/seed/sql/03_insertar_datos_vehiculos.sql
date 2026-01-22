@@ -16,12 +16,12 @@ ON CONFLICT (id_sector) DO NOTHING;
 -- ============================================================
 -- INSERTAR VEHÍCULOS
 -- ============================================================
-INSERT INTO vehiculo (id_vehiculo, nombre, marca, modelo, anio, status, uso_combustible, uso_km, tipo_vehiculo) VALUES
-(1, 'Camión Volvo 1', 'Volvo', 'FH16', '2018-01-01'::DATE, 'activo', 25.5, 0.25, 'camión'),
-(2, 'Camión Mercedes 1', 'Mercedes', 'Actros', '2019-01-01'::DATE, 'activo', 24.0, 0.28, 'camión'),
-(3, 'Camión Scania 1', 'Scania', 'R440', '2017-01-01'::DATE, 'en_revision', 26.0, 0.24, 'camión'),
-(4, 'Camioneta Ford 1', 'Ford', 'F-4000', '2016-01-01'::DATE, 'activo', 15.0, 0.50, 'camioneta'),
-(5, 'Camioneta Chevrolet 1', 'Chevrolet', 'D-Max', '2020-01-01'::DATE, 'activo', 18.0, 0.48, 'camioneta')
+INSERT INTO vehiculo (id_vehiculo, codigo, nombre, marca, modelo, anio, status, uso_combustible, uso_km, tipo_vehiculo) VALUES
+(1, 'CAM-001', 'Camión Volvo 1', 'Volvo', 'FH16', '2018-01-01'::DATE, 'activo', 25.5, 0.25, 'camión'),
+(2, 'CAM-002', 'Camión Mercedes 1', 'Mercedes', 'Actros', '2019-01-01'::DATE, 'activo', 24.0, 0.28, 'camión'),
+(3, 'CAM-003', 'Camión Scania 1', 'Scania', 'R440', '2017-01-01'::DATE, 'en_revision', 26.0, 0.24, 'camión'),
+(4, 'CMT-001', 'Camioneta Ford 1', 'Ford', 'F-4000', '2016-01-01'::DATE, 'activo', 15.0, 0.50, 'camioneta'),
+(5, 'CMT-002', 'Camioneta Chevrolet 1', 'Chevrolet', 'D-Max', '2020-01-01'::DATE, 'activo', 18.0, 0.48, 'camioneta')
 ON CONFLICT (id_vehiculo) DO NOTHING;
 
 -- ============================================================

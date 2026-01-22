@@ -33,10 +33,10 @@ export class JwtRefreshStrategy extends PassportStrategy(
   }
 
   async validate(payload: JwtPayload): Promise<Usuario | null> {
-    const { dni } = payload;
+    const { email } = payload;
 
     const user: Usuario | null = await this.userRepository.findOne({
-      where: { dni },
+      where: { email },
     });
 
     if (!user) throw new UnauthorizedException();

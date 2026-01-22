@@ -18,6 +18,9 @@ export class Vehiculo {
   @PrimaryGeneratedColumn()
   id_vehiculo: number;
 
+  @Column('varchar', { length: 20, unique: true })
+  codigo: string;
+
   @Column('varchar', { length: 100 })
   nombre: string;
 
