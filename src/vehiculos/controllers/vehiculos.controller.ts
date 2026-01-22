@@ -8,6 +8,7 @@ import {
   HttpCode,
   HttpStatus,
   Get,
+  Put,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -19,6 +20,7 @@ import {
 import { VehiculosService } from '../services/vehiculo.service';
 import { CreateVehiculoDto } from '../dto/create-vehiculo.dto';
 import { UpdateVehiculoDto } from '../dto/update-vehiculo.dto';
+import { DeleteLogicoVehiculoDto } from '../dto/delete-logico-vehiculo.dto';
 import { Auth } from 'src/usuario/decorators/auth.decorator';
 import { ValidRoles } from 'src/usuario/enums/usuario.enum';
 import { CreateRecordatorioDto } from '../dto/create-recordatorio.dto';
@@ -119,5 +121,34 @@ export class VehiculosController {
     @Body() dto: UpdateRecordatorioDto,
   ) {
     return this.vehiculosService.updateRecordatorio(recordatorioId, dto);
+  }
+
+  @ApiOperation({ summary: 'Eliminar lógicamente un vehículo por ID' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID del vehículo',
+  })
+  @ApiBody({ type: DeleteLogicoVehiculoDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Vehículo eliminado lógicamente',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Vehículo no encontrado',
+  })
+  @Put(':id/eliminar')
+  @HttpCode(HttpStatus.OK)
+  async softDelete(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: DeleteLogicoVehiculoDto,
+  ): Promise<ObjectServiceResponse<Vehiculo>> {
+    const vehiculoEliminado = await this.vehiculosService.softDelete(id, dto);
+    return {
+      success: true,
+      data: vehiculoEliminado,
+      message: `Vehículo con ID ${id} ${dto.eliminado ? 'eliminado' : 'restaurado'} correctamente`,
+    };
   }
 }

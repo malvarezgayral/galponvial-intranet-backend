@@ -52,6 +52,9 @@ export class Vehiculo {
   })
   tipo_vehiculo: TipoVehiculo;
 
+  @Column({ type: 'boolean', default: false })
+  eliminado: boolean;
+
   @CreateDateColumn({ nullable: false })
   created_at: Date;
 

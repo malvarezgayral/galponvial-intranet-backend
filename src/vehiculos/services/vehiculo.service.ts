@@ -12,6 +12,7 @@ import { CreateVehiculoDto } from '../dto/create-vehiculo.dto';
 import { UpdateVehiculoDto } from '../dto/update-vehiculo.dto';
 import { VehiculoStatus } from '../enums/vehiculo.enum';
 import { CreateInfoAdicionalDataDto } from '../dto/create-info-adicional-data.dto';
+import { DeleteLogicoVehiculoDto } from '../dto/delete-logico-vehiculo.dto';
 import { StatusUpdateService } from './status-update.service';
 import { Recordatorio } from '../entities/recordatorio.entity';
 import { CreateRecordatorioDto } from '../dto/create-recordatorio.dto';
@@ -98,7 +99,7 @@ export class VehiculosService {
     updateVehiculoDto: UpdateVehiculoDto,
   ): Promise<Vehiculo> {
     const vehiculo = await this.vehiculoRepository.findOne({
-      where: { id_vehiculo: id },
+      where: { id_vehiculo: id, eliminado: false },
       relations: ['infoAdicional'],
     });
 
@@ -154,7 +155,7 @@ export class VehiculosService {
     nuevoStatus: VehiculoStatus,
   ): Promise<Vehiculo> {
     const vehiculo = await this.vehiculoRepository.findOne({
-      where: { id_vehiculo: idVehiculo },
+      where: { id_vehiculo: idVehiculo, eliminado: false },
     });
 
     if (!vehiculo) {
@@ -169,6 +170,7 @@ export class VehiculosService {
 
   async findAll(): Promise<Vehiculo[]> {
     return await this.vehiculoRepository.find({
+      where: { eliminado: false },
       relations: ['infoAdicional', 'infoAdicional.sector'],
       order: { id_vehiculo: 'ASC' },
     });
@@ -176,7 +178,7 @@ export class VehiculosService {
 
   async findOne(idVehiculo: number): Promise<Vehiculo> {
     const vehiculo = await this.vehiculoRepository.findOne({
-      where: { id_vehiculo: idVehiculo },
+      where: { id_vehiculo: idVehiculo, eliminado: false },
     });
 
     if (!vehiculo) {
@@ -193,7 +195,7 @@ export class VehiculosService {
     isActive: boolean,
   ): Promise<Vehiculo> {
     const vehiculo = await this.vehiculoRepository.findOne({
-      where: { id_vehiculo: idVehiculo },
+      where: { id_vehiculo: idVehiculo, eliminado: false },
     });
 
     if (!vehiculo) {
@@ -229,7 +231,7 @@ export class VehiculosService {
     data: CreateRecordatorioDto,
   ): Promise<Recordatorio> {
     const vehiculo = await this.vehiculoRepository.findOne({
-      where: { id_vehiculo: idVehiculo },
+      where: { id_vehiculo: idVehiculo, eliminado: false },
     });
 
     if (!vehiculo) {
@@ -281,5 +283,31 @@ export class VehiculosService {
     }
 
     return this.recordatorioRepository.save(recordatorio);
+  }
+
+  async softDelete(
+    idVehiculo: number,
+    dto: DeleteLogicoVehiculoDto,
+  ): Promise<Vehiculo> {
+    const vehiculo = await this.vehiculoRepository.findOne({
+      where: { id_vehiculo: idVehiculo, eliminado: false },
+      relations: ['infoAdicional', 'infoAdicional.sector'],
+    });
+
+    if (!vehiculo) {
+      throw new NotFoundException(
+        `Vehículo con ID ${idVehiculo} no encontrado`,
+      );
+    }
+
+    if (dto.eliminado === vehiculo.eliminado) {
+      const estado = vehiculo.eliminado ? 'eliminado' : 'activo';
+      throw new BadRequestException(
+        `El vehículo con ID ${idVehiculo} ya está ${estado}`,
+      );
+    }
+
+    vehiculo.eliminado = dto.eliminado;
+    return await this.vehiculoRepository.save(vehiculo);
   }
 }
