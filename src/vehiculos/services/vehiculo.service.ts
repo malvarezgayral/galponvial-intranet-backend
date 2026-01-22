@@ -167,6 +167,13 @@ export class VehiculosService {
     return await this.vehiculoRepository.save(vehiculo);
   }
 
+  async findAll(): Promise<Vehiculo[]> {
+    return await this.vehiculoRepository.find({
+      relations: ['infoAdicional', 'infoAdicional.sector'],
+      order: { id_vehiculo: 'ASC' },
+    });
+  }
+
   async findOne(idVehiculo: number): Promise<Vehiculo> {
     const vehiculo = await this.vehiculoRepository.findOne({
       where: { id_vehiculo: idVehiculo },

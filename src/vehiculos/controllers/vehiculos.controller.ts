@@ -23,6 +23,8 @@ import { Auth } from 'src/usuario/decorators/auth.decorator';
 import { ValidRoles } from 'src/usuario/enums/usuario.enum';
 import { CreateRecordatorioDto } from '../dto/create-recordatorio.dto';
 import { UpdateRecordatorioDto } from '../dto/update-recordatorio.dto';
+import { ObjectServiceResponse } from 'src/usuario/interfaces/object-service-response.interface';
+import { Vehiculo } from '../entities/vehiculo.entity';
 
 @ApiTags('Vehículos')
 @Controller('vehiculos')
@@ -40,6 +42,23 @@ export class VehiculosController {
   @HttpCode(HttpStatus.CREATED)
   create(@Body() createVehiculoDto: CreateVehiculoDto) {
     return this.vehiculosService.create(createVehiculoDto);
+  }
+
+  @ApiOperation({ summary: 'Obtener todos los vehículos' })
+  @ApiResponse({
+    status: 200,
+    description: 'Listado de todos los vehículos',
+  })
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @Auth()
+  async findAll(): Promise<ObjectServiceResponse<Vehiculo[]>> {
+    const vehiculos = await this.vehiculosService.findAll();
+    return {
+      success: true,
+      data: vehiculos,
+      message: `${vehiculos.length} vehículos encontrados`,
+    };
   }
 
   @ApiOperation({ summary: 'Actualizar un vehículo por ID' })
