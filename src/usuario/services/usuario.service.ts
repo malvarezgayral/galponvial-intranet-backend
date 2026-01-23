@@ -112,9 +112,10 @@ export class UsuarioService {
     const { password, email } = loginUserDto;
 
     try {
+      // Primera query: validar credenciales
       const user = await this.usuarioRepository.findOne({
         where: { email },
-        select: { email: true, password: true, isActive: true },
+        select: { email: true, password: true, isActive: true, dni: true },
       });
 
       if (!user) {
@@ -128,6 +129,12 @@ export class UsuarioService {
         throw new UnauthorizedException('Credenciales inválidas (contraseña)');
 
       this.logger.log(`Usuario ${user.email} logged in successfully`);
+
+      // Segunda query: obtener el rol completo
+      const userWithRol = await this.usuarioRepository.findOne({
+        where: { email },
+        relations: ['rol'],
+      });
 
       const accessToken = this.getJwtToken(
         { email: user.email },
@@ -145,6 +152,7 @@ export class UsuarioService {
       );
       const jwtResponse: JwtLoginResponse = {
         email: user.email,
+        rol: userWithRol?.rol?.rol || 'sin_rol',
         accessToken,
         refreshToken,
       };

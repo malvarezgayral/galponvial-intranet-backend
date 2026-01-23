@@ -17,6 +17,9 @@ import { StatusUpdateService } from './status-update.service';
 import { Recordatorio } from '../entities/recordatorio.entity';
 import { CreateRecordatorioDto } from '../dto/create-recordatorio.dto';
 import { UpdateRecordatorioDto } from '../dto/update-recordatorio.dto';
+import { StatusUpdate } from '../entities/status-update.entity';
+import { CombustibleCarga } from '../entities/combustible-carga.entity';
+import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
 
 @Injectable()
 export class VehiculosService {
@@ -27,6 +30,12 @@ export class VehiculosService {
     private readonly infoAdicionalRepository: Repository<InfoAdicional>,
     @InjectRepository(Sector)
     private readonly sectorRepository: Repository<Sector>,
+    @InjectRepository(StatusUpdate)
+    private readonly statusUpdateRepository: Repository<StatusUpdate>,
+    @InjectRepository(CombustibleCarga)
+    private readonly combustibleCargaRepository: Repository<CombustibleCarga>,
+    @InjectRepository(ReporteIncidente)
+    private readonly reporteIncidenteRepository: Repository<ReporteIncidente>,
     private readonly statusUpdateService: StatusUpdateService,
     @InjectRepository(Recordatorio)
     private readonly recordatorioRepository: Repository<Recordatorio>,
@@ -309,5 +318,101 @@ export class VehiculosService {
 
     vehiculo.eliminado = dto.eliminado;
     return await this.vehiculoRepository.save(vehiculo);
+  }
+
+  async getStatusUpdatesPaginado(
+    idVehiculo: number,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<{
+    data: StatusUpdate[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
+    // Validar que el vehículo existe
+    await this.findOne(idVehiculo);
+
+    const [data, total] = await this.statusUpdateRepository.findAndCount({
+      where: { vehiculo: { id_vehiculo: idVehiculo } },
+      relations: ['vehiculo'],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      order: { fecha_desde: 'DESC' },
+    });
+
+    return { data, total, page, pageSize };
+  }
+
+  async getIncidentesPaginado(
+    idVehiculo: number,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<{
+    data: ReporteIncidente[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
+    // Validar que el vehículo existe
+    await this.findOne(idVehiculo);
+
+    const [data, total] = await this.reporteIncidenteRepository.findAndCount({
+      where: { vehiculo: { id_vehiculo: idVehiculo } },
+      relations: ['usuario', 'vehiculo'],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      order: { fecha: 'DESC' },
+    });
+
+    return { data, total, page, pageSize };
+  }
+
+  async getRecordatoriosPaginado(
+    idVehiculo: number,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<{
+    data: Recordatorio[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
+    // Validar que el vehículo existe
+    await this.findOne(idVehiculo);
+
+    const [data, total] = await this.recordatorioRepository.findAndCount({
+      where: { vehiculo: { id_vehiculo: idVehiculo } },
+      relations: ['vehiculo'],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      order: { fecha: 'ASC' },
+    });
+
+    return { data, total, page, pageSize };
+  }
+
+  async getCombustibleCargasPaginado(
+    idVehiculo: number,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<{
+    data: CombustibleCarga[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
+    // Validar que el vehículo existe
+    await this.findOne(idVehiculo);
+
+    const [data, total] = await this.combustibleCargaRepository.findAndCount({
+      where: { vehiculo: { id_vehiculo: idVehiculo } },
+      relations: ['vehiculo'],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      order: { fecha_carga: 'DESC' },
+    });
+
+    return { data, total, page, pageSize };
   }
 }

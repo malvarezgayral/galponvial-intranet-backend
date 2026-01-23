@@ -6,6 +6,7 @@ export interface ObjectServiceResponse<T> {
 
 export interface JwtLoginResponse {
   email: string;
+  rol: string;
   accessToken: string;
   refreshToken: string;
 }

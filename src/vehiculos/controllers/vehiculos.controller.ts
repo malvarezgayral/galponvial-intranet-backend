@@ -9,6 +9,8 @@ import {
   HttpStatus,
   Get,
   Put,
+  Query,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -27,6 +29,10 @@ import { CreateRecordatorioDto } from '../dto/create-recordatorio.dto';
 import { UpdateRecordatorioDto } from '../dto/update-recordatorio.dto';
 import { ObjectServiceResponse } from 'src/usuario/interfaces/object-service-response.interface';
 import { Vehiculo } from '../entities/vehiculo.entity';
+import { StatusUpdate } from '../entities/status-update.entity';
+import { CombustibleCarga } from '../entities/combustible-carga.entity';
+import { Recordatorio } from '../entities/recordatorio.entity';
+import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
 
 @ApiTags('Vehículos')
 @Controller('vehiculos')
@@ -121,6 +127,152 @@ export class VehiculosController {
     @Body() dto: UpdateRecordatorioDto,
   ) {
     return this.vehiculosService.updateRecordatorio(recordatorioId, dto);
+  }
+
+  @ApiOperation({ summary: 'Obtener status updates paginados de un vehículo' })
+  @ApiParam({
+    name: 'vehiculoId',
+    type: Number,
+    description: 'ID del vehículo',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Listado paginado de status updates',
+  })
+  @Get(':vehiculoId/status-updates')
+  @HttpCode(HttpStatus.OK)
+  async getStatusUpdatesPaginado(
+    @Param('vehiculoId', ParseIntPipe) vehiculoId: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
+  ): Promise<
+    ObjectServiceResponse<{
+      data: StatusUpdate[];
+      total: number;
+      page: number;
+      pageSize: number;
+    }>
+  > {
+    const result = await this.vehiculosService.getStatusUpdatesPaginado(
+      vehiculoId,
+      page,
+      pageSize,
+    );
+    return {
+      success: true,
+      data: result,
+      message: `${result.total} status updates encontrados`,
+    };
+  }
+
+  @ApiOperation({ summary: 'Obtener incidentes paginados de un vehículo' })
+  @ApiParam({
+    name: 'vehiculoId',
+    type: Number,
+    description: 'ID del vehículo',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Listado paginado de incidentes',
+  })
+  @Get(':vehiculoId/incidentes')
+  @HttpCode(HttpStatus.OK)
+  async getIncidentesPaginado(
+    @Param('vehiculoId', ParseIntPipe) vehiculoId: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
+  ): Promise<
+    ObjectServiceResponse<{
+      data: ReporteIncidente[];
+      total: number;
+      page: number;
+      pageSize: number;
+    }>
+  > {
+    const result = await this.vehiculosService.getIncidentesPaginado(
+      vehiculoId,
+      page,
+      pageSize,
+    );
+    return {
+      success: true,
+      data: result,
+      message: `${result.total} incidentes encontrados`,
+    };
+  }
+
+  @ApiOperation({ summary: 'Obtener recordatorios paginados de un vehículo' })
+  @ApiParam({
+    name: 'vehiculoId',
+    type: Number,
+    description: 'ID del vehículo',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Listado paginado de recordatorios',
+  })
+  @Get(':vehiculoId/recordatorios-paginado')
+  @HttpCode(HttpStatus.OK)
+  async getRecordatoriosPaginado(
+    @Param('vehiculoId', ParseIntPipe) vehiculoId: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
+  ): Promise<
+    ObjectServiceResponse<{
+      data: Recordatorio[];
+      total: number;
+      page: number;
+      pageSize: number;
+    }>
+  > {
+    const result = await this.vehiculosService.getRecordatoriosPaginado(
+      vehiculoId,
+      page,
+      pageSize,
+    );
+    return {
+      success: true,
+      data: result,
+      message: `${result.total} recordatorios encontrados`,
+    };
+  }
+
+  @ApiOperation({
+    summary: 'Obtener cargas de combustible paginadas de un vehículo',
+  })
+  @ApiParam({
+    name: 'vehiculoId',
+    type: Number,
+    description: 'ID del vehículo',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Listado paginado de cargas de combustible',
+  })
+  @Get(':vehiculoId/combustible-cargas')
+  @HttpCode(HttpStatus.OK)
+  async getCombustibleCargasPaginado(
+    @Param('vehiculoId', ParseIntPipe) vehiculoId: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
+  ): Promise<
+    ObjectServiceResponse<{
+      data: CombustibleCarga[];
+      total: number;
+      page: number;
+      pageSize: number;
+    }>
+  > {
+    const result = await this.vehiculosService.getCombustibleCargasPaginado(
+      vehiculoId,
+      page,
+      pageSize,
+    );
+    return {
+      success: true,
+      data: result,
+      message: `${result.total} cargas de combustible encontradas`,
+    };
   }
 
   @ApiOperation({ summary: 'Eliminar lógicamente un vehículo por ID' })
