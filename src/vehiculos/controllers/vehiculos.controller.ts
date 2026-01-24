@@ -27,12 +27,15 @@ import { Auth } from 'src/usuario/decorators/auth.decorator';
 import { ValidRoles } from 'src/usuario/enums/usuario.enum';
 import { CreateRecordatorioDto } from '../dto/create-recordatorio.dto';
 import { UpdateRecordatorioDto } from '../dto/update-recordatorio.dto';
+import { CreateReporteIncidenteDto } from '../dto/create-reporte-incidente.dto';
+import { CreateCombustibleCargaDto } from '../dto/create-combustible-carga.dto';
 import { ObjectServiceResponse } from 'src/usuario/interfaces/object-service-response.interface';
 import { Vehiculo } from '../entities/vehiculo.entity';
 import { StatusUpdate } from '../entities/status-update.entity';
 import { CombustibleCarga } from '../entities/combustible-carga.entity';
 import { Recordatorio } from '../entities/recordatorio.entity';
 import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
+import { VehiculoStatus } from '../enums/vehiculo.enum';
 
 @ApiTags('Vehículos')
 @Controller('vehiculos')
@@ -112,6 +115,60 @@ export class VehiculosController {
     @Body() createRecordatorioDto: CreateRecordatorioDto,
   ) {
     return this.vehiculosService.agregarRecordatorio(id, createRecordatorioDto);
+  }
+
+  @ApiOperation({ summary: 'Agregar un incidente a un vehículo' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID del vehículo',
+  })
+  @ApiBody({ type: CreateReporteIncidenteDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Incidente registrado correctamente',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Vehículo no encontrado',
+  })
+  @Post(':id/incidentes')
+  @HttpCode(HttpStatus.CREATED)
+  agregarIncidente(
+    @Param('id') dni: number,
+    @Body() createReporteIncidenteDto: CreateReporteIncidenteDto,
+  ) {
+    return this.vehiculosService.agregarIncidente(
+      dni,
+      createReporteIncidenteDto,
+    );
+  }
+
+  @ApiOperation({ summary: 'Agregar una carga de combustible a un vehículo' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID del vehículo',
+  })
+  @ApiBody({ type: CreateCombustibleCargaDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Carga de combustible registrada correctamente',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Vehículo no encontrado',
+  })
+  @Post(':id/combustible-cargas')
+  @HttpCode(HttpStatus.CREATED)
+  agregarCombustibleCarga(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() createCombustibleCargaDto: CreateCombustibleCargaDto,
+  ) {
+    return this.vehiculosService.agregarCombustibleCarga(
+      id,
+      createCombustibleCargaDto,
+    );
   }
 
   @Get(':vehiculoId/recordatorios')
@@ -272,6 +329,51 @@ export class VehiculosController {
       success: true,
       data: result,
       message: `${result.total} cargas de combustible encontradas`,
+    };
+  }
+
+  @ApiOperation({ summary: 'Actualizar status del vehículo con histórico' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID del vehículo',
+  })
+  @ApiBody({
+    schema: {
+      properties: {
+        nuevoStatus: {
+          type: 'string',
+          enum: ['disponible', 'en_taller', 'fuera_de_servicio', 'en_uso'],
+          example: 'en_taller',
+        },
+      },
+      required: ['nuevoStatus'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Status del vehículo actualizado correctamente',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Vehículo no encontrado',
+  })
+  @Put(':id/status')
+  @HttpCode(HttpStatus.OK)
+  @Auth(ValidRoles.admin)
+  async updateVehiculoStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('nuevoStatus') nuevoStatus: VehiculoStatus,
+  ): Promise<ObjectServiceResponse<Vehiculo>> {
+    const vehiculoActualizado =
+      await this.vehiculosService.updateVehiculoStatusConHistorico(
+        id,
+        nuevoStatus,
+      );
+    return {
+      success: true,
+      data: vehiculoActualizado,
+      message: `Status del vehículo actualizado a ${nuevoStatus}`,
     };
   }
 

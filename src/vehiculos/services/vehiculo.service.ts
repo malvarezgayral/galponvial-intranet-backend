@@ -20,6 +20,10 @@ import { UpdateRecordatorioDto } from '../dto/update-recordatorio.dto';
 import { StatusUpdate } from '../entities/status-update.entity';
 import { CombustibleCarga } from '../entities/combustible-carga.entity';
 import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
+import { Usuario } from 'src/usuario/entities/usuario.entity';
+import { CreateReporteIncidenteDto } from '../dto/create-reporte-incidente.dto';
+import { CreateCombustibleCargaDto } from '../dto/create-combustible-carga.dto';
+import { FallaIncidente } from 'src/usuario/enums/usuario.enum';
 
 @Injectable()
 export class VehiculosService {
@@ -36,6 +40,8 @@ export class VehiculosService {
     private readonly combustibleCargaRepository: Repository<CombustibleCarga>,
     @InjectRepository(ReporteIncidente)
     private readonly reporteIncidenteRepository: Repository<ReporteIncidente>,
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
     private readonly statusUpdateService: StatusUpdateService,
     @InjectRepository(Recordatorio)
     private readonly recordatorioRepository: Repository<Recordatorio>,
@@ -235,6 +241,35 @@ export class VehiculosService {
     return vehiculoActualizado;
   }
 
+  async updateVehiculoStatusConHistorico(
+    idVehiculo: number,
+    nuevoStatus: string,
+  ): Promise<Vehiculo> {
+    const vehiculo = await this.findOne(idVehiculo);
+
+    const statusValido = Object.values(VehiculoStatus).includes(
+      nuevoStatus as VehiculoStatus,
+    );
+    if (!statusValido) {
+      throw new BadRequestException(
+        `Status '${nuevoStatus}' no válido. Valores permitidos: ${Object.values(VehiculoStatus).join(', ')}`,
+      );
+    }
+
+    const statusViejo = vehiculo.status;
+    vehiculo.status = nuevoStatus as VehiculoStatus;
+
+    const vehiculoActualizado = await this.vehiculoRepository.save(vehiculo);
+
+    // Guardar el status anterior en el histórico
+    await this.statusUpdateService.crearStatusUpdate(
+      vehiculoActualizado,
+      statusViejo,
+    );
+
+    return vehiculoActualizado;
+  }
+
   async agregarRecordatorio(
     idVehiculo: number,
     data: CreateRecordatorioDto,
@@ -414,5 +449,58 @@ export class VehiculosService {
     });
 
     return { data, total, page, pageSize };
+  }
+
+  async agregarIncidente(
+    idVehiculo: number,
+    data: CreateReporteIncidenteDto,
+  ): Promise<ReporteIncidente> {
+    const vehiculo = await this.findOne(idVehiculo);
+
+    const usuarioReportante = await this.usuarioRepository.findOne({
+      where: { dni: data.id_usuario },
+    });
+
+    if (!usuarioReportante) {
+      throw new NotFoundException(
+        `Usuario con DNI ${data.id_usuario} no encontrado`,
+      );
+    }
+
+    if (data.falla === FallaIncidente.CRITICA) {
+      const statusViejo: VehiculoStatus = vehiculo.status;
+      await this.updateStatus(
+        vehiculo.id_vehiculo,
+        VehiculoStatus.FUERA_DE_SERVICIO,
+      );
+      await this.statusUpdateService.crearStatusUpdate(vehiculo, statusViejo);
+    }
+
+    const incidente = new ReporteIncidente();
+    incidente.fecha = new Date(data.fecha);
+    incidente.tipo = data.tipo;
+    incidente.descripcion = data.descripcion;
+    incidente.falla = data.falla;
+    incidente.vehiculo = vehiculo;
+    incidente.usuario = usuarioReportante;
+    incidente.id_usuario = usuarioReportante.dni;
+
+    return await this.reporteIncidenteRepository.save(incidente);
+  }
+
+  async agregarCombustibleCarga(
+    idVehiculo: number,
+    data: CreateCombustibleCargaDto,
+  ): Promise<CombustibleCarga> {
+    const vehiculo = await this.findOne(idVehiculo);
+
+    const carga = new CombustibleCarga();
+    carga.fecha_carga = new Date(data.fecha_carga);
+    carga.despachante = data.despachante || '';
+    carga.km_actual = data.km_actual;
+    carga.cant_combustible_despachado = data.cant_combustible_despachado;
+    carga.vehiculo = vehiculo;
+
+    return await this.combustibleCargaRepository.save(carga);
   }
 }

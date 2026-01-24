@@ -17,14 +17,6 @@ export class CreateCombustibleCargaDto {
   @IsNotEmpty()
   fecha_carga: string;
 
-  @ApiProperty({
-    description: 'ID del vehículo',
-    example: 12,
-  })
-  @IsNumber()
-  @IsNotEmpty()
-  id_vehiculo: number;
-
   @ApiPropertyOptional({
     description: 'Nombre del despachante',
     example: 'Juan Pérez',

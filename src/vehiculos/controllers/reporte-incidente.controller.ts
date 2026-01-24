@@ -24,18 +24,6 @@ export class ReporteIncidenteController {
     private readonly reporteIncidenteService: ReporteIncidenteService,
   ) {}
 
-  @ApiOperation({ summary: 'Crear un reporte de incidente' })
-  @ApiBody({ type: CreateReporteIncidenteDto })
-  @ApiResponse({
-    status: 201,
-    description: 'Reporte de incidente creado correctamente',
-  })
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  create(@Body() createDto: CreateReporteIncidenteDto) {
-    return this.reporteIncidenteService.create(createDto);
-  }
-
   @ApiOperation({ summary: 'Obtener reportes de incidentes con filtros' })
   @ApiBody({
     description: 'Filtros de búsqueda de incidentes',

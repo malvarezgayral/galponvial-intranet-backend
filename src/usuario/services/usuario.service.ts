@@ -151,6 +151,7 @@ export class UsuarioService {
         },
       );
       const jwtResponse: JwtLoginResponse = {
+        dni: user.dni,
         email: user.email,
         rol: userWithRol?.rol?.rol || 'sin_rol',
         accessToken,

@@ -7,6 +7,7 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { FallaIncidente } from 'src/usuario/enums/usuario.enum';
+import { TipoIncidente } from '../enums/vehiculo.enum';
 
 export class CreateReporteIncidenteDto {
   @ApiProperty({
@@ -23,7 +24,7 @@ export class CreateReporteIncidenteDto {
   })
   @IsString()
   @IsNotEmpty()
-  tipo: string;
+  tipo: TipoIncidente;
 
   @ApiProperty({
     description: 'Descripción del incidente',
@@ -43,10 +44,10 @@ export class CreateReporteIncidenteDto {
   falla: FallaIncidente;
 
   @ApiProperty({
-    description: 'ID del vehículo involucrado',
-    example: 5,
+    description: 'DNI del usuario que reporta el incidente',
+    example: 36878912,
   })
   @IsNumber()
   @IsNotEmpty()
-  id_vehiculo: number;
+  id_usuario: number;
 }
