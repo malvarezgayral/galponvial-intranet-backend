@@ -1,6 +1,6 @@
 import {
   IsNotEmpty,
-  IsNumber,
+  IsEmail,
   IsString,
   Matches,
   MaxLength,
@@ -10,12 +10,12 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginUserDto {
   @ApiProperty({
-    description: 'DNI del usuario',
-    example: 34567890,
+    description: 'Email del usuario',
+    example: 'usuario@example.com',
   })
   @IsNotEmpty()
-  @IsNumber()
-  dni: number;
+  @IsEmail({}, { message: 'El email debe ser válido' })
+  email: string;
 
   @ApiProperty({
     description: 'Contraseña del usuario',
@@ -24,6 +24,9 @@ export class LoginUserDto {
   @IsString()
   @MinLength(6)
   @MaxLength(50)
-  @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/)
+  @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+    message:
+      'La contraseña debe contener al menos una mayúscula, una minúscula y un número',
+  })
   password: string;
 }

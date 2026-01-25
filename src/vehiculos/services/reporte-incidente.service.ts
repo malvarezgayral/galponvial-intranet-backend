@@ -1,15 +1,9 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, FindOptionsWhere } from 'typeorm';
 import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
-import { CreateReporteIncidenteDto } from '../dto/create-reporte-incidente.dto';
 import { FiltrosIncidenteDto } from '../dto/filtros.dto';
-import { VehiculoStatus, StatusIncidente } from '../enums/vehiculo.enum';
-import { FallaIncidente } from 'src/usuario/enums/usuario.enum';
+import { StatusIncidente } from '../enums/vehiculo.enum';
 import { StatusUpdateService } from './status-update.service';
 import { VehiculosService } from './vehiculo.service';
 import { UsuarioVehiculoService } from 'src/usuario/services/usuario-vehiculo.service';
@@ -23,69 +17,6 @@ export class ReporteIncidenteService {
     private readonly usuarioVehiculoService: UsuarioVehiculoService,
     private readonly statusUpdateService: StatusUpdateService,
   ) {}
-
-  async create(
-    createDto: CreateReporteIncidenteDto,
-  ): Promise<ReporteIncidente> {
-    // 1. Obtener vehículo usando el servicio
-    const vehiculo = await this.vehiculosService.findOne(createDto.id_vehiculo);
-
-    // 2. Obtener conductor vigente del vehículo
-    const conductorVigente =
-      await this.usuarioVehiculoService.findConductorVigente(
-        createDto.id_vehiculo,
-      );
-
-    if (!conductorVigente) {
-      throw new BadRequestException(
-        `No hay conductor asignado vigente para el vehículo ID ${createDto.id_vehiculo}`,
-      );
-    }
-
-    try {
-      // 3. Crear reporte de incidente (con el usuario del vehículo)
-      const reporte = this.reporteIncidenteRepository.create({
-        fecha: new Date(createDto.fecha),
-        tipo: createDto.tipo,
-        descripcion: createDto.descripcion,
-        falla: createDto.falla,
-        id_vehiculo: createDto.id_vehiculo,
-        id_usuario: conductorVigente.id_usuario,
-        vehiculo,
-        usuario: conductorVigente.usuario,
-      });
-
-      const reporteGuardado =
-        await this.reporteIncidenteRepository.save(reporte);
-
-      // 4. Si la falla es CRÍTICA, cambiar status del vehículo
-      if (createDto.falla === FallaIncidente.CRITICA) {
-        const statusViejo: VehiculoStatus = vehiculo.status;
-        await this.vehiculosService.updateStatus(
-          vehiculo.id_vehiculo,
-          VehiculoStatus.FUERA_DE_SERVICIO,
-        );
-        await this.statusUpdateService.crearStatusUpdate(vehiculo, statusViejo);
-      }
-
-      // 5. Retornar con relaciones
-      const reporteCompleto = await this.reporteIncidenteRepository.findOne({
-        where: { id: reporteGuardado.id },
-        relations: ['vehiculo', 'usuario'],
-      });
-
-      if (!reporteCompleto) {
-        throw new NotFoundException('Error al recuperar el reporte creado');
-      }
-
-      return reporteCompleto;
-    } catch (error) {
-      throw new BadRequestException(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        'Error al crear reporte de incidente: ' + error.message,
-      );
-    }
-  }
 
   async findAll(filtros?: FiltrosIncidenteDto): Promise<ReporteIncidente[]> {
     const where: FindOptionsWhere<ReporteIncidente> = {};

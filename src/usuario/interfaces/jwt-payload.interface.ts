@@ -1,3 +1,3 @@
 export interface JwtPayload {
-  dni: number;
+  email: string;
 }

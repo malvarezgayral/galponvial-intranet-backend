@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS sector (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS vehiculo (
   id_vehiculo SERIAL PRIMARY KEY,
+  codigo VARCHAR(20) NOT NULL UNIQUE,
   nombre VARCHAR(255) NOT NULL,
   marca VARCHAR(255) NOT NULL,
   modelo VARCHAR(255) NOT NULL,

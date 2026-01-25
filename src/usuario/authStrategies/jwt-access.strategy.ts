@@ -28,10 +28,10 @@ export class JwtAccessStrategy extends PassportStrategy(
   }
 
   async validate(payload: JwtPayload): Promise<Usuario> {
-    const { dni } = payload;
+    const { email } = payload;
 
     const user = await this.userRepository.findOne({
-      where: { dni },
+      where: { email },
       relations: ['rol'],
     });
 

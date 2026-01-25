@@ -18,6 +18,9 @@ export class Vehiculo {
   @PrimaryGeneratedColumn()
   id_vehiculo: number;
 
+  @Column('varchar', { length: 20, unique: true })
+  codigo: string;
+
   @Column('varchar', { length: 100 })
   nombre: string;
 
@@ -48,6 +51,9 @@ export class Vehiculo {
     enum: TipoVehiculo,
   })
   tipo_vehiculo: TipoVehiculo;
+
+  @Column({ type: 'boolean', default: false })
+  eliminado: boolean;
 
   @CreateDateColumn({ nullable: false })
   created_at: Date;
