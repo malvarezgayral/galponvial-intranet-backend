@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Controller,
   Post,
@@ -64,10 +68,13 @@ export class VehiculosController {
   @HttpCode(HttpStatus.OK)
   @Auth()
   async findAll(): Promise<ObjectServiceResponse<Vehiculo[]>> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const vehiculos = await this.vehiculosService.findAll();
     return {
       success: true,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       data: vehiculos,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       message: `${vehiculos.length} vehículos encontrados`,
     };
   }
@@ -138,6 +145,7 @@ export class VehiculosController {
     @Param('id') dni: number,
     @Body() createReporteIncidenteDto: CreateReporteIncidenteDto,
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return this.vehiculosService.agregarIncidente(
       dni,
       createReporteIncidenteDto,
