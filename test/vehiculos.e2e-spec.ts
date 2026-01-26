@@ -12,6 +12,7 @@ import { Rol } from 'src/usuario/entities/rol.entity';
 import { Vehiculo } from 'src/vehiculos/entities/vehiculo.entity'; 
 import { ValidRoles, Permisos } from 'src/usuario/enums/usuario.enum'; 
 import { VehiculoStatus } from 'src/vehiculos/enums/vehiculo.enum';
+import { StatusUpdate } from 'src/vehiculos/entities/status-update.entity';
 
 describe('Vehiculos Module (e2e)', () => {
   let app: INestApplication;
@@ -54,34 +55,40 @@ describe('Vehiculos Module (e2e)', () => {
 
   beforeEach(async () => {
     if (dataSource && dataSource.isInitialized) {
-        const entities = dataSource.entityMetadatas;
-        await dataSource.query('SET session_replication_role = "replica";');
-        for (const entity of entities) {
-            await dataSource.getRepository(entity.name).query(`TRUNCATE TABLE "${entity.tableName}" RESTART IDENTITY CASCADE`);
-        }
-        await dataSource.query('SET session_replication_role = "origin";');
+      const entities = dataSource.entityMetadatas;
+      await dataSource.query('SET session_replication_role = "replica";');
+      for (const entity of entities) {
+        await dataSource
+          .getRepository(entity.name)
+          .query(`TRUNCATE TABLE "${entity.tableName}" RESTART IDENTITY CASCADE`);
+      }
+      await dataSource.query('SET session_replication_role = "origin";');
         
-        // SEEDS
-        const sectorRes = await dataSource.query(`INSERT INTO sector (nombre) VALUES ('Sector Test') RETURNING id_sector`);
-        sectorId = sectorRes[0].id_sector;
+      const sectorRes = await dataSource.query(
+        `INSERT INTO sector (nombre) VALUES ('Sector Test') RETURNING id_sector`
+      );
+      sectorId = sectorRes[0].id_sector;
 
-        const rolRepo = dataSource.getRepository(Rol);
-        const nuevoRol = new Rol();
-        nuevoRol.rol = ValidRoles.admin;
-        nuevoRol.permisos = [Permisos.lectura, Permisos.escritura, Permisos.lectoEscritura];
-        const rolAdmin = await rolRepo.save(nuevoRol);
+      const rolRepo = dataSource.getRepository(Rol);
+      const nuevoRol = new Rol();
+      nuevoRol.rol = ValidRoles.admin;
+      nuevoRol.permisos = [
+        Permisos.lectura,
+        Permisos.escritura,
+        Permisos.lectoEscritura,
+      ];
+      const rolAdmin = await rolRepo.save(nuevoRol);
 
-        const usuarioRepo = dataSource.getRepository(Usuario);
-        const usuario = new Usuario();
-        usuario.dni = Number(usuarioDniTest);
-        usuario.nombre = 'Test';
-        usuario.apellido = 'User';
-        usuario.email = 'test@test.com';
-        usuario.password = '1234'; 
-        usuario.isActive = true;
-        usuario.rol = rolAdmin; 
-        
-        await usuarioRepo.save(usuario);
+      const usuarioRepo = dataSource.getRepository(Usuario);
+      const usuario = new Usuario();
+      usuario.dni = Number(usuarioDniTest);
+      usuario.nombre = 'Test';
+      usuario.apellido = 'User';
+      usuario.email = 'test@test.com';
+      usuario.password = '1234'; 
+      usuario.isActive = true;
+      usuario.rol = rolAdmin; 
+      await usuarioRepo.save(usuario);
     }
   });
 
@@ -89,9 +96,14 @@ describe('Vehiculos Module (e2e)', () => {
     await app.close();
   });
 
+  /**
+   * ================================
+   * FLUJO COMPLETO
+   * ================================
+   */
   describe('Flujo Completo: Vehiculo -> Incidente -> Servicio', () => {
     it('Debería crear vehículo, reportar incidente, crear servicio y cambiar status automáticamente', async () => {
-      // 1. CREAR VEHÍCULO
+      // ⬅️ TEST TAL CUAL LO PASASTE
       const createVehiculoDto = {
         codigo: 'V-TEST-01',
         nombre: 'Hilux Test Unit',
@@ -104,12 +116,12 @@ describe('Vehiculos Module (e2e)', () => {
         status: 'disponible',
         infoAdicional: {
             id_sector_pertenencia: Number(sectorId),
-            numero_serie: 123456,
+            numero_serie: 111111,
             licencia_conductor: 'B1',
-            color: 'Blanco',
-            seguro_empresa: 'La Caja',
-            poliza: '123456'
-        }
+            color: 'Rojo',
+            seguro_empresa: 'TestSeguros',
+            poliza: 'POL-123'
+            }
       };
 
       const vehiculoRes = await request(app.getHttpServer())
@@ -120,13 +132,12 @@ describe('Vehiculos Module (e2e)', () => {
       const vehiculoId = vehiculoRes.body.id_vehiculo || vehiculoRes.body.id;
       if (!vehiculoId) throw new Error('El ID del vehículo no vino en la respuesta');
 
-      // 2. REPORTAR INCIDENTE (CRÍTICO)
       const createIncidenteDto = {
         tipo: 'Mecánica',
         descripcion: 'Ruido en motor',
-        falla: 'critica', 
+        falla: 'critica',
         fecha: new Date().toISOString(),
-        id_usuario: Number(usuarioDniTest) 
+        id_usuario: Number(usuarioDniTest),
       };
 
       const incidenteRes = await request(app.getHttpServer())
@@ -136,85 +147,257 @@ describe('Vehiculos Module (e2e)', () => {
 
       const incidenteId = incidenteRes.body.id || incidenteRes.body.id_incidente;
 
-      // 3. CREAR SERVICIO
       const createServicioDto = {
-        tipo: 'reparacion', 
+        tipo: 'reparacion',
         fecha_inicio: new Date().toISOString(),
         descripcion: 'Cambio de piezas',
-        incidente_id: incidenteId
+        incidente_id: incidenteId,
       };
 
       await request(app.getHttpServer())
         .post('/servicios')
         .send(createServicioDto)
         .expect(201);
-      
+
       const vehiculoRepo = dataSource.getRepository(Vehiculo);
-      const rawVehiculo = await vehiculoRepo.findOne({
-        where: { id_vehiculo: vehiculoId },
-        });
-
-        console.log(rawVehiculo);
-
       const vehiculoFinal = await vehiculoRepo.findOne({
         where: { id_vehiculo: vehiculoId },
-        });
+      });
 
-        expect(vehiculoFinal).toBeDefined();
-        expect(vehiculoFinal!.status).toBe(VehiculoStatus.EN_TALLER);
-
+      expect(vehiculoFinal).toBeDefined();
+      expect(vehiculoFinal!.status).toBe(VehiculoStatus.EN_TALLER);
     });
   });
 
+  /**
+   * ================================
+   * INCIDENTES
+   * ================================
+   */
+  describe('Incidentes de Vehículo', () => {
+    it('No debería cambiar el status del vehículo con incidente NO crítico', async () => {
+      // ⬅️ TEST TAL CUAL
+      const vRes = await request(app.getHttpServer())
+        .post('/vehiculos')
+        .send({
+          codigo: 'V-NO-CRIT',
+          nombre: 'Vehiculo No Critico',
+          tipo_vehiculo: 'camioneta',
+          marca: 'Ford',
+          modelo: 'Ranger',
+          patente: 'NC123AA',
+          anio: 2022,
+          km_actual: 1000,
+          status: 'disponible',
+          infoAdicional: {
+            id_sector_pertenencia: Number(sectorId),
+            numero_serie: 111111,
+            licencia_conductor: 'B1',
+            color: 'Rojo',
+            seguro_empresa: 'TestSeguros',
+            poliza: 'POL-123'
+            }
+        })
+        .expect(201);
+
+      const vehiculoId = vRes.body.id_vehiculo || vRes.body.id;
+
+      await request(app.getHttpServer())
+        .post(`/vehiculos/${vehiculoId}/incidentes`)
+        .send({
+          tipo: 'Chequeo',
+          descripcion: 'Revisión menor',
+          falla: 'baja',
+          fecha: new Date().toISOString(),
+          id_usuario: Number(usuarioDniTest),
+        })
+        .expect(201);
+
+      const vehiculoRepo = dataSource.getRepository(Vehiculo);
+      const vehiculo = await vehiculoRepo.findOne({
+        where: { id_vehiculo: vehiculoId },
+      });
+
+      expect(vehiculo).toBeDefined();
+      expect(vehiculo!.status).toBe(VehiculoStatus.DISPONIBLE);
+    });
+
+    it('No debería permitir crear un incidente para un vehículo inexistente', async () => {
+      await request(app.getHttpServer())
+        .post('/vehiculos/99999/incidentes')
+        .send({
+          tipo: 'Test',
+          descripcion: 'Incidente inválido',
+          falla: 'critica',
+          fecha: new Date().toISOString(),
+          id_usuario: Number(usuarioDniTest),
+        })
+        .expect(404);
+    });
+  });
+
+  /**
+   * ================================
+   * PAGINACIÓN
+   * ================================
+   */
   describe('Endpoints de Paginación', () => {
     it('GET /vehiculos/:id/incidentes debe devolver estructura paginada', async () => {
-        const vRes = await request(app.getHttpServer())
-            .post('/vehiculos')
-            .send({
-                codigo: 'V-PAG-01',
-                nombre: 'Ford Ranger Test',
-                tipo_vehiculo: 'camioneta',
-                marca: 'Ford', 
-                modelo: 'Ranger', 
-                patente: 'TEST999', 
-                anio: 2022, 
-                km_actual: 500,
-                status: 'disponible',
-                infoAdicional: {
-                    id_sector_pertenencia: Number(sectorId),
-                    numero_serie: 987654,
-                    licencia_conductor: 'B1',
-                    color: 'Azul',
-                    seguro_empresa: 'Sancor',
-                    poliza: '99999'
-                }
-            })
-            .expect(201);
-            
-        const vid = vRes.body.id_vehiculo || vRes.body.id;
-        
-        const vehiculoRepo = dataSource.getRepository(Vehiculo);
-        await vehiculoRepo.query(`UPDATE vehiculo SET eliminado = false WHERE id_vehiculo = ${vid}`);
+      // ⬅️ TEST TAL CUAL
+      const vRes = await request(app.getHttpServer())
+        .post('/vehiculos')
+        .send({
+          codigo: 'V-PAG-01',
+          nombre: 'Ford Ranger Test',
+          tipo_vehiculo: 'camioneta',
+          marca: 'Ford',
+          modelo: 'Ranger',
+          patente: 'TEST999',
+          anio: 2022,
+          km_actual: 500,
+          status: 'disponible',
+          infoAdicional: {
+            id_sector_pertenencia: Number(sectorId),
+            numero_serie: 111111,
+            licencia_conductor: 'B1',
+            color: 'Rojo',
+            seguro_empresa: 'TestSeguros',
+            poliza: 'POL-123'
+            }
+        })
+        .expect(201);
 
-        await request(app.getHttpServer())
-            .post(`/vehiculos/${vid}/incidentes`)
-            .send({ 
-                tipo: 'Test', 
-                descripcion: 'Test desc', 
-                falla: 'baja', 
-                fecha: new Date(), 
-                id_usuario: Number(usuarioDniTest) 
-            })
-            .expect(201);
+      const vid = vRes.body.id_vehiculo || vRes.body.id;
 
-        const res = await request(app.getHttpServer())
-            .get(`/vehiculos/${vid}/incidentes?page=1&pageSize=5`)
-            .expect(200);
+      const vehiculoRepo = dataSource.getRepository(Vehiculo);
+      await vehiculoRepo.query(
+        `UPDATE vehiculo SET eliminado = false WHERE id_vehiculo = ${vid}`,
+      );
 
-        expect(res.body.success).toBe(true);
-        if(res.body.data && res.body.data.data) {
-             expect(Array.isArray(res.body.data.data)).toBe(true);
-        }
+      await request(app.getHttpServer())
+        .post(`/vehiculos/${vid}/incidentes`)
+        .send({
+          tipo: 'Test',
+          descripcion: 'Test desc',
+          falla: 'baja',
+          fecha: new Date(),
+          id_usuario: Number(usuarioDniTest),
+        })
+        .expect(201);
+
+      const res = await request(app.getHttpServer())
+        .get(`/vehiculos/${vid}/incidentes?page=1&pageSize=5`)
+        .expect(200);
+
+      expect(res.body.success).toBe(true);
+      if (res.body.data && res.body.data.data) {
+        expect(Array.isArray(res.body.data.data)).toBe(true);
+      }
+    });
+  });
+
+  /**
+   * ================================
+   * COMBUSTIBLE
+   * ================================
+   */
+  describe('Cargas de Combustible', () => {
+    it('Debería registrar una carga de combustible y devolverla paginada', async () => {
+      // ⬅️ TEST TAL CUAL
+      const vRes = await request(app.getHttpServer())
+        .post('/vehiculos')
+        .send({
+          codigo: 'V-FUEL-01',
+          nombre: 'Vehiculo Fuel',
+          tipo_vehiculo: 'camioneta',
+          marca: 'Toyota',
+          modelo: 'Hilux',
+          patente: 'FUEL123',
+          anio: 2021,
+          km_actual: 20000,
+          status: 'disponible',
+          infoAdicional: {
+            id_sector_pertenencia: Number(sectorId),
+            numero_serie: 111111,
+            licencia_conductor: 'B1',
+            color: 'Rojo',
+            seguro_empresa: 'TestSeguros',
+            poliza: 'POL-123'
+            }
+
+        })
+        .expect(201);
+
+      const vehiculoId = vRes.body.id_vehiculo || vRes.body.id;
+
+      await request(app.getHttpServer())
+        .post(`/vehiculos/${vehiculoId}/combustible-cargas`)
+        .send({
+          fecha_carga: new Date().toISOString(),
+          despachante: "marito",
+          km_actual: 120000,
+          cant_combustible_despachado: 1200
+        })
+        .expect(201);
+
+      const res = await request(app.getHttpServer())
+        .get(
+          `/vehiculos/${vehiculoId}/combustible-cargas?page=1&pageSize=5`,
+        )
+        .expect(200);
+
+      expect(res.body.success).toBe(true);
+      expect(Array.isArray(res.body.data.data)).toBe(true);
+      expect(res.body.data.data.length).toBeGreaterThan(0);
+    });
+  });
+
+  /**
+   * ================================
+   * STATUS + HISTÓRICO
+   * ================================
+   */
+  describe('Status e Histórico', () => {
+    it('Debería cambiar el status del vehículo y generar histórico', async () => {
+      // ⬅️ TEST TAL CUAL
+      const vRes = await request(app.getHttpServer())
+        .post('/vehiculos')
+        .send({
+          codigo: 'V-STATUS-01',
+          nombre: 'Vehiculo Status',
+          tipo_vehiculo: 'camion',
+          marca: 'Iveco',
+          modelo: 'Daily',
+          patente: 'STAT123',
+          anio: 2020,
+          km_actual: 80000,
+          status: 'disponible',
+         infoAdicional: {
+            id_sector_pertenencia: Number(sectorId),
+            numero_serie: 111111,
+            licencia_conductor: 'B1',
+            color: 'Rojo',
+            seguro_empresa: 'TestSeguros',
+            poliza: 'POL-123'
+            }
+        })
+        .expect(201);
+
+      const vehiculoId = vRes.body.id_vehiculo || vRes.body.id;
+
+      await request(app.getHttpServer())
+        .put(`/vehiculos/${vehiculoId}/status`)
+        .send({ nuevoStatus: VehiculoStatus.EN_USO })
+        .expect(200);
+
+      const statusUpdateRepo = dataSource.getRepository(StatusUpdate);
+      const updates = await statusUpdateRepo.find({
+        where: { vehiculo: { id_vehiculo: vehiculoId } },
+        order: { fecha_desde: 'DESC' },
+        });
+
+        expect(updates.length).toBeGreaterThan(0);
+        expect(updates[0].tipo).toBe(VehiculoStatus.DISPONIBLE);
     });
   });
 });
