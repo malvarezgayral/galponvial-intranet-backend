@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Injectable,
   NotFoundException,
@@ -459,6 +458,7 @@ export class VehiculosService {
     const vehiculo = await this.findOne(idVehiculo);
 
     const usuarioReportante = await this.usuarioRepository.findOne({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       where: { dni: data.id_usuario },
     });
 
