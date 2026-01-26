@@ -18,7 +18,7 @@ export class Vehiculo {
   @PrimaryGeneratedColumn()
   id_vehiculo: number;
 
-  @Column('varchar', { length: 20, unique: true })
+  @Column('varchar', { length: 20, unique: true, nullable: true })
   codigo: string;
 
   @Column('varchar', { length: 100 })
