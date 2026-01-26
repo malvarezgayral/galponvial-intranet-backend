@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { UsuarioVehiculo } from '../entities/usuario-vehiculo.entity';
+import { LessThanOrEqual } from 'typeorm';
 
 @Injectable()
 export class UsuarioVehiculoService {
@@ -28,4 +29,18 @@ export class UsuarioVehiculoService {
 
     return conductorVigente;
   }
+
+  async findConductorVigenteEnFecha(
+  idVehiculo: number,
+  fecha: Date,
+): Promise<UsuarioVehiculo | null> {
+  return await this.usuarioVehiculoRepository.findOne({
+    where: {
+      id_vehiculo: idVehiculo,
+      fecha_desde: LessThanOrEqual(fecha),
+    },
+    relations: ['usuario'],
+    order: { fecha_desde: 'DESC' },
+  });
+}
 }

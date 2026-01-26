@@ -1,4 +1,5 @@
-import { IsOptional, IsDateString, IsEnum } from 'class-validator';
+import { IsOptional, IsDateString, IsEnum, IsInt } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { StatusIncidente } from '../enums/vehiculo.enum';
 import { FallaIncidente } from 'src/usuario/enums/usuario.enum';
@@ -13,6 +14,12 @@ export class FiltrosCombustibleDto {
   @IsOptional()
   @IsDateString()
   fecha_hasta?: string;
+
+  @ApiPropertyOptional({ example: 5 }) // ← AGREGAR
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  vehiculoId?: number;
 }
 
 export class FiltrosIncidenteDto {
