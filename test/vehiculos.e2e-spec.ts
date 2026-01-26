@@ -11,6 +11,7 @@ import { Usuario } from 'src/usuario/entities/usuario.entity';
 import { Rol } from 'src/usuario/entities/rol.entity'; 
 import { Vehiculo } from 'src/vehiculos/entities/vehiculo.entity'; 
 import { ValidRoles, Permisos } from 'src/usuario/enums/usuario.enum'; 
+import { VehiculoStatus } from 'src/vehiculos/enums/vehiculo.enum';
 
 describe('Vehiculos Module (e2e)', () => {
   let app: INestApplication;
@@ -147,17 +148,21 @@ describe('Vehiculos Module (e2e)', () => {
         .post('/servicios')
         .send(createServicioDto)
         .expect(201);
-
+      
       const vehiculoRepo = dataSource.getRepository(Vehiculo);
-      
-      await vehiculoRepo.query(`UPDATE vehiculo SET eliminado = false WHERE id_vehiculo = ${vehiculoId}`);
-      
-      // 4. VERIFICAR CAMBIO DE ESTADO
-      const checkVehiculo = await request(app.getHttpServer())
-        .get(`/vehiculos/${vehiculoId}`)
-        .expect(200);
+      const rawVehiculo = await vehiculoRepo.findOne({
+        where: { id_vehiculo: vehiculoId },
+        });
 
-      expect(checkVehiculo.body.status).not.toBe('disponible'); 
+        console.log(rawVehiculo);
+
+      const vehiculoFinal = await vehiculoRepo.findOne({
+        where: { id_vehiculo: vehiculoId },
+        });
+
+        expect(vehiculoFinal).toBeDefined();
+        expect(vehiculoFinal!.status).toBe(VehiculoStatus.EN_TALLER);
+
     });
   });
 
