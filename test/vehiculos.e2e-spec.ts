@@ -96,14 +96,8 @@ describe('Vehiculos Module (e2e)', () => {
     await app.close();
   });
 
-  /**
-   * ================================
-   * FLUJO COMPLETO
-   * ================================
-   */
   describe('Flujo Completo: Vehiculo -> Incidente -> Servicio', () => {
     it('Debería crear vehículo, reportar incidente, crear servicio y cambiar status automáticamente', async () => {
-      // ⬅️ TEST TAL CUAL LO PASASTE
       const createVehiculoDto = {
         codigo: 'V-TEST-01',
         nombre: 'Hilux Test Unit',
@@ -169,14 +163,8 @@ describe('Vehiculos Module (e2e)', () => {
     });
   });
 
-  /**
-   * ================================
-   * INCIDENTES
-   * ================================
-   */
   describe('Incidentes de Vehículo', () => {
     it('No debería cambiar el status del vehículo con incidente NO crítico', async () => {
-      // ⬅️ TEST TAL CUAL
       const vRes = await request(app.getHttpServer())
         .post('/vehiculos')
         .send({
@@ -236,11 +224,6 @@ describe('Vehiculos Module (e2e)', () => {
     });
   });
 
-  /**
-   * ================================
-   * PAGINACIÓN
-   * ================================
-   */
   describe('Endpoints de Paginación', () => {
     it('GET /vehiculos/:id/incidentes debe devolver estructura paginada', async () => {
       // ⬅️ TEST TAL CUAL
@@ -296,14 +279,8 @@ describe('Vehiculos Module (e2e)', () => {
     });
   });
 
-  /**
-   * ================================
-   * COMBUSTIBLE
-   * ================================
-   */
   describe('Cargas de Combustible', () => {
     it('Debería registrar una carga de combustible y devolverla paginada', async () => {
-      // ⬅️ TEST TAL CUAL
       const vRes = await request(app.getHttpServer())
         .post('/vehiculos')
         .send({
@@ -352,14 +329,8 @@ describe('Vehiculos Module (e2e)', () => {
     });
   });
 
-  /**
-   * ================================
-   * STATUS + HISTÓRICO
-   * ================================
-   */
   describe('Status e Histórico', () => {
     it('Debería cambiar el status del vehículo y generar histórico', async () => {
-      // ⬅️ TEST TAL CUAL
       const vRes = await request(app.getHttpServer())
         .post('/vehiculos')
         .send({
