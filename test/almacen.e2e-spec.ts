@@ -1,27 +1,54 @@
-import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import { ExecutionContext, INestApplication } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { APP_GUARD } from '@nestjs/core';
 import request from 'supertest';
 
+import { typeOrmAlmacenTestConfig } from '../src/database/test/typeorm-almacen.config';
 import { AlmacenModule } from '../src/almacen/almacen.module';
-import { typeOrmTestConfig } from '../src/database/typeorm.config';
+import { UserValidRoleGuard } from 'src/usuario/guards/user-valid-role.guard';
+import { JwtAuthGuard } from 'src/usuario/guards/jwt-auth.guard';
+
 
 describe('Almacen E2E', () => {
   let app: INestApplication;
 
-  beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [TypeOrmModule.forRoot(typeOrmTestConfig), AlmacenModule],
-    }).compile();
+beforeAll(async () => {
+    const moduleFixture = await Test.createTestingModule({
+      imports: [
+        TypeOrmModule.forRoot(typeOrmAlmacenTestConfig),
+        AlmacenModule,
+      ],
+      providers: [
+        {
+            provide: APP_GUARD,
+            useValue: { canActivate: () => true }
+        }
+      ],
+    })
+      .overrideGuard(JwtAuthGuard) 
+      .useValue({
+        canActivate: (context: ExecutionContext) => {
+          const req = context.switchToHttp().getRequest();
+          req.user = { 
+            id: 1, 
+            dni: '12345678', 
+            rol: { rol: 'ADMIN' }
+          };
+          return true;
+        },
+      })
+      .overrideGuard(UserValidRoleGuard) 
+      .useValue({ canActivate: () => true })
+      
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
-  }, 20000);
+  });
 
   afterAll(async () => {
-    if (app) {
-      await app.close();
-    }
+    await app.close();
   });
 
   it('POST /almacen/articulos', async () => {
@@ -33,7 +60,7 @@ describe('Almacen E2E', () => {
         descripcion: 'Descp',
         img_url: 'https://example.com/filtro.jpg',
         unidad_tipo: 'pieza',
-        cod_proveedor: '1',
+        cod_proveedor: 'COD-1',
       })
       .expect(201);
 
@@ -49,7 +76,7 @@ describe('Almacen E2E', () => {
         descripcion: 'Descp',
         img_url: 'https://example.com/filtro.jpg',
         unidad_tipo: 'pieza',
-        cod_proveedor: '1',
+        cod_proveedor: 'COD-1',
       })
       .expect(201);
 
@@ -61,10 +88,9 @@ describe('Almacen E2E', () => {
         modelo: 'Nuevo modelo',
         stock: 9,
         unidad_tipo: 'pieza',
-        cod_proveedor: '2',
-      });
-
-    expect(resPut.status).toBe(200);
+        cod_proveedor: 'COD-2',
+      })
+      .expect(200);
 
     expect(resPut.body.nombre).toBe('Articulo Test Actualizado');
   });
@@ -100,7 +126,7 @@ describe('Almacen E2E', () => {
         img_url: 'https://example.com/filtro.jpg',
         unidad_tipo: 'pieza',
         grupo_id: 1,
-        cod_proveedor: '1',
+        cod_proveedor: 'COD-2',
       })
       .expect(201);
 
@@ -110,7 +136,7 @@ describe('Almacen E2E', () => {
         tipo: 'perdida',
         detalle: 'se rompio algo',
         motivo_salida: 'pos eso mismo',
-        cod_articulo: resArticle.body.cod,
+        cod_articulo: Number(resArticle.body.cod),
       })
       .expect(201);
 
