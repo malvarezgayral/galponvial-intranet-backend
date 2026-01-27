@@ -7,6 +7,7 @@ import { GrupoArticulo } from './entities/grupo-articulo.entity';
 import { Movimiento } from './entities/movimiento.entity';
 import { Entrada } from './entities/entrada.entity';
 import { Salida } from './entities/salida.entity';
+import { UnidadMedidaCuant } from './entities/unidad-medida-cuant.entity';
 import { NotFoundException } from '@nestjs/common';
 
 describe('AlmacenService', () => {
@@ -30,6 +31,11 @@ describe('AlmacenService', () => {
   const movimientoRepo = { find: jest.fn() };
   const entradaRepo = { findOne: jest.fn() };
   const salidaRepo = { findOne: jest.fn() };
+  const unidadMedidaRepo = {
+  find: jest.fn(),
+  findOne: jest.fn(),
+};
+
 
   const dataSourceMock = {
     transaction: jest.fn(),
@@ -45,6 +51,7 @@ describe('AlmacenService', () => {
         { provide: getRepositoryToken(Movimiento), useValue: movimientoRepo },
         { provide: getRepositoryToken(Entrada), useValue: entradaRepo },
         { provide: getRepositoryToken(Salida), useValue: salidaRepo },
+        { provide: getRepositoryToken(UnidadMedidaCuant), useValue: unidadMedidaRepo },
       ],
     }).compile();
 

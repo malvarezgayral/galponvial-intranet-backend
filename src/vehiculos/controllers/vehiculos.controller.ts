@@ -67,7 +67,9 @@ export class VehiculosController {
     const vehiculos = await this.vehiculosService.findAll();
     return {
       success: true,
+
       data: vehiculos,
+
       message: `${vehiculos.length} vehículos encontrados`,
     };
   }
