@@ -35,7 +35,13 @@ import { StatusUpdate } from '../entities/status-update.entity';
 import { CombustibleCarga } from '../entities/combustible-carga.entity';
 import { Recordatorio } from '../entities/recordatorio.entity';
 import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
-import { VehiculoStatus } from '../enums/vehiculo.enum';
+import {
+  VehiculoStatus,
+  TipoVehiculo,
+  TipoIncidente,
+  StatusIncidente,
+  TipoServicio,
+} from '../enums/vehiculo.enum';
 
 @ApiTags('Vehículos')
 @Controller('vehiculos')
@@ -53,6 +59,33 @@ export class VehiculosController {
   @HttpCode(HttpStatus.CREATED)
   create(@Body() createVehiculoDto: CreateVehiculoDto) {
     return this.vehiculosService.create(createVehiculoDto);
+  }
+
+  @ApiOperation({
+    summary: 'Obtener la estructura de todos los enums disponibles',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Estructura de todos los enums disponibles en el módulo de vehículos',
+  })
+  @Get('enums/estructura')
+  @HttpCode(HttpStatus.OK)
+  @Auth()
+  getEnumsEstructura(): ObjectServiceResponse<Record<string, string[]>> {
+    const enumsEstructura: Record<string, string[]> = {
+      VehiculoStatus: Object.values(VehiculoStatus),
+      TipoVehiculo: Object.values(TipoVehiculo),
+      TipoIncidente: Object.values(TipoIncidente),
+      StatusIncidente: Object.values(StatusIncidente),
+      TipoServicio: Object.values(TipoServicio),
+    };
+
+    return {
+      success: true,
+      data: enumsEstructura,
+      message: 'Estructura de enums obtenida correctamente',
+    };
   }
 
   @ApiOperation({ summary: 'Obtener todos los vehículos' })
