@@ -6,6 +6,11 @@ import {
   Delete,
   Param,
   Body,
+  Query,
+  DefaultValuePipe,
+  ParseIntPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -31,6 +36,8 @@ import { AlmacenService } from './almacen.service';
 import { MovimientoDTO } from './dto/movimiento.dto';
 import { Auth } from 'src/usuario/decorators/auth.decorator';
 import { ValidRoles } from 'src/usuario/enums/usuario.enum';
+import { ObjectServiceResponse } from 'src/usuario/interfaces/object-service-response.interface';
+import { Articulo } from './entities/articulo.entity';
 
 @ApiTags('Almacén')
 @ApiExtraModels(CreateEntradaDto, CreateSalidaDto)
@@ -41,19 +48,36 @@ export class AlmacenController {
 
   // ---------------------- ARTÍCULOS ----------------------
 
-  @ApiOperation({ summary: 'Obtener todos los artículos' })
-  @ApiResponse({ status: 200, description: 'Listado de artículos' })
+  @ApiOperation({ summary: 'Obtener todos los artículos paginados' })
+  @ApiResponse({ status: 200, description: 'Listado paginado de artículos' })
   @Get('articulos')
+  @HttpCode(HttpStatus.OK)
   @Auth()
-  async getAllArticles() {
-    return await this.almacenService.getAllArticles();
+  async getAllArticles(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
+    pageSize: number,
+  ): Promise<
+    ObjectServiceResponse<{
+      data: Articulo[];
+      total: number;
+      page: number;
+      pageSize: number;
+    }>
+  > {
+    const result = await this.almacenService.getAllArticles(page, pageSize);
+    return {
+      success: true,
+      data: result,
+      message: `${result.total} artículos encontrados`,
+    };
   }
 
   @ApiOperation({ summary: 'Crear un artículo' })
   @ApiBody({ type: CreateArticuloDto })
   @ApiResponse({ status: 201, description: 'Artículo creado correctamente' })
   @Post('articulos')
-  @Auth(ValidRoles.superUser)
+  @Auth(ValidRoles.superUser, ValidRoles.admin)
   async createArticle(@Body() dto: CreateArticuloDto) {
     return await this.almacenService.createArticle(dto);
   }
@@ -68,7 +92,7 @@ export class AlmacenController {
   @ApiResponse({ status: 200, description: 'Artículo actualizado' })
   @ApiResponse({ status: 404, description: 'Artículo no encontrado' })
   @Put('articulos/:cod')
-  @Auth(ValidRoles.superUser)
+  @Auth(ValidRoles.superUser, ValidRoles.admin)
   async updateArticle(
     @Param('cod') cod: number,
     @Body() dto: UpdateArticuloDto,
