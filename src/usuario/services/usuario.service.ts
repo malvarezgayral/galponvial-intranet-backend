@@ -332,7 +332,7 @@ export class UsuarioService {
       const accessToken = this.getJwtToken(
         { email },
         {
-          secret: process.env.JWT_REFRESH_SECRET,
+          secret: process.env.JWT_ACCESS_SECRET,
           expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '60m') as never,
         },
       );
