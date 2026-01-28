@@ -17,8 +17,6 @@ import { RefreshToken } from '../entities/refresh-token.entity';
 import {
   CreateUsuarioDto,
   CreateUsuarioVehiculoDto,
-  CreateReporteIncidenteDto,
-  CreateServicioDto,
   AssignRolDto,
   UpdateUsuarioDto,
 } from '../dto/usuario.dto';
@@ -455,17 +453,6 @@ export class UsuarioService {
   }
 
   // Reportes
-  async crearReporte(
-    dto: CreateReporteIncidenteDto,
-  ): Promise<ReporteIncidente> {
-    const reporte = {
-      ...dto,
-      fecha: new Date(dto.fecha),
-    };
-    return this.reporteIncidenteRepository.save(
-      reporte as Partial<ReporteIncidente>,
-    );
-  }
 
   async obtenerReportes(): Promise<ReporteIncidente[]> {
     return this.reporteIncidenteRepository.find({
@@ -483,14 +470,6 @@ export class UsuarioService {
   }
 
   // Servicios
-  async crearServicio(dto: CreateServicioDto): Promise<Servicio> {
-    const servicio = {
-      ...dto,
-      fecha_inicio: new Date(dto.fecha_inicio),
-      fecha_hasta: new Date(dto.fecha_hasta),
-    };
-    return this.servicioRepository.save(servicio as Partial<Servicio>);
-  }
 
   async obtenerServicios(): Promise<Servicio[]> {
     return this.servicioRepository.find({ relations: ['incidente'] });

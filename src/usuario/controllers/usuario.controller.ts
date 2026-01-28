@@ -21,8 +21,6 @@ import { UsuarioService } from '../services/usuario.service';
 import {
   CreateUsuarioDto,
   CreateUsuarioVehiculoDto,
-  CreateReporteIncidenteDto,
-  CreateServicioDto,
   AssignRolDto,
   UpdateUsuarioDto,
 } from '../dto/usuario.dto';
@@ -270,21 +268,6 @@ export class UsuarioController {
 
   // ==================== REPORTES ====================
 
-  @ApiOperation({ summary: 'Crear un reporte de incidente' })
-  @ApiBody({ type: CreateReporteIncidenteDto })
-  @ApiResponse({
-    status: 201,
-    description: 'Reporte creado correctamente',
-    type: ReporteIncidente,
-  })
-  @Post('reporte')
-  @Auth()
-  crearReporte(
-    @Body() dto: CreateReporteIncidenteDto,
-  ): Promise<ReporteIncidente> {
-    return this.usuarioService.crearReporte(dto);
-  }
-
   @ApiOperation({ summary: 'Obtener todos los reportes' })
   @ApiResponse({
     status: 200,
@@ -317,19 +300,6 @@ export class UsuarioController {
   }
 
   // ==================== SERVICIOS ====================
-
-  @ApiOperation({ summary: 'Crear un servicio' })
-  @ApiBody({ type: CreateServicioDto })
-  @ApiResponse({
-    status: 201,
-    description: 'Servicio creado correctamente',
-    type: Servicio,
-  })
-  @Post('servicio')
-  @Auth()
-  crearServicio(@Body() dto: CreateServicioDto): Promise<Servicio> {
-    return this.usuarioService.crearServicio(dto);
-  }
 
   @ApiOperation({ summary: 'Obtener todos los servicios' })
   @ApiResponse({
