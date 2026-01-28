@@ -5,6 +5,7 @@ import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { Usuario } from '../entities/usuario.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { RefreshToken } from '../entities/refresh-token.entity';
 
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(
@@ -14,6 +15,8 @@ export class JwtRefreshStrategy extends PassportStrategy(
   constructor(
     @InjectRepository(Usuario)
     private readonly userRepository: Repository<Usuario>,
+    @InjectRepository(RefreshToken)
+    private readonly refreshTokenRepository: Repository<RefreshToken>,
   ) {
     const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
 
@@ -37,9 +40,17 @@ export class JwtRefreshStrategy extends PassportStrategy(
 
     const user: Usuario | null = await this.userRepository.findOne({
       where: { email },
+      relations: ['refreshToken'],
     });
 
     if (!user) throw new UnauthorizedException();
+
+    // Verificar que el refresh token no esté revocado
+    if (user.refreshToken && user.refreshToken.revoked) {
+      throw new UnauthorizedException(
+        'Sesión revocada, inicie sesión nuevamente',
+      );
+    }
 
     return user;
   }

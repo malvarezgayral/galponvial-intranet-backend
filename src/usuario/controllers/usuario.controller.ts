@@ -154,8 +154,35 @@ export class UsuarioController {
   @Post('refresh')
   refreshToken(
     @GetUser() user: Usuario,
-  ): ObjectServiceResponse<{ accessToken: string }> {
+  ): Promise<
+    ObjectServiceResponse<{ accessToken: string; tokenVersion: number }>
+  > {
     return this.usuarioService.refreshToken(user.email);
+  }
+
+  @Post('logout')
+  @Auth()
+  @ApiOperation({ summary: 'Logout de usuario' })
+  @ApiResponse({
+    status: 200,
+    description: 'Sesión revocada correctamente',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Usuario no encontrado o no hay sesión activa',
+  })
+  async logout(
+    @GetUser() user: Usuario,
+  ): Promise<ObjectServiceResponse<{ revoked: boolean }>> {
+    try {
+      return await this.usuarioService.logout(user.email);
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioController.logout',
+      );
+      throw error;
+    }
   }
 
   // Roles

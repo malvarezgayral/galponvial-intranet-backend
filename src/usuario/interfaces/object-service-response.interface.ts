@@ -10,4 +10,5 @@ export interface JwtLoginResponse {
   rol: string;
   accessToken: string;
   refreshToken: string;
+  tokenVersion: number;
 }

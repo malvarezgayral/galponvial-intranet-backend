@@ -115,7 +115,13 @@ export class UsuarioService {
       // Primera query: validar credenciales
       const user = await this.usuarioRepository.findOne({
         where: { email },
-        select: { email: true, password: true, isActive: true, dni: true },
+        select: {
+          email: true,
+          password: true,
+          isActive: true,
+          dni: true,
+          tokenVersion: true,
+        },
       });
 
       if (!user) {
@@ -156,6 +162,7 @@ export class UsuarioService {
         rol: userWithRol?.rol?.rol || 'sin_rol',
         accessToken,
         refreshToken,
+        tokenVersion: user.tokenVersion,
       };
       return {
         success: true,
@@ -305,19 +312,80 @@ export class UsuarioService {
     return token;
   }
 
-  public refreshToken(email: string) {
-    const accessToken = this.getJwtToken(
-      { email },
-      {
-        secret: process.env.JWT_REFRESH_SECRET,
-        expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '60m') as never,
-      },
-    );
-    return {
-      success: true,
-      data: { accessToken },
-      message: 'Token refreshed successfully',
-    };
+  async refreshToken(
+    email: string,
+  ): Promise<
+    ObjectServiceResponse<{ accessToken: string; tokenVersion: number }>
+  > {
+    try {
+      const user = await this.usuarioRepository.findOne({
+        where: { email },
+        select: { tokenVersion: true },
+      });
+
+      if (!user) {
+        throw new BadRequestException(
+          `Usuario con email ${email} no encontrado`,
+        );
+      }
+
+      const accessToken = this.getJwtToken(
+        { email },
+        {
+          secret: process.env.JWT_REFRESH_SECRET,
+          expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '60m') as never,
+        },
+      );
+      return {
+        success: true,
+        data: { accessToken, tokenVersion: user.tokenVersion },
+        message: 'Token refreshed successfully',
+      };
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioService.refreshToken',
+      );
+      throw error;
+    }
+  }
+
+  async logout(
+    email: string,
+  ): Promise<ObjectServiceResponse<{ revoked: boolean }>> {
+    try {
+      const usuario = await this.usuarioRepository.findOne({
+        where: { email },
+        relations: ['refreshToken'],
+      });
+
+      if (!usuario) {
+        throw new BadRequestException(
+          `Usuario con email ${email} no encontrado`,
+        );
+      }
+
+      if (!usuario.refreshToken) {
+        throw new BadRequestException('No hay sesión activa para revocar');
+      }
+
+      usuario.refreshToken.revoked = true;
+      const refreshToken = await this.refreshTokenRepository.save(
+        usuario.refreshToken,
+      );
+
+      return {
+        success: true,
+        data: { revoked: refreshToken.revoked },
+        message: 'Sesión revocada correctamente',
+      };
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioService.logout',
+      );
+      throw error;
+    }
   }
 
   // Roles
