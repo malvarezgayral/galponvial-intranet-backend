@@ -161,7 +161,7 @@ export class UsuarioController {
   }
 
   @Post('logout')
-  @Auth()
+  @Auth(ValidRoles.admin)
   @ApiOperation({ summary: 'Logout de usuario' })
   @ApiResponse({
     status: 200,
@@ -172,13 +172,36 @@ export class UsuarioController {
     description: 'Usuario no encontrado o no hay sesión activa',
   })
   async logout(
-    @GetUser() user: Usuario,
     @Body() u: { email: string },
   ): Promise<ObjectServiceResponse<{ revoked: boolean }>> {
     try {
       const { email } = u;
       //implementado para que un admin pueda cerrar la sesión de otro usuario
-      if (email) return await this.usuarioService.logout(email);
+      return await this.usuarioService.logout(email);
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioController.logout',
+      );
+      throw error;
+    }
+  }
+
+  @Post('self-logout')
+  @Auth()
+  @ApiOperation({ summary: 'Logout de usuario' })
+  @ApiResponse({
+    status: 200,
+    description: 'Sesión revocada correctamente',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Usuario no encontrado o no hay sesión activa',
+  })
+  async selfLogout(
+    @GetUser() user: Usuario,
+  ): Promise<ObjectServiceResponse<{ revoked: boolean }>> {
+    try {
       //implementado para que un usuario cierre su propia sesión
       return await this.usuarioService.logout(user.email);
     } catch (error) {
