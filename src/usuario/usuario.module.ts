@@ -15,6 +15,7 @@ import { PassportModule } from '@nestjs/passport';
 import { RolService } from './services/rol.service';
 import { JwtAccessStrategy } from './authStrategies/jwt-access.strategy';
 import { JwtRefreshStrategy } from './authStrategies/jwt-refresh.strategy';
+import { RefToken } from './services/ref-token.service';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { JwtRefreshStrategy } from './authStrategies/jwt-refresh.strategy';
   ],
   providers: [
     UsuarioService,
+    RefToken,
     RolService,
     UsuarioVehiculoService,
     JwtAccessStrategy,
@@ -50,6 +52,7 @@ import { JwtRefreshStrategy } from './authStrategies/jwt-refresh.strategy';
   exports: [
     UsuarioService,
     UsuarioVehiculoService,
+    RefToken,
     TypeOrmModule,
     JwtAccessStrategy,
     JwtRefreshStrategy,

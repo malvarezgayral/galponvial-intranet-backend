@@ -3,6 +3,8 @@ import {
   Logger,
   UnauthorizedException,
   BadRequestException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
@@ -31,6 +33,7 @@ import {
 } from '../interfaces/object-service-response.interface';
 import { DeActivateUserDto } from '../dto/de-activate.dto';
 import { ValidRoles } from '../enums/usuario.enum';
+import { RefToken } from './ref-token.service';
 
 @Injectable()
 export class UsuarioService {
@@ -50,6 +53,8 @@ export class UsuarioService {
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
     private readonly jwtService: JwtService,
+    @Inject(forwardRef(() => RefToken))
+    private refTokenService: RefToken,
   ) {}
 
   // Usuarios
@@ -164,6 +169,11 @@ export class UsuarioService {
         refreshToken,
         tokenVersion: user.tokenVersion,
       };
+      await this.refTokenService.createRefreshToken({
+        refreshToken,
+        expiresIn: (process.env.JWT_REFRESH_EXPIRATION || '2d') as never,
+        dni: user.dni,
+      });
       return {
         success: true,
         data: jwtResponse,
@@ -367,6 +377,14 @@ export class UsuarioService {
 
       if (!usuario.refreshToken) {
         throw new BadRequestException('No hay sesión activa para revocar');
+      }
+
+      if (usuario.refreshToken.revoked) {
+        return {
+          success: false,
+          data: { revoked: false },
+          message: 'La sesión ya estaba revocada',
+        };
       }
 
       usuario.refreshToken.revoked = true;

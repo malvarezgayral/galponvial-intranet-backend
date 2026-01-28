@@ -173,8 +173,13 @@ export class UsuarioController {
   })
   async logout(
     @GetUser() user: Usuario,
+    @Body() u: { email: string },
   ): Promise<ObjectServiceResponse<{ revoked: boolean }>> {
     try {
+      const { email } = u;
+      //implementado para que un admin pueda cerrar la sesión de otro usuario
+      if (email) return await this.usuarioService.logout(email);
+      //implementado para que un usuario cierre su propia sesión
       return await this.usuarioService.logout(user.email);
     } catch (error) {
       this.logger.error(
