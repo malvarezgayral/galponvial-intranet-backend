@@ -48,10 +48,23 @@ export class AlmacenService {
 
   // ---------------------- ARTÍCULOS ----------------------
 
-  async getAllArticles() {
-    return await this.articuloRepo.find({
+  async getAllArticles(
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<{
+    data: Articulo[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
+    const [data, total] = await this.articuloRepo.findAndCount({
       relations: ['grupo', 'unidadMedida'],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      order: { cod: 'ASC' },
     });
+
+    return { data, total, page, pageSize };
   }
 
   async createArticle(dto: CreateArticuloDto) {
