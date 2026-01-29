@@ -1,8 +1,43 @@
-# ÍNDICE DE DOCUMENTOS Y CAMBIOS - Sistema de Permisos Granulares
+# 📚 Índice de Documentación - Sistema N:N Usuario-Rol (Completo)
 
-## 📚 Documentación Completa
+## 🎯 Punto de Entrada
 
-Hemos creado 5 documentos detallados para guiar la implementación y uso:
+**👉 Empieza aquí**: [SEED_USUARIO_ROL_COMPLETADO.md](SEED_USUARIO_ROL_COMPLETADO.md)
+- Resumen ejecutivo final
+- Validaciones completadas
+- Checklist de finalización
+
+---
+
+## 📖 Documentación Actual (Fase 5: Seed Usuario-Rol)
+
+### Core - Sistema Completo
+- **[docs/SISTEMA_COMPLETO_PERMISOS_N_N.md](docs/SISTEMA_COMPLETO_PERMISOS_N_N.md)** 📘
+  - Guía integral de todas las 5 fases
+  - Diagrama de entidades
+  - Flujos completos
+  - Casos de uso
+
+### Seed Usuario-Rol (Nueva)
+- **[docs/SEED_USUARIO_ROL.md](docs/SEED_USUARIO_ROL.md)**
+  - Documentación técnica del seed
+  - Estructura CSV
+  - Implementación detallada
+  - Auditoría y validaciones
+
+- **[docs/CAMBIOS_SEED_USUARIO_ROL.md](docs/CAMBIOS_SEED_USUARIO_ROL.md)**
+  - Resumen de cambios en seed.service.ts
+  - 5 modificaciones clave
+  - Validaciones ejecutadas
+
+- **[docs/RESUMEN_FINAL_SEED_USUARIO_ROL.md](docs/RESUMEN_FINAL_SEED_USUARIO_ROL.md)**
+  - Validaciones finales
+  - Status de compilación y tests
+  - Checklist de completitud
+
+---
+
+## 📋 Documentación Anterior (Fases 1-4)
 
 ### 1. **RESUMEN_EJECUTIVO.md** ⭐ EMPEZAR AQUÍ
 - Visión general del proyecto

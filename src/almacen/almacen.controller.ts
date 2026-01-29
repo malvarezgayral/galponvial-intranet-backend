@@ -39,7 +39,10 @@ import { Auth } from '../usuario/decorators/auth.decorator';
 import { ValidRoles, Permisos } from '../usuario/enums/usuario.enum';
 import { ObjectServiceResponse } from '../usuario/interfaces/object-service-response.interface';
 import { Articulo } from './entities/articulo.entity';
-import { AlmacenPermissions } from '../usuario/decorators/almacen-permissions.decorator';
+import {
+  AlmacenPermissions,
+  AlmacenReadPermissions,
+} from '../usuario/decorators/almacen-permissions.decorator';
 import { AlmacenPermissionsGuard } from '../usuario/guards/almacen-permissions.guard';
 import { GetUser } from '../usuario/decorators/get-user.decorator';
 import { Usuario } from '../usuario/entities/usuario.entity';
@@ -58,6 +61,12 @@ export class AlmacenController {
   @Get('articulos')
   @HttpCode(HttpStatus.OK)
   @Auth()
+  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenReadPermissions(
+    Permisos.ALMACEN_TALLER_READ,
+    Permisos.ALMACEN_COMUN_READ,
+    Permisos.ALL_READ,
+  )
   async getAllArticles(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
@@ -71,9 +80,12 @@ export class AlmacenController {
       pageSize: number;
     }>
   > {
-    // Obtener permisos del usuario desde su rol
-    const userPermissions = user.rol?.permisos || [];
-    
+    // Combinar permisos de todos los roles del usuario
+    const userRoles = user.roles ?? [];
+    const userPermissions: Permisos[] = userRoles.flatMap(
+      (role) => role.permisos ?? [],
+    );
+
     const result = await this.almacenService.getAllArticles(
       page,
       pageSize,
@@ -97,8 +109,17 @@ export class AlmacenController {
     Permisos.ALMACEN_COMUN_WRITE,
     Permisos.ALL_WRITE,
   )
-  async createArticle(@Body() dto: CreateArticuloDto) {
-    return await this.almacenService.createArticle(dto);
+  async createArticle(
+    @Body() dto: CreateArticuloDto,
+    @GetUser() user: Usuario,
+  ) {
+    // Combinar permisos de todos los roles del usuario
+    const userRoles = user.roles ?? [];
+    const userPermissions: Permisos[] = userRoles.flatMap(
+      (role) => role.permisos ?? [],
+    );
+
+    return await this.almacenService.createArticle(dto, userPermissions);
   }
 
   @ApiOperation({ summary: 'Actualizar un artículo por código' })
@@ -121,8 +142,15 @@ export class AlmacenController {
   async updateArticle(
     @Param('cod') cod: number,
     @Body() dto: UpdateArticuloDto,
+    @GetUser() user: Usuario,
   ) {
-    return await this.almacenService.updateArticle(cod, dto);
+    // Combinar permisos de todos los roles del usuario
+    const userRoles = user.roles ?? [];
+    const userPermissions: Permisos[] = userRoles.flatMap(
+      (role) => role.permisos ?? [],
+    );
+
+    return await this.almacenService.updateArticle(cod, dto, userPermissions);
   }
 
   @ApiOperation({ summary: 'Eliminar un artículo por código' })
@@ -141,8 +169,17 @@ export class AlmacenController {
     Permisos.ALMACEN_COMUN_WRITE,
     Permisos.ALL_WRITE,
   )
-  async deleteArticle(@Param('cod') cod: number) {
-    return await this.almacenService.deleteArticle(cod);
+  async deleteArticle(
+    @Param('cod') cod: number,
+    @GetUser() user: Usuario,
+  ) {
+    // Combinar permisos de todos los roles del usuario
+    const userRoles = user.roles ?? [];
+    const userPermissions: Permisos[] = userRoles.flatMap(
+      (role) => role.permisos ?? [],
+    );
+
+    return await this.almacenService.deleteArticle(cod, userPermissions);
   }
 
   // ---------------------- GRUPOS ----------------------
@@ -151,6 +188,12 @@ export class AlmacenController {
   @ApiResponse({ status: 200, description: 'Listado de grupos' })
   @Get('grupos')
   @Auth()
+  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenReadPermissions(
+    Permisos.ALMACEN_TALLER_READ,
+    Permisos.ALMACEN_COMUN_READ,
+    Permisos.ALL_READ,
+  )
   async getAllGroups() {
     return await this.almacenService.getAllGroups();
   }
@@ -169,6 +212,12 @@ export class AlmacenController {
   @ApiResponse({ status: 404, description: 'Grupo no encontrado' })
   @Get('grupos/:id')
   @Auth()
+  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenReadPermissions(
+    Permisos.ALMACEN_TALLER_READ,
+    Permisos.ALMACEN_COMUN_READ,
+    Permisos.ALL_READ,
+  )
   async getGroup(@Param('id') id: number): Promise<GrupoArticuloDto> {
     return await this.almacenService.getGroup(id);
   }
@@ -184,8 +233,17 @@ export class AlmacenController {
     Permisos.ALMACEN_COMUN_WRITE,
     Permisos.ALL_WRITE,
   )
-  async createGroup(@Body() dto: CreateGrupoArticuloDto) {
-    return await this.almacenService.createGroup(dto);
+  async createGroup(
+    @Body() dto: CreateGrupoArticuloDto,
+    @GetUser() user: Usuario,
+  ) {
+    // Combinar permisos de todos los roles del usuario
+    const userRoles = user.roles ?? [];
+    const userPermissions: Permisos[] = userRoles.flatMap(
+      (role) => role.permisos ?? [],
+    );
+
+    return await this.almacenService.createGroup(dto, userPermissions);
   }
 
   @ApiOperation({ summary: 'Actualizar un grupo de artículos' })
@@ -207,8 +265,15 @@ export class AlmacenController {
   async updateGroup(
     @Param('id') id: number,
     @Body() dto: UpdateGrupoArticuloDto,
+    @GetUser() user: Usuario,
   ) {
-    return await this.almacenService.updateGroup(id, dto);
+    // Combinar permisos de todos los roles del usuario
+    const userRoles = user.roles ?? [];
+    const userPermissions: Permisos[] = userRoles.flatMap(
+      (role) => role.permisos ?? [],
+    );
+
+    return await this.almacenService.updateGroup(id, dto, userPermissions);
   }
 
   // ---------------------- MOVIMIENTOS ----------------------
@@ -226,6 +291,12 @@ export class AlmacenController {
   })
   @Get('movimientos/:idArticulo')
   @Auth()
+  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenReadPermissions(
+    Permisos.ALMACEN_TALLER_READ,
+    Permisos.ALMACEN_COMUN_READ,
+    Permisos.ALL_READ,
+  )
   async getMovimientos(@Param('idArticulo') codArticulo: number) {
     return await this.almacenService.getMovimientosByArticulo(codArticulo);
   }
@@ -243,7 +314,22 @@ export class AlmacenController {
   @ApiResponse({ status: 201, description: 'Movimiento registrado' })
   @Post('movimientos')
   @Auth()
-  async createMovimiento(@Body() dto: CreateEntradaDto | CreateSalidaDto) {
-    return await this.almacenService.createMovimiento(dto);
+  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenPermissions(
+    Permisos.ALMACEN_TALLER_WRITE,
+    Permisos.ALMACEN_COMUN_WRITE,
+    Permisos.ALL_WRITE,
+  )
+  async createMovimiento(
+    @Body() dto: CreateEntradaDto | CreateSalidaDto,
+    @GetUser() user: Usuario,
+  ) {
+    // Combinar permisos de todos los roles del usuario
+    const userRoles = user.roles ?? [];
+    const userPermissions: Permisos[] = userRoles.flatMap(
+      (role) => role.permisos ?? [],
+    );
+
+    return await this.almacenService.createMovimiento(dto, userPermissions);
   }
 }

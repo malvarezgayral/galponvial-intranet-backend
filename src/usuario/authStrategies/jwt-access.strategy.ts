@@ -32,7 +32,7 @@ export class JwtAccessStrategy extends PassportStrategy(
 
     const user = await this.userRepository.findOne({
       where: { email },
-      relations: ['rol'],
+      relations: ['usuarioRoles', 'usuarioRoles.rol'],
     });
 
     if (!user || !user.isActive) {

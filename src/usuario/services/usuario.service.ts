@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 import { Usuario } from '../entities/usuario.entity';
 import { Rol } from '../entities/rol.entity';
+import { UsuarioRol } from '../entities/usuario-rol.entity';
 import { UsuarioVehiculo } from '../entities/usuario-vehiculo.entity';
 import { ReporteIncidente } from '../entities/reporte-incidente.entity';
 import { Servicio } from '../entities/servicio.entity';
@@ -42,6 +43,8 @@ export class UsuarioService {
     private usuarioRepository: Repository<Usuario>,
     @InjectRepository(Rol)
     private rolRepository: Repository<Rol>,
+    @InjectRepository(UsuarioRol)
+    private usuarioRolRepository: Repository<UsuarioRol>,
     @InjectRepository(UsuarioVehiculo)
     private usuarioVehiculoRepository: Repository<UsuarioVehiculo>,
     @InjectRepository(ReporteIncidente)
@@ -77,7 +80,7 @@ export class UsuarioService {
       password: hash,
       fecha_alta: new Date(), //dia de hoy
       fecha_baja: undefined,
-      rol: undefined,
+      roles: [],
     };
     return await this.usuarioRepository.save(usuario);
   }
@@ -85,7 +88,8 @@ export class UsuarioService {
   async obtenerUsuarios(page?: number, pageSize?: number): Promise<Usuario[]> {
     const query = this.usuarioRepository
       .createQueryBuilder('usuario')
-      .leftJoinAndSelect('usuario.rol', 'rol');
+      .leftJoinAndSelect('usuario.usuarioRoles', 'usuarioRoles')
+      .leftJoinAndSelect('usuarioRoles.rol', 'rol');
 
     if (page && pageSize) {
       const skip = (page - 1) * pageSize;
@@ -98,14 +102,14 @@ export class UsuarioService {
   async obtenerUsuarioPorDni(dni: number): Promise<Usuario | null> {
     return await this.usuarioRepository.findOne({
       where: { dni },
-      relations: ['rol', 'vehiculos', 'reportesIncidentes'],
+      relations: ['usuarioRoles', 'usuarioRoles.rol', 'vehiculos', 'reportesIncidentes'],
     });
   }
 
   async obtenerUsuarioPorEmail(email: string): Promise<Usuario | null> {
     return await this.usuarioRepository.findOne({
       where: { email },
-      relations: ['rol'],
+      relations: ['usuarioRoles', 'usuarioRoles.rol'],
     });
   }
 
@@ -139,10 +143,10 @@ export class UsuarioService {
 
       this.logger.log(`Usuario ${user.email} logged in successfully`);
 
-      // Segunda query: obtener el rol completo
-      const userWithRol = await this.usuarioRepository.findOne({
+      // Segunda query: obtener los roles completos
+      const userWithRoles = await this.usuarioRepository.findOne({
         where: { email },
-        relations: ['rol'],
+        relations: ['usuarioRoles', 'usuarioRoles.rol'],
       });
 
       const accessToken = this.getJwtToken(
@@ -162,7 +166,7 @@ export class UsuarioService {
       const jwtResponse: JwtLoginResponse = {
         dni: user.dni,
         email: user.email,
-        rol: userWithRol?.rol?.rol || 'sin_rol',
+        rol: userWithRoles?.roles?.[0]?.rol ?? 'sin_rol',
         accessToken,
         refreshToken,
         tokenVersion: user.tokenVersion,
@@ -257,7 +261,7 @@ export class UsuarioService {
 
       const usuario = await this.usuarioRepository.findOne({
         where: { dni },
-        relations: ['rol'],
+        relations: ['usuarioRoles', 'usuarioRoles.rol'],
       });
 
       if (!usuario) {
@@ -295,7 +299,16 @@ export class UsuarioService {
         if (!rol) {
           throw new BadRequestException(`Rol ${updateDto.rol} no existe`);
         }
-        usuario.rol = rol;
+        // Eliminar asignaciones de rol previas
+        await this.usuarioRolRepository.delete({ dni: usuario.dni });
+        // Crear nueva asignación
+        const usuarioRol = this.usuarioRolRepository.create({
+          dni: usuario.dni,
+          rol_id: rol.id,
+          usuario,
+          rol,
+        });
+        usuario.usuarioRoles = [usuarioRol];
       }
 
       // Guardar cambios
@@ -409,6 +422,7 @@ export class UsuarioService {
     try {
       const usuario = await this.usuarioRepository.findOne({
         where: { dni },
+        relations: ['usuarioRoles'],
       });
 
       if (!usuario) {
@@ -420,8 +434,17 @@ export class UsuarioService {
       if (!rol) {
         throw new Error(`Rol ${dto.rol} not found`);
       }
-      usuario.rol = rol;
-      return this.usuarioRepository.save(usuario).then(() => rol);
+
+      // Crear la asignación en la tabla usuario_rol
+      const usuarioRol = this.usuarioRolRepository.create({
+        dni: usuario.dni,
+        rol_id: rol.id,
+        usuario,
+        rol,
+      });
+
+      await this.usuarioRolRepository.save(usuarioRol);
+      return rol;
     } catch (error) {
       this.logger.error(
         error instanceof Error ? error.message : 'Unknown error',

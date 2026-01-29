@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Usuario } from './entities/usuario.entity';
 import { Rol } from './entities/rol.entity';
+import { UsuarioRol } from './entities/usuario-rol.entity';
 import { UsuarioVehiculo } from './entities/usuario-vehiculo.entity';
 import { ReporteIncidente } from './entities/reporte-incidente.entity';
 import { Servicio } from './entities/servicio.entity';
@@ -22,6 +23,7 @@ import { RefToken } from './services/ref-token.service';
     TypeOrmModule.forFeature([
       Usuario,
       Rol,
+      UsuarioRol,
       UsuarioVehiculo,
       ReporteIncidente,
       Servicio,

@@ -1,13 +1,6 @@
-import {
-  Entity,
-  PrimaryColumn,
-  Column,
-  ManyToOne,
-  OneToMany,
-  JoinColumn,
-  OneToOne,
-} from 'typeorm';
+import { Entity, PrimaryColumn, Column, OneToMany, OneToOne } from 'typeorm';
 import { Rol } from './rol.entity';
+import { UsuarioRol } from './usuario-rol.entity';
 import { UsuarioVehiculo } from './usuario-vehiculo.entity';
 import { ReporteIncidente } from './reporte-incidente.entity';
 import { RefreshToken } from './refresh-token.entity';
@@ -41,9 +34,16 @@ export class Usuario {
   @Column('date', { nullable: true })
   fecha_baja: Date | null;
 
-  @ManyToOne(() => Rol, (rol) => rol.usuarios, { nullable: true })
-  @JoinColumn({ name: 'rol_id' })
-  rol: Rol;
+  @OneToMany(() => UsuarioRol, (ur) => ur.usuario, {
+    cascade: true,
+    eager: true,
+  })
+  usuarioRoles: UsuarioRol[];
+
+  // Getter para acceso conveniente a roles
+  get roles(): Rol[] {
+    return this.usuarioRoles?.map((ur) => ur.rol) ?? [];
+  }
 
   @OneToMany(() => UsuarioVehiculo, (uv) => uv.usuario)
   vehiculos: UsuarioVehiculo[];

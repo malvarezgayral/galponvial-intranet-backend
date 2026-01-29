@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { BadRequestException } from '@nestjs/common';
@@ -72,26 +72,20 @@ export class AlmacenService {
 
     // Aplicar filtros según permisos del usuario
     if (userPermissions && userPermissions.length > 0) {
-      // Verificar si el usuario tiene permisos ALL (acceso a todo)
-      const hasAllPermissions = userPermissions.some((p) =>
-        [Permisos.ALL_READ, Permisos.ALL_WRITE].includes(p),
+      // Verificar si el usuario tiene permisos ALL_READ (acceso a todo)
+      const hasAllReadPermissions = userPermissions.some((p) =>
+        [Permisos.ALL_READ].includes(p),
       );
 
-      if (!hasAllPermissions) {
-        // Filtrar por tipo de sector según permisos
+      if (!hasAllReadPermissions) {
+        // Filtrar por tipo de sector según SOLO permisos de LECTURA
         const allowedSectorTypes: SectorTipo[] = [];
 
-        if (
-          userPermissions.includes(Permisos.ALMACEN_TALLER_READ) ||
-          userPermissions.includes(Permisos.ALMACEN_TALLER_WRITE)
-        ) {
+        if (userPermissions.includes(Permisos.ALMACEN_TALLER_READ)) {
           allowedSectorTypes.push(SectorTipo.ALMACEN_TALLER);
         }
 
-        if (
-          userPermissions.includes(Permisos.ALMACEN_COMUN_READ) ||
-          userPermissions.includes(Permisos.ALMACEN_COMUN_WRITE)
-        ) {
+        if (userPermissions.includes(Permisos.ALMACEN_COMUN_READ)) {
           allowedSectorTypes.push(SectorTipo.ALMACEN_COMUN);
         }
 
@@ -102,7 +96,7 @@ export class AlmacenService {
           });
         }
       }
-      // Si tiene ALL permissions, no aplicar filtro (ver todos)
+      // Si tiene ALL_READ, no aplicar filtro (ver todos)
     }
 
     // Aplicar paginación y orden
@@ -116,19 +110,126 @@ export class AlmacenService {
     return { data, total, page, pageSize };
   }
 
-  async createArticle(dto: CreateArticuloDto) {
+  /**
+   * Valida que el usuario tenga permiso WRITE para el sector especificado
+   * @param sectorTipo Tipo de sector (ALMACEN_TALLER, ALMACEN_COMUN)
+   * @param userPermissions Permisos WRITE del usuario
+   * @throws ForbiddenException si el usuario no tiene permiso WRITE para ese sector
+   */
+  private validateWritePermissionBySectorTipo(
+    sectorTipo: SectorTipo,
+    userPermissions: Permisos[],
+  ): void {
+    // Verificar si tiene ALL_WRITE (acceso a todo)
+    const hasAllWritePermissions = userPermissions.some((p) =>
+      [Permisos.ALL_WRITE].includes(p),
+    );
+
+    if (hasAllWritePermissions) {
+      return; // Tiene acceso total
+    }
+
+    // Validar permisos según el sector
+    if (sectorTipo === SectorTipo.ALMACEN_TALLER) {
+      if (!userPermissions.includes(Permisos.ALMACEN_TALLER_WRITE)) {
+        throw new ForbiddenException(
+          'No tiene permisos de escritura en el almacén de taller',
+        );
+      }
+    } else if (sectorTipo === SectorTipo.ALMACEN_COMUN) {
+      if (!userPermissions.includes(Permisos.ALMACEN_COMUN_WRITE)) {
+        throw new ForbiddenException(
+          'No tiene permisos de escritura en el almacén común',
+        );
+      }
+    }
+  }
+
+  /**
+   * Valida que el usuario tenga permiso WRITE para el sector del grupo especificado
+   * @param grupoId ID del grupo del artículo
+   * @param userPermissions Permisos WRITE del usuario
+   * @throws ForbiddenException si el usuario no tiene permiso WRITE para ese sector
+   */
+  private async validateWritePermissionByGrupoId(
+    grupoId: number,
+    userPermissions: Permisos[],
+  ): Promise<void> {
+    // Obtener el grupo con su sector
+    const grupo = await this.grupoRepo.findOne({
+      where: { id: grupoId },
+      relations: ['sector'],
+    });
+
+    if (!grupo) {
+      throw new BadRequestException(
+        `Grupo de artículo ${grupoId} no existe`,
+      );
+    }
+
+    // Validar permisos según el sector del grupo
+    this.validateWritePermissionBySectorTipo(grupo.sector.tipo, userPermissions);
+  }
+
+  /**
+   * Valida que el usuario tenga permiso WRITE para el sector del artículo especificado
+   * @param articuloCod Código del artículo
+   * @param userPermissions Permisos WRITE del usuario
+   * @throws ForbiddenException si el usuario no tiene permiso WRITE para ese sector
+   */
+  private async validateWritePermissionByArticuloCod(
+    articuloCod: number,
+    userPermissions: Permisos[],
+  ): Promise<void> {
+    // Obtener el artículo con su grupo y sector
+    const articulo = await this.articuloRepo.findOne({
+      where: { cod: articuloCod },
+      relations: ['grupo', 'grupo.sector'],
+    });
+
+    if (!articulo) {
+      throw new NotFoundException(`Artículo ${articuloCod} no encontrado`);
+    }
+
+    // Validar permisos según el sector del artículo
+    this.validateWritePermissionBySectorTipo(
+      articulo.grupo.sector.tipo,
+      userPermissions,
+    );
+  }
+
+
+
+  async createArticle(
+    dto: CreateArticuloDto,
+    userPermissions?: Permisos[],
+  ) {
+    // Validar permisos WRITE para el sector del grupo
+    if (userPermissions && userPermissions.length > 0) {
+      await this.validateWritePermissionByGrupoId(dto.grupo_id, userPermissions);
+    }
+
     const art = this.articuloRepo.create(dto);
     return await this.articuloRepo.save(art);
   }
 
-  async updateArticle(cod: number, dto: UpdateArticuloDto) {
+  async updateArticle(
+    cod: number,
+    dto: UpdateArticuloDto,
+    userPermissions?: Permisos[],
+  ) {
     const art = await this.articuloRepo.findOne({
       where: { cod },
-      relations: ['grupo', 'unidadMedida'],
+      relations: ['grupo', 'grupo.sector', 'unidadMedida'],
     });
 
     if (!art) {
       throw new NotFoundException(`Artículo ${cod} no encontrado`);
+    }
+
+    // Validar permisos WRITE para el artículo actual
+    if (userPermissions && userPermissions.length > 0) {
+      await this.validateWritePermissionByArticuloCod(cod, userPermissions);
     }
 
     // Actualizar propiedades simples
@@ -142,6 +243,11 @@ export class AlmacenService {
 
     // Actualizar relación: Grupo
     if (dto.grupo_id !== undefined) {
+      // Validar que el nuevo grupo esté en un sector permitido
+      if (userPermissions && userPermissions.length > 0) {
+        await this.validateWritePermissionByGrupoId(dto.grupo_id, userPermissions);
+      }
+
       const grupo = await this.grupoRepo.findOne({
         where: { id: dto.grupo_id },
       });
@@ -173,7 +279,12 @@ export class AlmacenService {
     return this.articuloRepo.save(art);
   }
 
-  async deleteArticle(cod: number) {
+  async deleteArticle(cod: number, userPermissions?: Permisos[]) {
+    // Validar permisos WRITE para el artículo a eliminar
+    if (userPermissions && userPermissions.length > 0) {
+      await this.validateWritePermissionByArticuloCod(cod, userPermissions);
+    }
+
     const r = await this.articuloRepo.delete({ cod });
     if (r.affected === 0)
       throw new NotFoundException(`Artículo ${cod} no encontrado`);
@@ -224,15 +335,63 @@ export class AlmacenService {
     return dto;
   }
 
-  async createGroup(dto: CreateGrupoArticuloDto) {
+  async createGroup(
+    dto: CreateGrupoArticuloDto,
+    userPermissions?: Permisos[],
+  ) {
+    // Obtener el sector para validar permisos
+    const sector = await this.sectorGalponRepo.findOne({
+      where: { id: dto.sector_id },
+    });
+
+    if (!sector) {
+      throw new BadRequestException(
+        `Sector ${dto.sector_id} no existe`,
+      );
+    }
+
+    // Validar permisos WRITE para el sector
+    if (userPermissions && userPermissions.length > 0) {
+      this.validateWritePermissionBySectorTipo(sector.tipo, userPermissions);
+    }
+
     const g = this.grupoRepo.create(dto);
     return await this.grupoRepo.save(g);
   }
 
-  async updateGroup(id: number, dto: UpdateGrupoArticuloDto) {
-    const g = await this.grupoRepo.findOne({ where: { id } });
+  async updateGroup(
+    id: number,
+    dto: UpdateGrupoArticuloDto,
+    userPermissions?: Permisos[],
+  ) {
+    const g = await this.grupoRepo.findOne({
+      where: { id },
+      relations: ['sector'],
+    });
 
     if (!g) throw new NotFoundException(`Grupo ${id} no encontrado`);
+
+    // Validar permisos WRITE para el sector actual del grupo
+    if (userPermissions && userPermissions.length > 0) {
+      this.validateWritePermissionBySectorTipo(g.sector.tipo, userPermissions);
+    }
+
+    // Si se está cambiando el sector, validar permisos para el nuevo sector
+    if (dto.sector_id !== undefined && dto.sector_id !== g.sector.id) {
+      const newSector = await this.sectorGalponRepo.findOne({
+        where: { id: dto.sector_id },
+      });
+
+      if (!newSector) {
+        throw new BadRequestException(
+          `Sector ${dto.sector_id} no existe`,
+        );
+      }
+
+      if (userPermissions && userPermissions.length > 0) {
+        this.validateWritePermissionBySectorTipo(newSector.tipo, userPermissions);
+      }
+    }
 
     Object.assign(g, dto);
     return this.grupoRepo.save(g);
@@ -292,7 +451,10 @@ export class AlmacenService {
     return result;
   }
 
-  async createMovimiento(dto: CreateEntradaDto | CreateSalidaDto) {
+  async createMovimiento(
+    dto: CreateEntradaDto | CreateSalidaDto,
+    userPermissions?: Permisos[],
+  ) {
     return await this.dataSource.transaction(async (manager) => {
       // -------------------------
       // 1. Identificar tipo mov
@@ -315,11 +477,20 @@ export class AlmacenService {
       // -------------------------
       const articulo = await manager.getRepository(Articulo).findOne({
         where: { cod: dto.cod_articulo },
+        relations: ['grupo', 'grupo.sector'],
       });
 
       if (!articulo) {
         throw new NotFoundException(
           `No existe un artículo con cod '${dto.cod_articulo}'`,
+        );
+      }
+
+      // Validar permisos WRITE para el sector del artículo
+      if (userPermissions && userPermissions.length > 0) {
+        this.validateWritePermissionBySectorTipo(
+          articulo.grupo.sector.tipo,
+          userPermissions,
         );
       }
 

@@ -145,7 +145,12 @@ export class UsuarioController {
     @GetUser() currentUser: Usuario,
     @Body() dto: UpdateUsuarioDto,
   ): Promise<ObjectServiceResponse<Usuario | null>> {
-    return this.usuarioService.updateUsuario(dni, dto, currentUser.rol.rol);
+    const userFirstRole = currentUser.roles?.[0]?.rol ?? ValidRoles.user;
+    return this.usuarioService.updateUsuario(
+      dni,
+      dto,
+      userFirstRole as ValidRoles,
+    );
   }
 
   @UseGuards(RefreshAuthGuard)

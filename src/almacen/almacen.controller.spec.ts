@@ -20,11 +20,13 @@ describe('AlmacenController', () => {
     tokenVersion: 0,
     fecha_alta: new Date('2024-01-01'),
     fecha_baja: null,
-    rol: {
-      id: 1,
-      rol: 'user',
-      permisos: [Permisos.ALMACEN_TALLER_READ, Permisos.ALMACEN_TALLER_WRITE],
-    },
+    roles: [
+      {
+        id: 1,
+        rol: 'user',
+        permisos: [Permisos.ALMACEN_TALLER_READ, Permisos.ALMACEN_TALLER_WRITE],
+      },
+    ],
     vehiculos: [],
     reportesIncidentes: [],
     refreshToken: null,
@@ -58,7 +60,7 @@ describe('AlmacenController', () => {
       pageSize: 10,
     });
 
-    const result = await controller.getAllArticles(1, 10, mockUser);
+    const result = await controller.getAllArticles(1, 10, mockUser as any);
 
     expect(mockService.getAllArticles).toHaveBeenCalledWith(
       1,
@@ -71,10 +73,13 @@ describe('AlmacenController', () => {
   it('should pass all permissions to service when user has all:read', async () => {
     const userWithAllPermissions = {
       ...mockUser,
-      rol: {
-        ...mockUser.rol,
-        permisos: [Permisos.ALL_READ, Permisos.ALL_WRITE],
-      },
+      roles: [
+        {
+          id: 12,
+          rol: 'admin',
+          permisos: [Permisos.ALL_READ, Permisos.ALL_WRITE],
+        },
+      ],
     };
 
     mockService.getAllArticles.mockResolvedValue({
@@ -84,7 +89,7 @@ describe('AlmacenController', () => {
       pageSize: 10,
     });
 
-    await controller.getAllArticles(1, 10, userWithAllPermissions);
+    await controller.getAllArticles(1, 10, userWithAllPermissions as any);
 
     expect(mockService.getAllArticles).toHaveBeenCalledWith(
       1,
