@@ -320,10 +320,10 @@ export class SeedService {
     const mappedData = data.map((item) => ({
       id: item.id,
       rol: item.rol,
-      permisos: [item.permisos],
+      permisos: [item.permisos], // Cada fila es un permiso individual
     })) as unknown as Partial<Rol>[];
     await this.rolRepository.save(mappedData);
-    this.logger.log(`✓ ${data.length} roles cargados`);
+    this.logger.log(`✓ ${data.length} permisos/roles cargados`);
     return data.length;
   }
 

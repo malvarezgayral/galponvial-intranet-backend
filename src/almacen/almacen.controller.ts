@@ -11,6 +11,7 @@ import {
   ParseIntPipe,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -34,10 +35,14 @@ import { CreateSalidaDto } from './dto/create-salida.dto';
 
 import { AlmacenService } from './almacen.service';
 import { MovimientoDTO } from './dto/movimiento.dto';
-import { Auth } from 'src/usuario/decorators/auth.decorator';
-import { ValidRoles } from 'src/usuario/enums/usuario.enum';
-import { ObjectServiceResponse } from 'src/usuario/interfaces/object-service-response.interface';
+import { Auth } from '../usuario/decorators/auth.decorator';
+import { ValidRoles, Permisos } from '../usuario/enums/usuario.enum';
+import { ObjectServiceResponse } from '../usuario/interfaces/object-service-response.interface';
 import { Articulo } from './entities/articulo.entity';
+import { AlmacenPermissions } from '../usuario/decorators/almacen-permissions.decorator';
+import { AlmacenPermissionsGuard } from '../usuario/guards/almacen-permissions.guard';
+import { GetUser } from '../usuario/decorators/get-user.decorator';
+import { Usuario } from '../usuario/entities/usuario.entity';
 
 @ApiTags('Almacén')
 @ApiExtraModels(CreateEntradaDto, CreateSalidaDto)
@@ -57,6 +62,7 @@ export class AlmacenController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
     pageSize: number,
+    @GetUser() user: Usuario,
   ): Promise<
     ObjectServiceResponse<{
       data: Articulo[];
@@ -65,7 +71,14 @@ export class AlmacenController {
       pageSize: number;
     }>
   > {
-    const result = await this.almacenService.getAllArticles(page, pageSize);
+    // Obtener permisos del usuario desde su rol
+    const userPermissions = user.rol?.permisos || [];
+    
+    const result = await this.almacenService.getAllArticles(
+      page,
+      pageSize,
+      userPermissions,
+    );
     return {
       success: true,
       data: result,
@@ -78,6 +91,12 @@ export class AlmacenController {
   @ApiResponse({ status: 201, description: 'Artículo creado correctamente' })
   @Post('articulos')
   @Auth(ValidRoles.superUser, ValidRoles.admin)
+  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenPermissions(
+    Permisos.ALMACEN_TALLER_WRITE,
+    Permisos.ALMACEN_COMUN_WRITE,
+    Permisos.ALL_WRITE,
+  )
   async createArticle(@Body() dto: CreateArticuloDto) {
     return await this.almacenService.createArticle(dto);
   }
@@ -93,6 +112,12 @@ export class AlmacenController {
   @ApiResponse({ status: 404, description: 'Artículo no encontrado' })
   @Put('articulos/:cod')
   @Auth(ValidRoles.superUser, ValidRoles.admin)
+  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenPermissions(
+    Permisos.ALMACEN_TALLER_WRITE,
+    Permisos.ALMACEN_COMUN_WRITE,
+    Permisos.ALL_WRITE,
+  )
   async updateArticle(
     @Param('cod') cod: number,
     @Body() dto: UpdateArticuloDto,
@@ -109,7 +134,13 @@ export class AlmacenController {
   @ApiResponse({ status: 200, description: 'Artículo eliminado' })
   @ApiResponse({ status: 404, description: 'Artículo no encontrado' })
   @Delete('articulos/:cod')
-  @Auth(ValidRoles.superUser)
+  @Auth(ValidRoles.superUser, ValidRoles.admin)
+  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenPermissions(
+    Permisos.ALMACEN_TALLER_WRITE,
+    Permisos.ALMACEN_COMUN_WRITE,
+    Permisos.ALL_WRITE,
+  )
   async deleteArticle(@Param('cod') cod: number) {
     return await this.almacenService.deleteArticle(cod);
   }
@@ -146,7 +177,13 @@ export class AlmacenController {
   @ApiBody({ type: CreateGrupoArticuloDto })
   @ApiResponse({ status: 201, description: 'Grupo creado correctamente' })
   @Post('grupos')
-  @Auth(ValidRoles.superUser)
+  @Auth(ValidRoles.superUser, ValidRoles.admin)
+  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenPermissions(
+    Permisos.ALMACEN_TALLER_WRITE,
+    Permisos.ALMACEN_COMUN_WRITE,
+    Permisos.ALL_WRITE,
+  )
   async createGroup(@Body() dto: CreateGrupoArticuloDto) {
     return await this.almacenService.createGroup(dto);
   }
@@ -160,7 +197,13 @@ export class AlmacenController {
   @ApiBody({ type: UpdateGrupoArticuloDto })
   @ApiResponse({ status: 200, description: 'Grupo actualizado' })
   @Put('grupos/:id')
-  @Auth(ValidRoles.superUser)
+  @Auth(ValidRoles.superUser, ValidRoles.admin)
+  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenPermissions(
+    Permisos.ALMACEN_TALLER_WRITE,
+    Permisos.ALMACEN_COMUN_WRITE,
+    Permisos.ALL_WRITE,
+  )
   async updateGroup(
     @Param('id') id: number,
     @Body() dto: UpdateGrupoArticuloDto,

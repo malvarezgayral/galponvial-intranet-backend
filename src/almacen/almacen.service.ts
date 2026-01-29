@@ -8,6 +8,7 @@ import { GrupoArticulo } from './entities/grupo-articulo.entity';
 import { Movimiento } from './entities/movimiento.entity';
 import { Entrada } from './entities/entrada.entity';
 import { Salida, SalidaTipo } from './entities/salida.entity';
+import { SectorGalpon } from './entities/sector-galpon.entity';
 
 import { CreateArticuloDto } from './dto/create-articulo.dto';
 import { UpdateArticuloDto } from './dto/update-articulo.dto';
@@ -17,10 +18,11 @@ import { UpdateGrupoArticuloDto } from './dto/update-grupo-articulo.dto';
 
 import { GrupoArticuloDto } from './dto/grupo-articulo.dto';
 import { MovimientoDTO } from './dto/movimiento.dto';
-import { EntradaTipo, MovimientoTipo } from './enums/almacen.enum';
+import { EntradaTipo, MovimientoTipo, SectorTipo } from './enums/almacen.enum';
 import { CreateSalidaDto } from './dto/create-salida.dto';
 import { CreateEntradaDto } from './dto/create-entrada.dto';
 import { UnidadMedidaCuant } from './entities/unidad-medida-cuant.entity';
+import { Permisos } from '../usuario/enums/usuario.enum';
 
 @Injectable()
 export class AlmacenService {
@@ -44,6 +46,9 @@ export class AlmacenService {
 
     @InjectRepository(UnidadMedidaCuant)
     private readonly unidadRepo: Repository<UnidadMedidaCuant>,
+
+    @InjectRepository(SectorGalpon)
+    private readonly sectorGalponRepo: Repository<SectorGalpon>,
   ) {}
 
   // ---------------------- ARTÍCULOS ----------------------
@@ -51,18 +56,62 @@ export class AlmacenService {
   async getAllArticles(
     page: number = 1,
     pageSize: number = 10,
+    userPermissions?: Permisos[],
   ): Promise<{
     data: Articulo[];
     total: number;
     page: number;
     pageSize: number;
   }> {
-    const [data, total] = await this.articuloRepo.findAndCount({
-      relations: ['grupo', 'unidadMedida'],
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      order: { cod: 'ASC' },
-    });
+    // Construir query base con relaciones
+    const query = this.articuloRepo
+      .createQueryBuilder('articulo')
+      .leftJoinAndSelect('articulo.grupo', 'grupo')
+      .leftJoinAndSelect('articulo.unidadMedida', 'unidad')
+      .leftJoinAndSelect('grupo.sector', 'sector');
+
+    // Aplicar filtros según permisos del usuario
+    if (userPermissions && userPermissions.length > 0) {
+      // Verificar si el usuario tiene permisos ALL (acceso a todo)
+      const hasAllPermissions = userPermissions.some((p) =>
+        [Permisos.ALL_READ, Permisos.ALL_WRITE].includes(p),
+      );
+
+      if (!hasAllPermissions) {
+        // Filtrar por tipo de sector según permisos
+        const allowedSectorTypes: SectorTipo[] = [];
+
+        if (
+          userPermissions.includes(Permisos.ALMACEN_TALLER_READ) ||
+          userPermissions.includes(Permisos.ALMACEN_TALLER_WRITE)
+        ) {
+          allowedSectorTypes.push(SectorTipo.ALMACEN_TALLER);
+        }
+
+        if (
+          userPermissions.includes(Permisos.ALMACEN_COMUN_READ) ||
+          userPermissions.includes(Permisos.ALMACEN_COMUN_WRITE)
+        ) {
+          allowedSectorTypes.push(SectorTipo.ALMACEN_COMUN);
+        }
+
+        // Si el usuario tiene al menos un permiso de lectura, aplicar filtro
+        if (allowedSectorTypes.length > 0) {
+          query.andWhere('sector.tipo IN (:...sectorTypes)', {
+            sectorTypes: allowedSectorTypes,
+          });
+        }
+      }
+      // Si tiene ALL permissions, no aplicar filtro (ver todos)
+    }
+
+    // Aplicar paginación y orden
+    query
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .orderBy('articulo.cod', 'ASC');
+
+    const [data, total] = await query.getManyAndCount();
 
     return { data, total, page, pageSize };
   }
@@ -337,5 +386,51 @@ export class AlmacenService {
         };
       }
     });
+  }
+
+  /**
+   * Obtiene el tipo de sector de un artículo
+   * articulo -> grupo -> sector -> tipo
+   */
+  async getSectorTipoByArticulo(codArticulo: number): Promise<SectorTipo> {
+    const articulo = await this.articuloRepo.findOne({
+      where: { cod: codArticulo },
+      relations: ['grupo', 'grupo.sector'],
+    });
+
+    if (!articulo) {
+      throw new NotFoundException(`Artículo ${codArticulo} no encontrado`);
+    }
+
+    if (!articulo.grupo || !articulo.grupo.sector) {
+      throw new BadRequestException(
+        `Artículo ${codArticulo} no tiene sector asociado`,
+      );
+    }
+
+    return articulo.grupo.sector.tipo;
+  }
+
+  /**
+   * Obtiene el tipo de sector de un grupo
+   * grupo -> sector -> tipo
+   */
+  async getSectorTipoByGrupo(idGrupo: number): Promise<SectorTipo> {
+    const grupo = await this.grupoRepo.findOne({
+      where: { id: idGrupo },
+      relations: ['sector'],
+    });
+
+    if (!grupo) {
+      throw new NotFoundException(`Grupo ${idGrupo} no encontrado`);
+    }
+
+    if (!grupo.sector) {
+      throw new BadRequestException(
+        `Grupo ${idGrupo} no tiene sector asociado`,
+      );
+    }
+
+    return grupo.sector.tipo;
   }
 }

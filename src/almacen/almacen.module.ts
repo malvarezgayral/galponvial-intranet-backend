@@ -26,5 +26,6 @@ import { UsuarioModule } from 'src/usuario/usuario.module';
   ],
   controllers: [AlmacenController],
   providers: [AlmacenService],
+  exports: [AlmacenService],
 })
 export class AlmacenModule {}

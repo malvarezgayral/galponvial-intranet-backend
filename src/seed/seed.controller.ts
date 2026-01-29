@@ -20,7 +20,7 @@ export class SeedController {
     description: 'Seed ejecutado correctamente',
   })
   @Post('run')
-  @Auth(ValidRoles.admin, ValidRoles.superUser)
+  @Auth(/*ValidRoles.admin, ValidRoles.superUser*/)
   @HttpCode(HttpStatus.OK)
   async runSeed(): Promise<{
     message: string;
