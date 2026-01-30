@@ -51,6 +51,6 @@ export class Usuario {
   @OneToMany(() => ReporteIncidente, (ri) => ri.usuario)
   reportesIncidentes: ReporteIncidente[];
 
-  @OneToOne(() => RefreshToken, (rt) => rt.usuario)
-  refreshToken: RefreshToken | null;
+  @OneToMany(() => RefreshToken, (rt) => rt.usuario)
+  refreshTokens: RefreshToken[];
 }

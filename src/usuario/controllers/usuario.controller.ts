@@ -155,10 +155,14 @@ export class UsuarioController {
 
   @UseGuards(RefreshAuthGuard)
   @Post('refresh')
-  refreshToken(
-    @GetUser() user: Usuario,
-  ): Promise<
-    ObjectServiceResponse<{ accessToken: string; tokenVersion: number }>
+  refreshToken(@GetUser() user: Usuario): Promise<
+    ObjectServiceResponse<{
+      accessToken: string;
+      tokenVersion: number;
+      permisos: string[];
+      rol: string;
+      dni: number;
+    }>
   > {
     return this.usuarioService.refreshToken(user.email);
   }
@@ -176,7 +180,7 @@ export class UsuarioController {
   })
   async logout(
     @Body() u: { email: string },
-  ): Promise<ObjectServiceResponse<{ revoked: boolean }>> {
+  ): Promise<ObjectServiceResponse<{ revoked: number }>> {
     try {
       const { email } = u;
       //implementado para que un admin pueda cerrar la sesión de otro usuario
@@ -203,7 +207,7 @@ export class UsuarioController {
   })
   async selfLogout(
     @GetUser() user: Usuario,
-  ): Promise<ObjectServiceResponse<{ revoked: boolean }>> {
+  ): Promise<ObjectServiceResponse<{ revoked: number }>> {
     try {
       //implementado para que un usuario cierre su propia sesión
       return await this.usuarioService.logout(user.email);

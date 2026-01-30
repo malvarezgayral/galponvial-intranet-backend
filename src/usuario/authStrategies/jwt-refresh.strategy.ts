@@ -40,13 +40,15 @@ export class JwtRefreshStrategy extends PassportStrategy(
 
     const user: Usuario | null = await this.userRepository.findOne({
       where: { email },
-      relations: ['refreshToken'],
+      relations: ['refreshTokens'],
     });
 
     if (!user) throw new UnauthorizedException();
 
-    // Verificar que el refresh token no esté revocado
-    if (user.refreshToken && user.refreshToken.revoked) {
+    // Verificar que exista al menos un token activo (no revocado)
+    const activeTokens = user.refreshTokens?.filter((rt) => !rt.revoked) ?? [];
+
+    if (activeTokens.length === 0) {
       throw new UnauthorizedException(
         'Sesión revocada, inicie sesión nuevamente',
       );

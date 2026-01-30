@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { BadRequestException } from '@nestjs/common';
@@ -162,13 +166,14 @@ export class AlmacenService {
     });
 
     if (!grupo) {
-      throw new BadRequestException(
-        `Grupo de artículo ${grupoId} no existe`,
-      );
+      throw new BadRequestException(`Grupo de artículo ${grupoId} no existe`);
     }
 
     // Validar permisos según el sector del grupo
-    this.validateWritePermissionBySectorTipo(grupo.sector.tipo, userPermissions);
+    this.validateWritePermissionBySectorTipo(
+      grupo.sector.tipo,
+      userPermissions,
+    );
   }
 
   /**
@@ -198,18 +203,30 @@ export class AlmacenService {
     );
   }
 
+  async createArticle(dto: CreateArticuloDto, userPermissions?: Permisos[]) {
+    // Obtener el grupo (obligatorio)
+    const grupo = await this.grupoRepo.findOne({
+      where: { id: dto.grupo_id },
+      relations: ['sector'],
+    });
 
-
-  async createArticle(
-    dto: CreateArticuloDto,
-    userPermissions?: Permisos[],
-  ) {
-    // Validar permisos WRITE para el sector del grupo
-    if (userPermissions && userPermissions.length > 0) {
-      await this.validateWritePermissionByGrupoId(dto.grupo_id, userPermissions);
+    if (!grupo) {
+      throw new BadRequestException(
+        `Grupo de artículo ${dto.grupo_id} no existe`,
+      );
     }
 
+    // Validar permisos WRITE para el sector del grupo
+    if (userPermissions && userPermissions.length > 0) {
+      this.validateWritePermissionBySectorTipo(
+        grupo.sector.tipo,
+        userPermissions,
+      );
+    }
+
+    // Crear el artículo con el grupo asignado
     const art = this.articuloRepo.create(dto);
+    art.grupo = grupo;
     return await this.articuloRepo.save(art);
   }
 
@@ -245,7 +262,10 @@ export class AlmacenService {
     if (dto.grupo_id !== undefined) {
       // Validar que el nuevo grupo esté en un sector permitido
       if (userPermissions && userPermissions.length > 0) {
-        await this.validateWritePermissionByGrupoId(dto.grupo_id, userPermissions);
+        await this.validateWritePermissionByGrupoId(
+          dto.grupo_id,
+          userPermissions,
+        );
       }
 
       const grupo = await this.grupoRepo.findOne({
@@ -335,19 +355,14 @@ export class AlmacenService {
     return dto;
   }
 
-  async createGroup(
-    dto: CreateGrupoArticuloDto,
-    userPermissions?: Permisos[],
-  ) {
+  async createGroup(dto: CreateGrupoArticuloDto, userPermissions?: Permisos[]) {
     // Obtener el sector para validar permisos
     const sector = await this.sectorGalponRepo.findOne({
       where: { id: dto.sector_id },
     });
 
     if (!sector) {
-      throw new BadRequestException(
-        `Sector ${dto.sector_id} no existe`,
-      );
+      throw new BadRequestException(`Sector ${dto.sector_id} no existe`);
     }
 
     // Validar permisos WRITE para el sector
@@ -383,13 +398,14 @@ export class AlmacenService {
       });
 
       if (!newSector) {
-        throw new BadRequestException(
-          `Sector ${dto.sector_id} no existe`,
-        );
+        throw new BadRequestException(`Sector ${dto.sector_id} no existe`);
       }
 
       if (userPermissions && userPermissions.length > 0) {
-        this.validateWritePermissionBySectorTipo(newSector.tipo, userPermissions);
+        this.validateWritePermissionBySectorTipo(
+          newSector.tipo,
+          userPermissions,
+        );
       }
     }
 

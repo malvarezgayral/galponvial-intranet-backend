@@ -1,7 +1,7 @@
 import {
   Column,
   Entity,
-  OneToOne,
+  ManyToOne,
   PrimaryGeneratedColumn,
   JoinColumn,
 } from 'typeorm';
@@ -21,7 +21,10 @@ export class RefreshToken {
   @Column('boolean', { default: false })
   revoked: boolean;
 
-  @OneToOne(() => Usuario, (u) => u.refreshToken)
+  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @ManyToOne(() => Usuario, (u) => u.refreshTokens, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'dni_usuario' })
   usuario: Usuario;
 

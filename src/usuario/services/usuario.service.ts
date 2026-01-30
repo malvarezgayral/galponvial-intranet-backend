@@ -102,7 +102,12 @@ export class UsuarioService {
   async obtenerUsuarioPorDni(dni: number): Promise<Usuario | null> {
     return await this.usuarioRepository.findOne({
       where: { dni },
-      relations: ['usuarioRoles', 'usuarioRoles.rol', 'vehiculos', 'reportesIncidentes'],
+      relations: [
+        'usuarioRoles',
+        'usuarioRoles.rol',
+        'vehiculos',
+        'reportesIncidentes',
+      ],
     });
   }
 
@@ -163,10 +168,18 @@ export class UsuarioService {
           expiresIn: (process.env.JWT_REFRESH_EXPIRATION || '2d') as never,
         },
       );
+      // Extraer permisos de TODOS los roles del usuario (sin duplicados)
+      const permisos = Array.from(
+        new Set(
+          userWithRoles?.roles?.flatMap((rol) => rol.permisos ?? []) ?? [],
+        ),
+      );
+
       const jwtResponse: JwtLoginResponse = {
         dni: user.dni,
         email: user.email,
         rol: userWithRoles?.roles?.[0]?.rol ?? 'sin_rol',
+        permisos,
         accessToken,
         refreshToken,
         tokenVersion: user.tokenVersion,
@@ -217,8 +230,8 @@ export class UsuarioService {
       }
       usuario.isActive = isActive;
       // se elimina el ref token para simular lo que seria un invalidar sesion
-      if (usuario.refreshToken) {
-        await this.refreshTokenRepository.remove(usuario.refreshToken);
+      if (usuario.refreshTokens && usuario.refreshTokens.length > 0) {
+        await this.refreshTokenRepository.remove(usuario.refreshTokens);
       }
       if (isActive) usuario.fecha_baja = null;
       else usuario.fecha_baja = new Date();
@@ -333,15 +346,24 @@ export class UsuarioService {
     return token;
   }
 
-  async refreshToken(
-    email: string,
-  ): Promise<
-    ObjectServiceResponse<{ accessToken: string; tokenVersion: number }>
+  async refreshToken(email: string): Promise<
+    ObjectServiceResponse<{
+      accessToken: string;
+      tokenVersion: number;
+      permisos: string[];
+      rol: string;
+      dni: number;
+    }>
   > {
     try {
       const user = await this.usuarioRepository.findOne({
         where: { email },
-        select: { tokenVersion: true },
+        relations: ['usuarioRoles', 'usuarioRoles.rol'],
+        select: {
+          email: true,
+          tokenVersion: true,
+          dni: true,
+        },
       });
 
       if (!user) {
@@ -349,6 +371,12 @@ export class UsuarioService {
           `Usuario con email ${email} no encontrado`,
         );
       }
+
+      // Extraer permisos de TODOS los roles del usuario (sin duplicados)
+      const rol = user.roles?.[0]?.rol ?? 'sin_rol';
+      const permisos = Array.from(
+        new Set(user.roles?.flatMap((r) => r.permisos ?? []) ?? []),
+      );
 
       const accessToken = this.getJwtToken(
         { email },
@@ -359,7 +387,13 @@ export class UsuarioService {
       );
       return {
         success: true,
-        data: { accessToken, tokenVersion: user.tokenVersion },
+        data: {
+          accessToken,
+          tokenVersion: user.tokenVersion,
+          permisos,
+          rol,
+          dni: user.dni,
+        },
         message: 'Token refreshed successfully',
       };
     } catch (error) {
@@ -373,11 +407,11 @@ export class UsuarioService {
 
   async logout(
     email: string,
-  ): Promise<ObjectServiceResponse<{ revoked: boolean }>> {
+  ): Promise<ObjectServiceResponse<{ revoked: number }>> {
     try {
       const usuario = await this.usuarioRepository.findOne({
         where: { email },
-        relations: ['refreshToken'],
+        relations: ['refreshTokens'],
       });
 
       if (!usuario) {
@@ -386,27 +420,32 @@ export class UsuarioService {
         );
       }
 
-      if (!usuario.refreshToken) {
+      if (!usuario.refreshTokens || usuario.refreshTokens.length === 0) {
         throw new BadRequestException('No hay sesión activa para revocar');
       }
 
-      if (usuario.refreshToken.revoked) {
+      // Revocar todos los tokens activos (no revocados)
+      const activeTokens = usuario.refreshTokens.filter((rt) => !rt.revoked);
+
+      if (activeTokens.length === 0) {
         return {
           success: false,
-          data: { revoked: false },
-          message: 'La sesión ya estaba revocada',
+          data: { revoked: 0 },
+          message: 'No hay sesiones activas para revocar',
         };
       }
 
-      usuario.refreshToken.revoked = true;
-      const refreshToken = await this.refreshTokenRepository.save(
-        usuario.refreshToken,
-      );
+      // Marcar como revocados todos los tokens activos
+      activeTokens.forEach((token) => {
+        token.revoked = true;
+      });
+
+      await this.refreshTokenRepository.save(activeTokens);
 
       return {
         success: true,
-        data: { revoked: refreshToken.revoked },
-        message: 'Sesión revocada correctamente',
+        data: { revoked: activeTokens.length },
+        message: `${activeTokens.length} sesión/es revocada/s correctamente`,
       };
     } catch (error) {
       this.logger.error(

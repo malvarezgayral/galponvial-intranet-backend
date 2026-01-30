@@ -169,10 +169,7 @@ export class AlmacenController {
     Permisos.ALMACEN_COMUN_WRITE,
     Permisos.ALL_WRITE,
   )
-  async deleteArticle(
-    @Param('cod') cod: number,
-    @GetUser() user: Usuario,
-  ) {
+  async deleteArticle(@Param('cod') cod: number, @GetUser() user: Usuario) {
     // Combinar permisos de todos los roles del usuario
     const userRoles = user.roles ?? [];
     const userPermissions: Permisos[] = userRoles.flatMap(
