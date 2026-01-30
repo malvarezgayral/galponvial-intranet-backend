@@ -7,7 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { ReporteIncidente } from './reporte-incidente.entity';
-import { TipoServicio } from 'src/vehiculos/enums/vehiculo.enum';
+import { TipoServicio } from '../../vehiculos/enums/vehiculo.enum';
 
 @Entity('servicio')
 export class Servicio {

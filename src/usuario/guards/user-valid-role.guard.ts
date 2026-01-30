@@ -35,16 +35,21 @@ export class UserValidRoleGuard implements CanActivate {
 
     if (!user) throw new BadRequestException('User not found');
 
-    if (!user.rol) throw new BadRequestException('User role not found');
+    if (!user.roles || user.roles.length === 0)
+      throw new BadRequestException('User roles not found');
 
-    if (validRoles.includes(user.rol.rol)) {
+    // Verificar si el usuario tiene al menos uno de los roles requeridos
+    const userRoles = user.roles.map((role) => role.rol);
+    const hasRole = userRoles.some((userRole) =>
+      validRoles.includes(userRole),
+    );
+
+    if (hasRole) {
       return true;
     }
 
-    validRoles.join(', ');
-
     throw new ForbiddenException(
-      `User ${user.nombre} need a valid role: ${validRoles.join(', ')}`,
+      `User ${user.nombre} needs one of these roles: ${validRoles.join(', ')}`,
     );
   }
 }

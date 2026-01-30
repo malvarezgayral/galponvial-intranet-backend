@@ -8,6 +8,11 @@ export enum UnidadTipo {
   PAQUETE = 'paquete',
 }
 
+export enum SectorTipo {
+  ALMACEN_TALLER = 'almacen-taller',
+  ALMACEN_COMUN = 'almacen-comun',
+}
+
 export enum MovimientoTipo {
   ENTRADA = 'entrada',
   SALIDA = 'salida',

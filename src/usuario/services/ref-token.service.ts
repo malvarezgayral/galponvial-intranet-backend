@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RefreshToken } from '../entities/refresh-token.entity';
@@ -9,9 +9,10 @@ import * as bcrypt from 'bcrypt';
 @Injectable()
 export class RefToken {
   constructor(
+    @Inject(forwardRef(() => UsuarioService))
+    private usuarioService: UsuarioService,
     @InjectRepository(RefreshToken)
     private refTokenRepository: Repository<RefreshToken>,
-    private usuarioService: UsuarioService,
   ) {}
 
   async createRefreshToken({

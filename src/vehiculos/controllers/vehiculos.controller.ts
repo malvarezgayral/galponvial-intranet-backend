@@ -72,13 +72,19 @@ export class VehiculosController {
   @Get('enums/estructura')
   @HttpCode(HttpStatus.OK)
   @Auth()
-  getEnumsEstructura(): ObjectServiceResponse<Record<string, string[]>> {
+  async getEnumsEstructura(): Promise<
+    ObjectServiceResponse<Record<string, string[]>>
+  > {
+    // Obtener sectores de la base de datos
+    const sectores = await this.vehiculosService.getAllSectores();
+
     const enumsEstructura: Record<string, string[]> = {
       VehiculoStatus: Object.values(VehiculoStatus),
       TipoVehiculo: Object.values(TipoVehiculo),
       TipoIncidente: Object.values(TipoIncidente),
       StatusIncidente: Object.values(StatusIncidente),
       TipoServicio: Object.values(TipoServicio),
+      Sector: sectores,
     };
 
     return {

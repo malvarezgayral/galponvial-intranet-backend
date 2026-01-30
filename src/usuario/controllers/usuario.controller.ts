@@ -21,8 +21,6 @@ import { UsuarioService } from '../services/usuario.service';
 import {
   CreateUsuarioDto,
   CreateUsuarioVehiculoDto,
-  CreateReporteIncidenteDto,
-  CreateServicioDto,
   AssignRolDto,
   UpdateUsuarioDto,
 } from '../dto/usuario.dto';
@@ -147,15 +145,79 @@ export class UsuarioController {
     @GetUser() currentUser: Usuario,
     @Body() dto: UpdateUsuarioDto,
   ): Promise<ObjectServiceResponse<Usuario | null>> {
-    return this.usuarioService.updateUsuario(dni, dto, currentUser.rol.rol);
+    const userFirstRole = currentUser.roles?.[0]?.rol ?? ValidRoles.user;
+    return this.usuarioService.updateUsuario(
+      dni,
+      dto,
+      userFirstRole as ValidRoles,
+    );
   }
 
   @UseGuards(RefreshAuthGuard)
   @Post('refresh')
-  refreshToken(
-    @GetUser() user: Usuario,
-  ): ObjectServiceResponse<{ accessToken: string }> {
+  refreshToken(@GetUser() user: Usuario): Promise<
+    ObjectServiceResponse<{
+      accessToken: string;
+      tokenVersion: number;
+      permisos: string[];
+      rol: string;
+      dni: number;
+    }>
+  > {
     return this.usuarioService.refreshToken(user.email);
+  }
+
+  @Post('logout')
+  @Auth(ValidRoles.admin)
+  @ApiOperation({ summary: 'Logout de usuario' })
+  @ApiResponse({
+    status: 200,
+    description: 'Sesión revocada correctamente',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Usuario no encontrado o no hay sesión activa',
+  })
+  async logout(
+    @Body() u: { email: string },
+  ): Promise<ObjectServiceResponse<{ revoked: number }>> {
+    try {
+      const { email } = u;
+      //implementado para que un admin pueda cerrar la sesión de otro usuario
+      return await this.usuarioService.logout(email);
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioController.logout',
+      );
+      throw error;
+    }
+  }
+
+  @Post('self-logout')
+  @Auth()
+  @ApiOperation({ summary: 'Logout de usuario' })
+  @ApiResponse({
+    status: 200,
+    description: 'Sesión revocada correctamente',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Usuario no encontrado o no hay sesión activa',
+  })
+  async selfLogout(
+    @GetUser() user: Usuario,
+  ): Promise<ObjectServiceResponse<{ revoked: number }>> {
+    try {
+      //implementado para que un usuario cierre su propia sesión
+      return await this.usuarioService.logout(user.email);
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : 'Unknown error',
+        'UsuarioController.logout',
+      );
+      throw error;
+    }
   }
 
   // Roles
@@ -215,21 +277,6 @@ export class UsuarioController {
 
   // ==================== REPORTES ====================
 
-  @ApiOperation({ summary: 'Crear un reporte de incidente' })
-  @ApiBody({ type: CreateReporteIncidenteDto })
-  @ApiResponse({
-    status: 201,
-    description: 'Reporte creado correctamente',
-    type: ReporteIncidente,
-  })
-  @Post('reporte')
-  @Auth()
-  crearReporte(
-    @Body() dto: CreateReporteIncidenteDto,
-  ): Promise<ReporteIncidente> {
-    return this.usuarioService.crearReporte(dto);
-  }
-
   @ApiOperation({ summary: 'Obtener todos los reportes' })
   @ApiResponse({
     status: 200,
@@ -262,19 +309,6 @@ export class UsuarioController {
   }
 
   // ==================== SERVICIOS ====================
-
-  @ApiOperation({ summary: 'Crear un servicio' })
-  @ApiBody({ type: CreateServicioDto })
-  @ApiResponse({
-    status: 201,
-    description: 'Servicio creado correctamente',
-    type: Servicio,
-  })
-  @Post('servicio')
-  @Auth()
-  crearServicio(@Body() dto: CreateServicioDto): Promise<Servicio> {
-    return this.usuarioService.crearServicio(dto);
-  }
 
   @ApiOperation({ summary: 'Obtener todos los servicios' })
   @ApiResponse({

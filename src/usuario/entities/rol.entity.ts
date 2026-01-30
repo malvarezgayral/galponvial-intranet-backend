@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Permisos, ValidRoles } from '../enums/usuario.enum';
-import { Usuario } from './usuario.entity';
+import { UsuarioRol } from './usuario-rol.entity';
 
 @Entity('rol')
 export class Rol {
@@ -20,6 +20,6 @@ export class Rol {
   })
   rol: ValidRoles;
 
-  @OneToMany(() => Usuario, (usuario) => usuario.rol)
-  usuarios: Usuario[];
+  @OneToMany(() => UsuarioRol, (ur) => ur.rol)
+  usuarioRoles: UsuarioRol[];
 }

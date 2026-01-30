@@ -1,6 +1,6 @@
-id,nro_sector,descripcion
-1,1,Sector norte - Estanterías A-C
-2,2,Sector centro - Estanterías D-F
-3,3,Sector sur - Estanterías G-I
-4,4,Depósito refrigerado
-5,5,Área de embalaje
+id,nro_sector,tipo,descripcion
+1,1,almacen-taller,repuestos de automotores
+2,2,almacen-comun,articulos de limpieza
+3,3,almacen-comun,articulos de cocina
+4,4,almacen-taller,materiales oxidables de vehiculo
+5,5,almacen-comun,utensilios varios

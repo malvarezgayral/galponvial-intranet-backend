@@ -23,6 +23,7 @@ import { Salida } from '../almacen/entities/salida.entity';
 // Entidades - Usuario
 import { Rol } from '../usuario/entities/rol.entity';
 import { Usuario } from '../usuario/entities/usuario.entity';
+import { UsuarioRol } from '../usuario/entities/usuario-rol.entity';
 import { UsuarioVehiculo } from '../usuario/entities/usuario-vehiculo.entity';
 import { ReporteIncidente } from '../usuario/entities/reporte-incidente.entity';
 import { Servicio } from '../usuario/entities/servicio.entity';
@@ -66,6 +67,8 @@ export class SeedService {
     private rolRepository: Repository<Rol>,
     @InjectRepository(Usuario)
     private usuarioRepository: Repository<Usuario>,
+    @InjectRepository(UsuarioRol)
+    private usuarioRolRepository: Repository<UsuarioRol>,
     @InjectRepository(UsuarioVehiculo)
     private usuarioVehiculoRepository: Repository<UsuarioVehiculo>,
     @InjectRepository(ReporteIncidente)
@@ -102,6 +105,7 @@ export class SeedService {
       // Orden de inserción para módulo usuario (respetando FK)
       results['rol'] = await this.seedRoles();
       results['usuario'] = await this.seedUsuarios();
+      results['usuario_rol'] = await this.seedUsuariosRoles();
       results['refresh_token'] = await this.seedRefreshTokens();
       results['usuario_vehiculo'] = await this.seedUsuariosVehiculos();
       results['reporte_incidente'] = await this.seedReportesIncidentes();
@@ -320,10 +324,10 @@ export class SeedService {
     const mappedData = data.map((item) => ({
       id: item.id,
       rol: item.rol,
-      permisos: [item.permisos],
+      permisos: [item.permisos], // Cada fila es un permiso individual
     })) as unknown as Partial<Rol>[];
     await this.rolRepository.save(mappedData);
-    this.logger.log(`✓ ${data.length} roles cargados`);
+    this.logger.log(`✓ ${data.length} permisos/roles cargados`);
     return data.length;
   }
 
@@ -351,6 +355,20 @@ export class SeedService {
     );
     await this.usuarioRepository.save(mappedData);
     this.logger.log(`✓ ${data.length} usuarios cargados`);
+    return data.length;
+  }
+
+  private async seedUsuariosRoles(): Promise<number> {
+    this.logger.log('Cargando asignaciones usuario-rol...');
+    const data = await this.csvReaderService.readCsv('usuario_rol');
+    
+    const mappedData = data.map((item) => ({
+      dni: Number(item.dni),
+      rol_id: Number(item.rol_id),
+    })) as Partial<UsuarioRol>[];
+    
+    await this.usuarioRolRepository.save(mappedData);
+    this.logger.log(`✓ ${data.length} asignaciones usuario-rol cargadas`);
     return data.length;
   }
 

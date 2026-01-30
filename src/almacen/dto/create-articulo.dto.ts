@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import {
   IsEnum,
   IsNotEmpty,
@@ -53,4 +52,20 @@ export class CreateArticuloDto {
   @IsOptional()
   @IsNumber()
   stock?: number;
+
+  @ApiProperty({
+    description: 'ID del grupo al que pertenece el artículo',
+    example: 1,
+  })
+  @IsNotEmpty()
+  @IsNumber()
+  grupo_id: number;
+
+  @ApiPropertyOptional({
+    description: 'ID de la unidad de medida',
+    example: 1,
+  })
+  @IsOptional()
+  @IsNumber()
+  unidad_medida_id?: number;
 }

@@ -1,7 +1,12 @@
 export enum Permisos {
-  escritura = 'write',
-  lectura = 'read',
-  lectoEscritura = 'write-read',
+  // Permisos de almacén
+  ALMACEN_TALLER_READ = 'almacen-taller:read',
+  ALMACEN_TALLER_WRITE = 'almacen-taller:write',
+  ALMACEN_COMUN_READ = 'almacen-comun:read',
+  ALMACEN_COMUN_WRITE = 'almacen-comun:write',
+  // Permisos generales
+  ALL_WRITE = 'all:write',
+  ALL_READ = 'all:read',
 }
 
 export enum ValidRoles {
