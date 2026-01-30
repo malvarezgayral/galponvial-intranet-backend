@@ -503,4 +503,13 @@ export class VehiculosService {
 
     return await this.combustibleCargaRepository.save(carga);
   }
+
+  /**
+   * Obtiene todos los sectores disponibles para vehículos
+   * @returns Array con los nombres de todos los sectores
+   */
+  async getAllSectores(): Promise<string[]> {
+    const sectores = await this.sectorRepository.find();
+    return sectores.map((sector) => sector.nombre);
+  }
 }
