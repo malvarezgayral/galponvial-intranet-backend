@@ -4,3 +4,5 @@
 pnpm run lint
 pnpm test:e2e seed
 pnpm test:e2e almacen
+pnpm test:e2e vehiculos
+pnpm test
