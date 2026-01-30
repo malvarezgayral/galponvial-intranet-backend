@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, Column, OneToMany, OneToOne } from 'typeorm';
+import { Entity, PrimaryColumn, Column, OneToMany } from 'typeorm';
 import { Rol } from './rol.entity';
 import { UsuarioRol } from './usuario-rol.entity';
 import { UsuarioVehiculo } from './usuario-vehiculo.entity';

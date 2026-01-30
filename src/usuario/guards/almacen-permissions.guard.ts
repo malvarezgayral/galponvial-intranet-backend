@@ -8,7 +8,10 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { Observable } from 'rxjs';
-import { ALMACEN_PERMISSIONS_KEY, ALMACEN_READ_PERMISSIONS_KEY } from '../decorators/almacen-permissions.decorator';
+import {
+  ALMACEN_PERMISSIONS_KEY,
+  ALMACEN_READ_PERMISSIONS_KEY,
+} from '../decorators/almacen-permissions.decorator';
 import { Usuario } from '../entities/usuario.entity';
 import { Permisos } from '../enums/usuario.enum';
 

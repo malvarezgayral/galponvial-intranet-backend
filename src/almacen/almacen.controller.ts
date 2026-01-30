@@ -98,6 +98,41 @@ export class AlmacenController {
     };
   }
 
+  @ApiOperation({ summary: 'Obtener un artículo por su ID' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'Código del artículo (cod)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Detalle del artículo encontrado',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Artículo no encontrado',
+  })
+  @Get('/articulos/:id')
+  @HttpCode(HttpStatus.OK)
+  @Auth()
+  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenReadPermissions(
+    Permisos.ALMACEN_TALLER_READ,
+    Permisos.ALMACEN_COMUN_READ,
+    Permisos.ALL_READ,
+  )
+  async getArticleById(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ObjectServiceResponse<any>> {
+    const result = await this.almacenService.getArticleById(id);
+
+    return {
+      success: true,
+      data: result,
+      message: 'Artículo encontrado con éxito',
+    };
+  }
+
   @ApiOperation({ summary: 'Crear un artículo' })
   @ApiBody({ type: CreateArticuloDto })
   @ApiResponse({ status: 201, description: 'Artículo creado correctamente' })

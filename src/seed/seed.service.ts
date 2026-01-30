@@ -103,8 +103,8 @@ export class SeedService {
       results['recordatorio'] = await this.seedRecordatorios();
 
       // Orden de inserción para módulo usuario (respetando FK)
-      results['rol'] = await this.seedRoles();
-      results['usuario'] = await this.seedUsuarios();
+      // results['rol'] = await this.seedRoles();
+      // results['usuario'] = await this.seedUsuarios();
       results['usuario_rol'] = await this.seedUsuariosRoles();
       results['refresh_token'] = await this.seedRefreshTokens();
       results['usuario_vehiculo'] = await this.seedUsuariosVehiculos();
@@ -361,12 +361,10 @@ export class SeedService {
   private async seedUsuariosRoles(): Promise<number> {
     this.logger.log('Cargando asignaciones usuario-rol...');
     const data = await this.csvReaderService.readCsv('usuario_rol');
-    
     const mappedData = data.map((item) => ({
       dni: Number(item.dni),
       rol_id: Number(item.rol_id),
     })) as Partial<UsuarioRol>[];
-    
     await this.usuarioRolRepository.save(mappedData);
     this.logger.log(`✓ ${data.length} asignaciones usuario-rol cargadas`);
     return data.length;

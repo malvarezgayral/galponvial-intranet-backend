@@ -11,7 +11,7 @@ import {
   Matches,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ValidRoles, FallaIncidente } from '../enums/usuario.enum';
+import { ValidRoles } from '../enums/usuario.enum';
 
 /* =========================
    CREATE USUARIO
