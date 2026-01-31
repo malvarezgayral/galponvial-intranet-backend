@@ -25,6 +25,7 @@ import {
 
 import { CreateArticuloDto } from './dto/create-articulo.dto';
 import { UpdateArticuloDto } from './dto/update-articulo.dto';
+import { GetArticuloDto } from './dto/get-articulo.dto';
 
 import { CreateGrupoArticuloDto } from './dto/create-grupo-articulo.dto';
 import { UpdateGrupoArticuloDto } from './dto/update-grupo-articulo.dto';
@@ -123,8 +124,8 @@ export class AlmacenController {
   )
   async getArticleById(
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<ObjectServiceResponse<any>> {
-    const result = await this.almacenService.getArticleById(id);
+  ): Promise<ObjectServiceResponse<GetArticuloDto>> {
+    const result: GetArticuloDto = await this.almacenService.getArticleById(id);
 
     return {
       success: true,

@@ -336,7 +336,7 @@ export class AlmacenService {
       img: articulo.img_url,
       stock: articulo.stock,
       unidad_tipo: articulo.unidad_tipo,
-      grupo: articulo.grupo ? articulo.grupo.nombre : null,
+      grupo: articulo.grupo.nombre,
       unidad_medida: articulo.unidadMedida ? articulo.unidadMedida.tipo : null,
     };
   }
