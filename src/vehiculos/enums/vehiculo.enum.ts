@@ -23,14 +23,6 @@ export enum TipoIncidente {
   OTRO = 'otro',
 }
 
-/* se encuentra en usuario enum
-export enum CriticidadIncidente {
-  CRITICA = 'critica',
-  MODERADA = 'moderada',
-  BAJA = 'baja',
-}
-*/
-
 export enum StatusIncidente {
   PENDIENTE = 'pendiente',
   RESUELTO = 'resuelto',
