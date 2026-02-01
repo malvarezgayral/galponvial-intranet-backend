@@ -27,6 +27,7 @@ import { CreateSalidaDto } from './dto/create-salida.dto';
 import { CreateEntradaDto } from './dto/create-entrada.dto';
 import { UnidadMedidaCuant } from './entities/unidad-medida-cuant.entity';
 import { Permisos } from '../usuario/enums/usuario.enum';
+import { SectorGalponDto } from './dto/sector-galpon.dto';
 
 @Injectable()
 export class AlmacenService {
@@ -339,6 +340,27 @@ export class AlmacenService {
       grupo: articulo.grupo ? articulo.grupo.nombre : null,
       unidad_medida: articulo.unidadMedida ? articulo.unidadMedida.tipo : null,
     };
+  }
+
+  //---------------------- SECTORES ----------------------
+
+  async getAllSectores(): Promise<SectorGalponDto[]> {
+    const sectores = await this.sectorGalponRepo.find({
+      order: {
+        nro_sector: 'ASC',
+      },
+    });
+
+    if (!sectores || sectores.length === 0) {
+      throw new NotFoundException('No existen sectores registrados');
+    }
+
+    return sectores.map((sector) => ({
+      id: sector.id,
+      nro_sector: sector.nro_sector,
+      tipo: sector.tipo,
+      descripcion: sector.descripcion,
+    }));
   }
 
   // ---------------------- GRUPOS ----------------------
