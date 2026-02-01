@@ -42,6 +42,7 @@ import {
   StatusIncidente,
   TipoServicio,
 } from '../enums/vehiculo.enum';
+import { FallaIncidente } from 'src/usuario/enums/usuario.enum';
 
 @ApiTags('Vehículos')
 @Controller('vehiculos')
@@ -84,6 +85,7 @@ export class VehiculosController {
       TipoIncidente: Object.values(TipoIncidente),
       StatusIncidente: Object.values(StatusIncidente),
       TipoServicio: Object.values(TipoServicio),
+      FallaIncidente: Object.values(FallaIncidente),
       Sector: sectores,
     };
 

@@ -12,7 +12,7 @@ export class Recordatorio {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'timestamp', nullable: true })
   fecha: Date;
 
   @Column('text')
