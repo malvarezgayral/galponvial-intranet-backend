@@ -309,7 +309,7 @@ export class SeedService {
     const data = await this.csvReaderService.readCsv('recordatorios');
     const mappedData = data.map((item) => ({
       ...item,
-      vehiculo: { id_vehiculo: Number(item.id_vehiculo) },
+      usuario: { dni: Number(item.dni_usuario) },
     }));
     await this.recordatorioRepository.save(mappedData);
     this.logger.log(`✓ ${data.length} recordatorios cargados`);

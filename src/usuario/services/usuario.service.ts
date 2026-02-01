@@ -15,6 +15,7 @@ import { UsuarioVehiculo } from '../entities/usuario-vehiculo.entity';
 import { ReporteIncidente } from '../entities/reporte-incidente.entity';
 import { Servicio } from '../entities/servicio.entity';
 import { RefreshToken } from '../entities/refresh-token.entity';
+import { Recordatorio } from '../../vehiculos/entities/recordatorio.entity';
 import {
   CreateUsuarioDto,
   CreateUsuarioVehiculoDto,
@@ -31,7 +32,7 @@ import {
   ObjectServiceResponse,
 } from '../interfaces/object-service-response.interface';
 import { DeActivateUserDto } from '../dto/de-activate.dto';
-import { ValidRoles } from '../enums/usuario.enum';
+import { ValidRoles, Permisos } from '../enums/usuario.enum';
 import { RefToken } from './ref-token.service';
 
 @Injectable()
@@ -53,6 +54,8 @@ export class UsuarioService {
     private servicioRepository: Repository<Servicio>,
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
+    @InjectRepository(Recordatorio)
+    private recordatorioRepository: Repository<Recordatorio>,
     private readonly jwtService: JwtService,
     @Inject(forwardRef(() => RefToken))
     private refTokenService: RefToken,
@@ -258,7 +261,7 @@ export class UsuarioService {
   ): Promise<ObjectServiceResponse<Usuario | null>> {
     try {
       // campos solo para admin
-      const adminOnlyFields = ['password', 'tokenVersion', 'rol'];
+      const adminOnlyFields = ['password', 'tokenVersion', 'rol', 'permisos'];
       const hasAdminFields = adminOnlyFields.some(
         (field) => updateDto[field] !== undefined,
       );
@@ -305,23 +308,114 @@ export class UsuarioService {
         usuario.tokenVersion = updateDto.tokenVersion;
       }
 
-      if (updateDto.rol !== undefined) {
-        const rol = await this.rolRepository.findOne({
-          where: { rol: updateDto.rol },
-        });
-        if (!rol) {
-          throw new BadRequestException(`Rol ${updateDto.rol} no existe`);
+      // Manejar actualización de rol y permisos
+      if (updateDto.rol !== undefined || updateDto.permisos !== undefined) {
+        // Obtener el rol actual si no se está actualizando
+        let rolActual = updateDto.rol;
+        if (
+          !rolActual &&
+          usuario.usuarioRoles &&
+          usuario.usuarioRoles.length > 0
+        ) {
+          rolActual = usuario.usuarioRoles[0].rol.rol;
         }
-        // Eliminar asignaciones de rol previas
-        await this.usuarioRolRepository.delete({ dni: usuario.dni });
-        // Crear nueva asignación
-        const usuarioRol = this.usuarioRolRepository.create({
-          dni: usuario.dni,
-          rol_id: rol.id,
-          usuario,
-          rol,
-        });
-        usuario.usuarioRoles = [usuarioRol];
+
+        // Validar permisos según el rol
+        if (updateDto.permisos !== undefined && rolActual !== undefined) {
+          this.validarPermisosParaRol(updateDto.permisos, rolActual);
+        }
+
+        // Si solo se actualizan permisos (sin cambiar rol)
+        if (
+          updateDto.permisos !== undefined &&
+          updateDto.rol === undefined &&
+          usuario.usuarioRoles &&
+          usuario.usuarioRoles.length > 0
+        ) {
+          const rolActualId = usuario.usuarioRoles[0].rol_id;
+          const rolConPermisos = await this.rolRepository.findOne({
+            where: { id: rolActualId },
+          });
+
+          if (!rolConPermisos) {
+            throw new BadRequestException('Rol actual no encontrado');
+          }
+
+          // Validar que el rol actual tiene los permisos solicitados
+          const permisosDelRol = rolConPermisos.permisos || [];
+          const permisosValidos = updateDto.permisos.every((permiso) =>
+            permisosDelRol.includes(permiso),
+          );
+
+          if (!permisosValidos) {
+            throw new BadRequestException(
+              `El rol ${usuario.usuarioRoles[0].rol.rol} no contiene los permisos especificados`,
+            );
+          }
+        } else if (updateDto.rol !== undefined) {
+          // Si se está cambiando el rol
+          let rolesAAsignar: Rol[] = [];
+
+          if (updateDto.permisos !== undefined) {
+            // Si se proporcionan permisos, buscar los roles específicos que tienen cada permiso
+            const rolesDisponibles = await this.rolRepository.find({
+              where: { rol: updateDto.rol },
+            });
+
+            if (rolesDisponibles.length === 0) {
+              throw new BadRequestException(
+                `No existe el rol "${updateDto.rol}" en la base de datos`,
+              );
+            }
+
+            // Para cada permiso, encontrar el rol que lo contiene
+            for (const permiso of updateDto.permisos) {
+              const rolConPermiso = rolesDisponibles.find(
+                (rol) =>
+                  rol.permisos && rol.permisos.includes(permiso),
+              );
+
+              if (!rolConPermiso) {
+                throw new BadRequestException(
+                  `No existe un rol "${updateDto.rol}" con el permiso "${permiso}"`,
+                );
+              }
+
+              // Evitar duplicados
+              if (!rolesAAsignar.find((r) => r.id === rolConPermiso.id)) {
+                rolesAAsignar.push(rolConPermiso);
+              }
+            }
+          } else {
+            // Si no se proporcionan permisos, usar el primer rol del tipo
+            const rolDefault = await this.rolRepository.findOne({
+              where: { rol: updateDto.rol },
+            });
+
+            if (!rolDefault) {
+              throw new BadRequestException(`Rol ${updateDto.rol} no existe`);
+            }
+
+            rolesAAsignar = [rolDefault];
+          }
+
+          // Eliminar asignaciones de rol previas
+          await this.usuarioRolRepository.delete({ dni: usuario.dni });
+
+          // Crear nuevas asignaciones para cada rol
+          const usuarioRoles = rolesAAsignar.map((rol) =>
+            this.usuarioRolRepository.create({
+              dni: usuario.dni,
+              rol_id: rol.id,
+              usuario,
+              rol,
+            }),
+          );
+
+          // Guardar todos los nuevos registros
+          await this.usuarioRolRepository.save(usuarioRoles);
+          usuario.usuarioRoles = usuarioRoles;
+        }
       }
 
       // Guardar cambios
@@ -338,6 +432,33 @@ export class UsuarioService {
         'UsuarioService.updateUsuario',
       );
       throw error;
+    }
+  }
+
+  private validarPermisosParaRol(permisos: Permisos[], rol: ValidRoles): void {
+    // Validar permisos según el rol
+    const tieneWrite = permisos.some((p) => p.includes(':write'));
+
+    if (rol === ValidRoles.user && tieneWrite) {
+      throw new BadRequestException(
+        'El rol "user" solo puede tener permisos de lectura (read)',
+      );
+    }
+
+    if (rol === ValidRoles.superUser && permisos.length > 4) {
+      throw new BadRequestException(
+        'El rol "superuser" no puede tener más de 4 permisos diferentes',
+      );
+    }
+
+    // Si el rol es user, solo puede tener permisos de lectura
+    if (rol === ValidRoles.user) {
+      const permisosValidos = permisos.every((p) => p.includes(':read'));
+      if (!permisosValidos) {
+        throw new BadRequestException(
+          'El rol "user" solo puede tener permisos de lectura (read)',
+        );
+      }
     }
   }
 
@@ -543,5 +664,86 @@ export class UsuarioService {
     return this.servicioRepository.find({
       where: { incidente_id },
     });
+  }
+
+  // ===== Recordatorios =====
+
+  async agregarRecordatorio(
+    dni: number,
+    data: { fecha: Date; descripcion: string },
+  ): Promise<Recordatorio> {
+    const usuario = await this.usuarioRepository.findOne({
+      where: { dni },
+    });
+
+    if (!usuario) {
+      throw new Error(`Usuario con DNI ${dni} no encontrado`);
+    }
+
+    const recordatorio = this.recordatorioRepository.create({
+      fecha: data.fecha,
+      descripcion: data.descripcion,
+      usuario,
+    });
+
+    return await this.recordatorioRepository.save(recordatorio);
+  }
+
+  async getRecordatoriosByUsuario(dni: number): Promise<Recordatorio[]> {
+    return this.recordatorioRepository.find({
+      where: {
+        usuario: { dni },
+      },
+      order: {
+        fecha: 'ASC',
+      },
+    });
+  }
+
+  async updateRecordatorio(
+    recordatorioId: number,
+    data: { fecha?: Date; descripcion?: string },
+  ): Promise<Recordatorio> {
+    const recordatorio = await this.recordatorioRepository.findOne({
+      where: { id: recordatorioId },
+    });
+
+    if (!recordatorio) {
+      throw new Error('Recordatorio no encontrado');
+    }
+
+    if (data.fecha !== undefined) {
+      recordatorio.fecha = new Date(data.fecha);
+    }
+
+    if (data.descripcion !== undefined) {
+      recordatorio.descripcion = data.descripcion;
+    }
+
+    return this.recordatorioRepository.save(recordatorio);
+  }
+
+  async getRecordatoriosPaginado(
+    dni: number,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<{
+    data: Recordatorio[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
+    // Validar que el usuario existe
+    await this.obtenerUsuarioPorDni(dni);
+
+    const [data, total] = await this.recordatorioRepository.findAndCount({
+      where: { usuario: { dni } },
+      relations: ['usuario'],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      order: { fecha: 'ASC' },
+    });
+
+    return { data, total, page, pageSize };
   }
 }

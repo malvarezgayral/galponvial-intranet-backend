@@ -4,6 +4,7 @@ import { UsuarioRol } from './usuario-rol.entity';
 import { UsuarioVehiculo } from './usuario-vehiculo.entity';
 import { ReporteIncidente } from './reporte-incidente.entity';
 import { RefreshToken } from './refresh-token.entity';
+import { Recordatorio } from '../../vehiculos/entities/recordatorio.entity';
 
 @Entity('usuario')
 export class Usuario {
@@ -53,4 +54,7 @@ export class Usuario {
 
   @OneToMany(() => RefreshToken, (rt) => rt.usuario)
   refreshTokens: RefreshToken[];
+
+  @OneToMany(() => Recordatorio, (rec) => rec.usuario)
+  recordatorios: Recordatorio[];
 }

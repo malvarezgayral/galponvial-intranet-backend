@@ -7,6 +7,7 @@ import { UsuarioVehiculo } from './entities/usuario-vehiculo.entity';
 import { ReporteIncidente } from './entities/reporte-incidente.entity';
 import { Servicio } from './entities/servicio.entity';
 import { RefreshToken } from './entities/refresh-token.entity';
+import { Recordatorio } from '../vehiculos/entities/recordatorio.entity';
 import { UsuarioService } from './services/usuario.service';
 import { UsuarioVehiculoService } from './services/usuario-vehiculo.service';
 import { UsuarioController } from './controllers/usuario.controller';
@@ -28,6 +29,7 @@ import { RefToken } from './services/ref-token.service';
       ReporteIncidente,
       Servicio,
       RefreshToken,
+      Recordatorio,
     ]),
     PassportModule.register({ defaultStrategy: 'jwt-access' }),
 

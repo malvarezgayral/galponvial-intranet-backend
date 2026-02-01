@@ -5,7 +5,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Vehiculo } from './vehiculo.entity';
+import { Usuario } from '../../usuario/entities/usuario.entity';
 
 @Entity('recordatorio')
 export class Recordatorio {
@@ -18,7 +18,7 @@ export class Recordatorio {
   @Column('text')
   descripcion: string;
 
-  @ManyToOne(() => Vehiculo, (vehiculo) => vehiculo.recordatorios)
-  @JoinColumn({ name: 'id_vehiculo' })
-  vehiculo: Vehiculo;
+  @ManyToOne(() => Usuario, (usuario) => usuario.recordatorios)
+  @JoinColumn({ name: 'dni_usuario' })
+  usuario: Usuario;
 }

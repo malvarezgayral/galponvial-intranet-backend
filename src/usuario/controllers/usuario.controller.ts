@@ -9,6 +9,10 @@ import {
   Put,
   UseGuards,
   Query,
+  ParseIntPipe,
+  HttpCode,
+  HttpStatus,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -18,6 +22,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { UsuarioService } from '../services/usuario.service';
+import { RolService } from '../services/rol.service';
 import {
   CreateUsuarioDto,
   CreateUsuarioVehiculoDto,
@@ -29,6 +34,7 @@ import { Rol } from '../entities/rol.entity';
 import { UsuarioVehiculo } from '../entities/usuario-vehiculo.entity';
 import { ReporteIncidente } from '../entities/reporte-incidente.entity';
 import { Servicio } from '../entities/servicio.entity';
+import { Recordatorio } from '../../vehiculos/entities/recordatorio.entity';
 import { LoginUserDto } from '../dto/login.dto';
 import { Auth } from '../decorators/auth.decorator';
 import { GetUser } from '../decorators/get-user.decorator';
@@ -45,7 +51,10 @@ import { RefreshAuthGuard } from '../guards/refresh-auth.guard';
 export class UsuarioController {
   private logger = new Logger(UsuarioController.name);
 
-  constructor(private readonly usuarioService: UsuarioService) {}
+  constructor(
+    private readonly usuarioService: UsuarioService,
+    private readonly rolService: RolService,
+  ) {}
 
   // ==================== USUARIOS ====================
 
@@ -92,6 +101,29 @@ export class UsuarioController {
       );
       throw error;
     }
+  }
+
+  @ApiOperation({
+    summary: 'Obtener estructura de roles con permisos asociados',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Estructura de todos los roles con sus permisos',
+  })
+  @Get('roles/estructura')
+  @HttpCode(HttpStatus.OK)
+  @Auth()
+  async getEstructuraRolesConPermisos(): Promise<
+    ObjectServiceResponse<Record<string, { permisos: string[] }>>
+  > {
+    const rolesEstructura =
+      await this.rolService.getEstructuraRolesConPermisos();
+
+    return {
+      success: true,
+      data: rolesEstructura,
+      message: 'Estructura de roles y permisos obtenida correctamente',
+    };
   }
 
   @ApiOperation({ summary: 'Obtener todos los usuarios' })
@@ -337,5 +369,121 @@ export class UsuarioController {
     return this.usuarioService.obtenerServiciosPorIncidente(
       parseInt(incidente_id),
     );
+  }
+
+  // ==================== RECORDATORIOS ====================
+
+  @ApiOperation({ summary: 'Crear un recordatorio para un usuario' })
+  @ApiParam({
+    name: 'dni',
+    type: String,
+    description: 'DNI del usuario',
+  })
+  @ApiBody({
+    schema: {
+      properties: {
+        fecha: { type: 'string', example: '2024-02-20T14:30:00.000Z' },
+        descripcion: { type: 'string', example: 'Revisar presión de llantas' },
+      },
+      required: ['fecha', 'descripcion'],
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Recordatorio creado correctamente',
+    type: Recordatorio,
+  })
+  @Post(':dni/recordatorios')
+  @HttpCode(HttpStatus.CREATED)
+  @Auth()
+  agregarRecordatorio(
+    @Param('dni', ParseIntPipe) dni: number,
+    @Body() data: { fecha: Date; descripcion: string },
+  ) {
+    return this.usuarioService.agregarRecordatorio(dni, data);
+  }
+
+  @ApiOperation({ summary: 'Obtener recordatorios de un usuario' })
+  @ApiParam({
+    name: 'dni',
+    type: String,
+    description: 'DNI del usuario',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Listado de recordatorios',
+    type: [Recordatorio],
+  })
+  @Get(':dni/recordatorios')
+  @HttpCode(HttpStatus.OK)
+  @Auth()
+  async getRecordatorios(@Param('dni', ParseIntPipe) dni: number) {
+    return this.usuarioService.getRecordatoriosByUsuario(dni);
+  }
+
+  @ApiOperation({ summary: 'Actualizar un recordatorio' })
+  @ApiParam({
+    name: 'recordatorioId',
+    type: Number,
+    description: 'ID del recordatorio',
+  })
+  @ApiBody({
+    schema: {
+      properties: {
+        fecha: { type: 'string', example: '2024-02-20T14:30:00.000Z' },
+        descripcion: { type: 'string', example: 'Revisar presión de llantas' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Recordatorio actualizado correctamente',
+    type: Recordatorio,
+  })
+  @Patch('recordatorios/:recordatorioId')
+  @HttpCode(HttpStatus.OK)
+  @Auth()
+  async updateRecordatorio(
+    @Param('recordatorioId', ParseIntPipe) recordatorioId: number,
+    @Body() dto: { fecha?: Date; descripcion?: string },
+  ) {
+    return this.usuarioService.updateRecordatorio(recordatorioId, dto);
+  }
+
+  @ApiOperation({ summary: 'Obtener recordatorios paginados de un usuario' })
+  @ApiParam({
+    name: 'dni',
+    type: String,
+    description: 'DNI del usuario',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Listado paginado de recordatorios',
+  })
+  @Get(':dni/recordatorios-paginado')
+  @HttpCode(HttpStatus.OK)
+  @Auth()
+  async getRecordatoriosPaginado(
+    @Param('dni', ParseIntPipe) dni: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
+  ): Promise<
+    ObjectServiceResponse<{
+      data: Recordatorio[];
+      total: number;
+      page: number;
+      pageSize: number;
+    }>
+  > {
+    const result = await this.usuarioService.getRecordatoriosPaginado(
+      dni,
+      page,
+      pageSize,
+    );
+    return {
+      success: true,
+      data: result,
+      message: `${result.total} recordatorios encontrados`,
+    };
   }
 }

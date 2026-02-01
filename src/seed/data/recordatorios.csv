@@ -1,7 +1,7 @@
-id,fecha,descripcion,id_vehiculo
-1,2024-02-15 09:00:00,Revisar presión de llantas,1
-2,2024-02-20 14:30:00,Cambio de aceite,1
-3,2024-02-15 10:15:00,Inspección de frenos,2
-4,2024-02-25 11:45:00,Revisión general,3
-5,2024-02-10 08:00:00,Limpiar inyectores,4
-6,2024-02-18 13:20:00,Cambio de filtro de aire,5
+id,fecha,descripcion,dni_usuario
+1,2024-02-15 09:00:00,Revisar presión de llantas,12345678
+2,2024-02-20 14:30:00,Cambio de aceite,12345678
+3,2024-02-15 10:15:00,Inspección de frenos,23456789
+4,2024-02-25 11:45:00,Revisión general,34567890
+5,2024-02-10 08:00:00,Limpiar inyectores,45678901
+6,2024-02-18 13:20:00,Cambio de filtro de aire,56789012

@@ -9,9 +9,10 @@ import {
   MinLength,
   MaxLength,
   Matches,
+  IsArray,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ValidRoles } from '../enums/usuario.enum';
+import { ValidRoles, ValidPermissions, Permisos } from '../enums/usuario.enum';
 
 /* =========================
    CREATE USUARIO
@@ -113,6 +114,17 @@ export class UpdateUsuarioDto {
   @IsOptional()
   @IsEnum(ValidRoles)
   rol?: ValidRoles;
+
+  @ApiPropertyOptional({
+    description: 'Permisos a asignar al usuario según su rol',
+    enum: Permisos,
+    isArray: true,
+    example: ['almacen-comun:read', 'almacen-taller:read'],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsEnum(Permisos, { each: true })
+  permisos?: Permisos[];
 }
 
 /* =========================
