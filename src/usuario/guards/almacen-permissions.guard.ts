@@ -47,11 +47,16 @@ export class AlmacenPermissionsGuard implements CanActivate {
     const user = req.user;
 
     if (!user) throw new BadRequestException('User not found');
-    if (!user.roles || user.roles.length === 0)
+
+    // Asegurar que usuarioRoles esté cargado (para getter roles)
+    if (!user.usuarioRoles || user.usuarioRoles.length === 0)
       throw new BadRequestException('User roles not found');
 
     // Combinar permisos de todos los roles del usuario
     const userRoles = user.roles ?? [];
+    if (userRoles.length === 0)
+      throw new BadRequestException('User roles not found');
+
     const userPermissions: Permisos[] = userRoles.flatMap(
       (role) => role.permisos ?? [],
     );

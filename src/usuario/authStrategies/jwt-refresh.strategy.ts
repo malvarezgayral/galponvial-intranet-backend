@@ -40,7 +40,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
 
     const user: Usuario | null = await this.userRepository.findOne({
       where: { email },
-      relations: ['refreshTokens'],
+      relations: ['refreshTokens', 'usuarioRoles', 'usuarioRoles.rol'],
     });
 
     if (!user) throw new UnauthorizedException();
