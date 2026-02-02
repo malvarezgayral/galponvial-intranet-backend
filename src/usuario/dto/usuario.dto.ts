@@ -12,7 +12,7 @@ import {
   IsArray,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ValidRoles, ValidPermissions, Permisos } from '../enums/usuario.enum';
+import { ValidRoles } from '../enums/usuario.enum';
 
 /* =========================
    CREATE USUARIO
@@ -86,13 +86,18 @@ export class UpdateUsuarioDto {
   apellido?: string;
 
   @ApiPropertyOptional({
-    description: 'Fecha de baja del usuario',
-    example: '2025-01-10',
+    description: 'Email del usuario',
+    example: 'carlos.gomez@email.com',
   })
   @IsOptional()
   @IsEmail()
   email?: string;
 
+  @ApiPropertyOptional({
+    description:
+      'Contraseña del usuario (mínimo una mayúscula, una minúscula y un número)',
+    example: 'Password123',
+  })
   @IsOptional()
   @IsString()
   @MinLength(6)
@@ -104,27 +109,22 @@ export class UpdateUsuarioDto {
   password?: string;
 
   @ApiPropertyOptional({
-    description: 'ID del rol asignado',
-    example: 2,
+    description: 'Versión del token del usuario',
+    example: 1,
   })
   @IsOptional()
   @IsNumber()
   tokenVersion?: number;
 
-  @IsOptional()
-  @IsEnum(ValidRoles)
-  rol?: ValidRoles;
-
   @ApiPropertyOptional({
-    description: 'Permisos a asignar al usuario según su rol',
-    enum: Permisos,
-    isArray: true,
-    example: ['almacen-comun:read', 'almacen-taller:read'],
+    description: 'Array de IDs de roles a asignar al usuario',
+    type: [Number],
+    example: [1, 2, 3],
   })
   @IsOptional()
   @IsArray()
-  @IsEnum(Permisos, { each: true })
-  permisos?: Permisos[];
+  @IsNumber({}, { each: true })
+  rol_ids?: number[];
 }
 
 /* =========================

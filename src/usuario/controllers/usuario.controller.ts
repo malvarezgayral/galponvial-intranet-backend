@@ -104,25 +104,23 @@ export class UsuarioController {
   }
 
   @ApiOperation({
-    summary: 'Obtener estructura de roles con permisos asociados',
+    summary: 'Obtener todos los roles',
   })
   @ApiResponse({
     status: 200,
-    description: 'Estructura de todos los roles con sus permisos',
+    description: 'Listado completo de roles con toda su estructura',
+    type: [Rol],
   })
   @Get('roles/estructura')
   @HttpCode(HttpStatus.OK)
   @Auth()
-  async getEstructuraRolesConPermisos(): Promise<
-    ObjectServiceResponse<Record<string, { permisos: string[] }>>
-  > {
-    const rolesEstructura =
-      await this.rolService.getEstructuraRolesConPermisos();
+  async getEstructuraRolesConPermisos(): Promise<ObjectServiceResponse<Rol[]>> {
+    const roles = await this.rolService.getRoles();
 
     return {
       success: true,
-      data: rolesEstructura,
-      message: 'Estructura de roles y permisos obtenida correctamente',
+      data: roles,
+      message: 'Roles obtenidos correctamente',
     };
   }
 
@@ -176,7 +174,7 @@ export class UsuarioController {
     @Param('dni') dni: number,
     @GetUser() currentUser: Usuario,
     @Body() dto: UpdateUsuarioDto,
-  ): Promise<ObjectServiceResponse<Usuario | null>> {
+  ): Promise<ObjectServiceResponse<Record<string, unknown>>> {
     const userFirstRole = currentUser.roles?.[0]?.rol ?? ValidRoles.user;
     return this.usuarioService.updateUsuario(dni, dto, userFirstRole);
   }

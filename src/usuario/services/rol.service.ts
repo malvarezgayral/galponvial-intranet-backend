@@ -27,6 +27,14 @@ export class RolService {
     }
   }
 
+  async getRoles(): Promise<Rol[]> {
+    try {
+      return await this.rolRepository.find();
+    } catch (error) {
+      this.handleDBErrors(error);
+    }
+  }
+
   async getEstructuraRolesConPermisos(): Promise<
     Record<string, { permisos: string[] }>
   > {

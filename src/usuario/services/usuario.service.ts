@@ -32,7 +32,7 @@ import {
   ObjectServiceResponse,
 } from '../interfaces/object-service-response.interface';
 import { DeActivateUserDto } from '../dto/de-activate.dto';
-import { ValidRoles, Permisos } from '../enums/usuario.enum';
+import { ValidRoles } from '../enums/usuario.enum';
 import { RefToken } from './ref-token.service';
 
 @Injectable()
@@ -258,10 +258,10 @@ export class UsuarioService {
     dni: number,
     updateDto: UpdateUsuarioDto,
     currentUserRol: ValidRoles,
-  ): Promise<ObjectServiceResponse<Usuario | null>> {
+  ): Promise<ObjectServiceResponse<Record<string, unknown>>> {
     try {
       // campos solo para admin
-      const adminOnlyFields = ['password', 'tokenVersion', 'rol', 'permisos'];
+      const adminOnlyFields = ['password', 'tokenVersion', 'rol_ids'];
       const hasAdminFields = adminOnlyFields.some(
         (field) => updateDto[field] !== undefined,
       );
@@ -270,7 +270,7 @@ export class UsuarioService {
       if (hasAdminFields && currentUserRol !== ValidRoles.admin) {
         return {
           success: false,
-          data: null,
+          data: {},
           message: 'No tienes permisos para modificar esos campos',
         };
       }
@@ -284,126 +284,59 @@ export class UsuarioService {
         throw new BadRequestException(`Usuario con DNI ${dni} no encontrado`);
       }
 
-      // esto quizas no sea necesario verificar ya que el dto no tiene isActive
-      if ('isActive' in updateDto && updateDto.isActive !== undefined) {
-        throw new BadRequestException(
-          'No puedes modificar isActive. Usa el endpoint de activar/desactivar',
-        );
-      }
+      // Objeto para almacenar los cambios realizados
+      const cambiosRealizados: Record<string, unknown> = {};
 
       // Actualizar campos genéricos
-      if (updateDto.nombre !== undefined) usuario.nombre = updateDto.nombre;
-      if (updateDto.apellido !== undefined)
+      if (updateDto.nombre !== undefined) {
+        usuario.nombre = updateDto.nombre;
+        cambiosRealizados.nombre = updateDto.nombre;
+      }
+      if (updateDto.apellido !== undefined) {
         usuario.apellido = updateDto.apellido;
-      if (updateDto.email !== undefined) usuario.email = updateDto.email;
+        cambiosRealizados.apellido = updateDto.apellido;
+      }
+      if (updateDto.email !== undefined) {
+        usuario.email = updateDto.email;
+        cambiosRealizados.email = updateDto.email;
+      }
 
       // Actualizar campos solo admin
       if (updateDto.password !== undefined) {
         const salt = await bcrypt.genSalt();
         usuario.password = await bcrypt.hash(updateDto.password, salt);
+        cambiosRealizados.password = '***actualizado***';
       }
 
-      //esto luego hay que verificar que solo haga un +1 o un reset
       if (updateDto.tokenVersion !== undefined) {
         usuario.tokenVersion = updateDto.tokenVersion;
+        cambiosRealizados.tokenVersion = updateDto.tokenVersion;
       }
 
-      // Manejar actualización de rol y permisos
-      if (updateDto.rol !== undefined || updateDto.permisos !== undefined) {
-        // Obtener el rol actual si no se está actualizando
-        let rolActual = updateDto.rol;
-        if (
-          !rolActual &&
-          usuario.usuarioRoles &&
-          usuario.usuarioRoles.length > 0
-        ) {
-          rolActual = usuario.usuarioRoles[0].rol.rol;
-        }
-
-        // Validar permisos según el rol
-        if (updateDto.permisos !== undefined && rolActual !== undefined) {
-          this.validarPermisosParaRol(updateDto.permisos, rolActual);
-        }
-
-        // Si solo se actualizan permisos (sin cambiar rol)
-        if (
-          updateDto.permisos !== undefined &&
-          updateDto.rol === undefined &&
-          usuario.usuarioRoles &&
-          usuario.usuarioRoles.length > 0
-        ) {
-          const rolActualId = usuario.usuarioRoles[0].rol_id;
-          const rolConPermisos = await this.rolRepository.findOne({
-            where: { id: rolActualId },
+      // Manejar actualización de roles
+      if (updateDto.rol_ids !== undefined && updateDto.rol_ids.length >= 0) {
+        // Validar y traer cada rol individualmente
+        const roles: Rol[] = [];
+        for (const rol_id of updateDto.rol_ids) {
+          const rol = await this.rolRepository.findOne({
+            where: { id: rol_id },
           });
 
-          if (!rolConPermisos) {
-            throw new BadRequestException('Rol actual no encontrado');
-          }
-
-          // Validar que el rol actual tiene los permisos solicitados
-          const permisosDelRol = rolConPermisos.permisos || [];
-          const permisosValidos = updateDto.permisos.every((permiso) =>
-            permisosDelRol.includes(permiso),
-          );
-
-          if (!permisosValidos) {
+          if (!rol) {
             throw new BadRequestException(
-              `El rol ${usuario.usuarioRoles[0].rol.rol} no contiene los permisos especificados`,
+              `El rol con ID ${rol_id} no existe en la base de datos`,
             );
           }
-        } else if (updateDto.rol !== undefined) {
-          // Si se está cambiando el rol
-          let rolesAAsignar: Rol[] = [];
 
-          if (updateDto.permisos !== undefined) {
-            // Si se proporcionan permisos, buscar los roles específicos que tienen cada permiso
-            const rolesDisponibles = await this.rolRepository.find({
-              where: { rol: updateDto.rol },
-            });
+          roles.push(rol);
+        }
 
-            if (rolesDisponibles.length === 0) {
-              throw new BadRequestException(
-                `No existe el rol "${updateDto.rol}" en la base de datos`,
-              );
-            }
+        // Eliminar todas las asignaciones de rol previas
+        await this.usuarioRolRepository.delete({ dni: usuario.dni });
 
-            // Para cada permiso, encontrar el rol que lo contiene
-            for (const permiso of updateDto.permisos) {
-              const rolConPermiso = rolesDisponibles.find(
-                (rol) =>
-                  rol.permisos && rol.permisos.includes(permiso),
-              );
-
-              if (!rolConPermiso) {
-                throw new BadRequestException(
-                  `No existe un rol "${updateDto.rol}" con el permiso "${permiso}"`,
-                );
-              }
-
-              // Evitar duplicados
-              if (!rolesAAsignar.find((r) => r.id === rolConPermiso.id)) {
-                rolesAAsignar.push(rolConPermiso);
-              }
-            }
-          } else {
-            // Si no se proporcionan permisos, usar el primer rol del tipo
-            const rolDefault = await this.rolRepository.findOne({
-              where: { rol: updateDto.rol },
-            });
-
-            if (!rolDefault) {
-              throw new BadRequestException(`Rol ${updateDto.rol} no existe`);
-            }
-
-            rolesAAsignar = [rolDefault];
-          }
-
-          // Eliminar asignaciones de rol previas
-          await this.usuarioRolRepository.delete({ dni: usuario.dni });
-
-          // Crear nuevas asignaciones para cada rol
-          const usuarioRoles = rolesAAsignar.map((rol) =>
+        // Crear nuevas asignaciones para cada rol
+        if (roles.length > 0) {
+          const usuarioRoles = roles.map((rol) =>
             this.usuarioRolRepository.create({
               dni: usuario.dni,
               rol_id: rol.id,
@@ -415,15 +348,21 @@ export class UsuarioService {
           // Guardar todos los nuevos registros
           await this.usuarioRolRepository.save(usuarioRoles);
           usuario.usuarioRoles = usuarioRoles;
+          cambiosRealizados.rol_ids = updateDto.rol_ids;
+          cambiosRealizados.roles = usuarioRoles.map((ur) => ({
+            id: ur.rol_id,
+            rol: ur.rol.rol,
+            permisos: ur.rol.permisos,
+          }));
         }
       }
 
       // Guardar cambios
-      const usuarioActualizado = await this.usuarioRepository.save(usuario);
+      await this.usuarioRepository.save(usuario);
 
       return {
         success: true,
-        data: usuarioActualizado,
+        data: cambiosRealizados,
         message: 'Usuario actualizado correctamente',
       };
     } catch (error) {
@@ -432,33 +371,6 @@ export class UsuarioService {
         'UsuarioService.updateUsuario',
       );
       throw error;
-    }
-  }
-
-  private validarPermisosParaRol(permisos: Permisos[], rol: ValidRoles): void {
-    // Validar permisos según el rol
-    const tieneWrite = permisos.some((p) => p.includes(':write'));
-
-    if (rol === ValidRoles.user && tieneWrite) {
-      throw new BadRequestException(
-        'El rol "user" solo puede tener permisos de lectura (read)',
-      );
-    }
-
-    if (rol === ValidRoles.superUser && permisos.length > 4) {
-      throw new BadRequestException(
-        'El rol "superuser" no puede tener más de 4 permisos diferentes',
-      );
-    }
-
-    // Si el rol es user, solo puede tener permisos de lectura
-    if (rol === ValidRoles.user) {
-      const permisosValidos = permisos.every((p) => p.includes(':read'));
-      if (!permisosValidos) {
-        throw new BadRequestException(
-          'El rol "user" solo puede tener permisos de lectura (read)',
-        );
-      }
     }
   }
 
