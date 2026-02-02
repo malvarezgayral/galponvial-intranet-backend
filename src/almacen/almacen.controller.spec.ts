@@ -60,7 +60,7 @@ describe('AlmacenController', () => {
       pageSize: 10,
     });
 
-    const result = await controller.getAllArticles(1, 10, mockUser as any);
+    const result = await controller.getAllArticles(1, 10, mockUser);
 
     expect(mockService.getAllArticles).toHaveBeenCalledWith(
       1,
@@ -89,7 +89,7 @@ describe('AlmacenController', () => {
       pageSize: 10,
     });
 
-    await controller.getAllArticles(1, 10, userWithAllPermissions as any);
+    await controller.getAllArticles(1, 10, userWithAllPermissions);
 
     expect(mockService.getAllArticles).toHaveBeenCalledWith(
       1,

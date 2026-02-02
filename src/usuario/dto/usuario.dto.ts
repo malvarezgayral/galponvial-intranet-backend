@@ -9,9 +9,10 @@ import {
   MinLength,
   MaxLength,
   Matches,
+  IsArray,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ValidRoles, FallaIncidente } from '../enums/usuario.enum';
+import { ValidRoles } from '../enums/usuario.enum';
 
 /* =========================
    CREATE USUARIO
@@ -85,13 +86,18 @@ export class UpdateUsuarioDto {
   apellido?: string;
 
   @ApiPropertyOptional({
-    description: 'Fecha de baja del usuario',
-    example: '2025-01-10',
+    description: 'Email del usuario',
+    example: 'carlos.gomez@email.com',
   })
   @IsOptional()
   @IsEmail()
   email?: string;
 
+  @ApiPropertyOptional({
+    description:
+      'Contraseña del usuario (mínimo una mayúscula, una minúscula y un número)',
+    example: 'Password123',
+  })
   @IsOptional()
   @IsString()
   @MinLength(6)
@@ -103,16 +109,22 @@ export class UpdateUsuarioDto {
   password?: string;
 
   @ApiPropertyOptional({
-    description: 'ID del rol asignado',
-    example: 2,
+    description: 'Versión del token del usuario',
+    example: 1,
   })
   @IsOptional()
   @IsNumber()
   tokenVersion?: number;
 
+  @ApiPropertyOptional({
+    description: 'Array de IDs de roles a asignar al usuario',
+    type: [Number],
+    example: [1, 2, 3],
+  })
   @IsOptional()
-  @IsEnum(ValidRoles)
-  rol?: ValidRoles;
+  @IsArray()
+  @IsNumber({}, { each: true })
+  rol_ids?: number[];
 }
 
 /* =========================

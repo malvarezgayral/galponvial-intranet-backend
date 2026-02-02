@@ -14,9 +14,6 @@ import { VehiculoStatus } from '../enums/vehiculo.enum';
 import { CreateInfoAdicionalDataDto } from '../dto/create-info-adicional-data.dto';
 import { DeleteLogicoVehiculoDto } from '../dto/delete-logico-vehiculo.dto';
 import { StatusUpdateService } from './status-update.service';
-import { Recordatorio } from '../entities/recordatorio.entity';
-import { CreateRecordatorioDto } from '../dto/create-recordatorio.dto';
-import { UpdateRecordatorioDto } from '../dto/update-recordatorio.dto';
 import { StatusUpdate } from '../entities/status-update.entity';
 import { CombustibleCarga } from '../entities/combustible-carga.entity';
 import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
@@ -43,8 +40,6 @@ export class VehiculosService {
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
     private readonly statusUpdateService: StatusUpdateService,
-    @InjectRepository(Recordatorio)
-    private readonly recordatorioRepository: Repository<Recordatorio>,
   ) {}
 
   async create(createVehiculoDto: CreateVehiculoDto): Promise<Vehiculo> {
@@ -270,65 +265,6 @@ export class VehiculosService {
     return vehiculoActualizado;
   }
 
-  async agregarRecordatorio(
-    idVehiculo: number,
-    data: CreateRecordatorioDto,
-  ): Promise<Recordatorio> {
-    const vehiculo = await this.vehiculoRepository.findOne({
-      where: { id_vehiculo: idVehiculo, eliminado: false },
-    });
-
-    if (!vehiculo) {
-      throw new NotFoundException(
-        `Vehículo con ID ${idVehiculo} no encontrado`,
-      );
-    }
-
-    const recordatorio = this.recordatorioRepository.create({
-      fecha: data.fecha,
-      descripcion: data.descripcion,
-      vehiculo,
-    });
-
-    return await this.recordatorioRepository.save(recordatorio);
-  }
-
-  async getRecordatoriosByVehiculo(
-    vehiculoId: number,
-  ): Promise<Recordatorio[]> {
-    return this.recordatorioRepository.find({
-      where: {
-        vehiculo: { id_vehiculo: vehiculoId },
-      },
-      order: {
-        fecha: 'ASC',
-      },
-    });
-  }
-
-  async updateRecordatorio(
-    recordatorioId: number,
-    data: UpdateRecordatorioDto,
-  ): Promise<Recordatorio> {
-    const recordatorio = await this.recordatorioRepository.findOne({
-      where: { id: recordatorioId },
-    });
-
-    if (!recordatorio) {
-      throw new NotFoundException('Recordatorio no encontrado');
-    }
-
-    if (data.fecha !== undefined) {
-      recordatorio.fecha = new Date(data.fecha);
-    }
-
-    if (data.descripcion !== undefined) {
-      recordatorio.descripcion = data.descripcion;
-    }
-
-    return this.recordatorioRepository.save(recordatorio);
-  }
-
   async softDelete(
     idVehiculo: number,
     dto: DeleteLogicoVehiculoDto,
@@ -398,30 +334,6 @@ export class VehiculosService {
       skip: (page - 1) * pageSize,
       take: pageSize,
       order: { fecha: 'DESC' },
-    });
-
-    return { data, total, page, pageSize };
-  }
-
-  async getRecordatoriosPaginado(
-    idVehiculo: number,
-    page: number = 1,
-    pageSize: number = 10,
-  ): Promise<{
-    data: Recordatorio[];
-    total: number;
-    page: number;
-    pageSize: number;
-  }> {
-    // Validar que el vehículo existe
-    await this.findOne(idVehiculo);
-
-    const [data, total] = await this.recordatorioRepository.findAndCount({
-      where: { vehiculo: { id_vehiculo: idVehiculo } },
-      relations: ['vehiculo'],
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      order: { fecha: 'ASC' },
     });
 
     return { data, total, page, pageSize };

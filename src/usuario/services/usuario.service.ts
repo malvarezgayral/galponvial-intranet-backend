@@ -15,6 +15,7 @@ import { UsuarioVehiculo } from '../entities/usuario-vehiculo.entity';
 import { ReporteIncidente } from '../entities/reporte-incidente.entity';
 import { Servicio } from '../entities/servicio.entity';
 import { RefreshToken } from '../entities/refresh-token.entity';
+import { Recordatorio } from '../../vehiculos/entities/recordatorio.entity';
 import {
   CreateUsuarioDto,
   CreateUsuarioVehiculoDto,
@@ -53,6 +54,8 @@ export class UsuarioService {
     private servicioRepository: Repository<Servicio>,
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
+    @InjectRepository(Recordatorio)
+    private recordatorioRepository: Repository<Recordatorio>,
     private readonly jwtService: JwtService,
     @Inject(forwardRef(() => RefToken))
     private refTokenService: RefToken,
@@ -255,10 +258,10 @@ export class UsuarioService {
     dni: number,
     updateDto: UpdateUsuarioDto,
     currentUserRol: ValidRoles,
-  ): Promise<ObjectServiceResponse<Usuario | null>> {
+  ): Promise<ObjectServiceResponse<Record<string, unknown>>> {
     try {
       // campos solo para admin
-      const adminOnlyFields = ['password', 'tokenVersion', 'rol'];
+      const adminOnlyFields = ['password', 'tokenVersion', 'rol_ids'];
       const hasAdminFields = adminOnlyFields.some(
         (field) => updateDto[field] !== undefined,
       );
@@ -267,7 +270,7 @@ export class UsuarioService {
       if (hasAdminFields && currentUserRol !== ValidRoles.admin) {
         return {
           success: false,
-          data: null,
+          data: {},
           message: 'No tienes permisos para modificar esos campos',
         };
       }
@@ -281,55 +284,85 @@ export class UsuarioService {
         throw new BadRequestException(`Usuario con DNI ${dni} no encontrado`);
       }
 
-      // esto quizas no sea necesario verificar ya que el dto no tiene isActive
-      if ('isActive' in updateDto && updateDto.isActive !== undefined) {
-        throw new BadRequestException(
-          'No puedes modificar isActive. Usa el endpoint de activar/desactivar',
-        );
-      }
+      // Objeto para almacenar los cambios realizados
+      const cambiosRealizados: Record<string, unknown> = {};
 
       // Actualizar campos genéricos
-      if (updateDto.nombre !== undefined) usuario.nombre = updateDto.nombre;
-      if (updateDto.apellido !== undefined)
+      if (updateDto.nombre !== undefined) {
+        usuario.nombre = updateDto.nombre;
+        cambiosRealizados.nombre = updateDto.nombre;
+      }
+      if (updateDto.apellido !== undefined) {
         usuario.apellido = updateDto.apellido;
-      if (updateDto.email !== undefined) usuario.email = updateDto.email;
+        cambiosRealizados.apellido = updateDto.apellido;
+      }
+      if (updateDto.email !== undefined) {
+        usuario.email = updateDto.email;
+        cambiosRealizados.email = updateDto.email;
+      }
 
       // Actualizar campos solo admin
       if (updateDto.password !== undefined) {
         const salt = await bcrypt.genSalt();
         usuario.password = await bcrypt.hash(updateDto.password, salt);
+        cambiosRealizados.password = '***actualizado***';
       }
 
-      //esto luego hay que verificar que solo haga un +1 o un reset
       if (updateDto.tokenVersion !== undefined) {
         usuario.tokenVersion = updateDto.tokenVersion;
+        cambiosRealizados.tokenVersion = updateDto.tokenVersion;
       }
 
-      if (updateDto.rol !== undefined) {
-        const rol = await this.rolRepository.findOne({
-          where: { rol: updateDto.rol },
-        });
-        if (!rol) {
-          throw new BadRequestException(`Rol ${updateDto.rol} no existe`);
+      // Manejar actualización de roles
+      if (updateDto.rol_ids !== undefined && updateDto.rol_ids.length >= 0) {
+        // Validar y traer cada rol individualmente
+        const roles: Rol[] = [];
+        for (const rol_id of updateDto.rol_ids) {
+          const rol = await this.rolRepository.findOne({
+            where: { id: rol_id },
+          });
+
+          if (!rol) {
+            throw new BadRequestException(
+              `El rol con ID ${rol_id} no existe en la base de datos`,
+            );
+          }
+
+          roles.push(rol);
         }
-        // Eliminar asignaciones de rol previas
+
+        // Eliminar todas las asignaciones de rol previas
         await this.usuarioRolRepository.delete({ dni: usuario.dni });
-        // Crear nueva asignación
-        const usuarioRol = this.usuarioRolRepository.create({
-          dni: usuario.dni,
-          rol_id: rol.id,
-          usuario,
-          rol,
-        });
-        usuario.usuarioRoles = [usuarioRol];
+
+        // Crear nuevas asignaciones para cada rol
+        if (roles.length > 0) {
+          const usuarioRoles = roles.map((rol) =>
+            this.usuarioRolRepository.create({
+              dni: usuario.dni,
+              rol_id: rol.id,
+              usuario,
+              rol,
+            }),
+          );
+
+          // Guardar todos los nuevos registros
+          await this.usuarioRolRepository.save(usuarioRoles);
+          usuario.usuarioRoles = usuarioRoles;
+          cambiosRealizados.rol_ids = updateDto.rol_ids;
+          cambiosRealizados.roles = usuarioRoles.map((ur) => ({
+            id: ur.rol_id,
+            rol: ur.rol.rol,
+            permisos: ur.rol.permisos,
+          }));
+        }
       }
 
       // Guardar cambios
-      const usuarioActualizado = await this.usuarioRepository.save(usuario);
+      await this.usuarioRepository.save(usuario);
 
       return {
         success: true,
-        data: usuarioActualizado,
+        data: cambiosRealizados,
         message: 'Usuario actualizado correctamente',
       };
     } catch (error) {
@@ -543,5 +576,86 @@ export class UsuarioService {
     return this.servicioRepository.find({
       where: { incidente_id },
     });
+  }
+
+  // ===== Recordatorios =====
+
+  async agregarRecordatorio(
+    dni: number,
+    data: { fecha: Date; descripcion: string },
+  ): Promise<Recordatorio> {
+    const usuario = await this.usuarioRepository.findOne({
+      where: { dni },
+    });
+
+    if (!usuario) {
+      throw new Error(`Usuario con DNI ${dni} no encontrado`);
+    }
+
+    const recordatorio = this.recordatorioRepository.create({
+      fecha: data.fecha,
+      descripcion: data.descripcion,
+      usuario,
+    });
+
+    return await this.recordatorioRepository.save(recordatorio);
+  }
+
+  async getRecordatoriosByUsuario(dni: number): Promise<Recordatorio[]> {
+    return this.recordatorioRepository.find({
+      where: {
+        usuario: { dni },
+      },
+      order: {
+        fecha: 'ASC',
+      },
+    });
+  }
+
+  async updateRecordatorio(
+    recordatorioId: number,
+    data: { fecha?: Date; descripcion?: string },
+  ): Promise<Recordatorio> {
+    const recordatorio = await this.recordatorioRepository.findOne({
+      where: { id: recordatorioId },
+    });
+
+    if (!recordatorio) {
+      throw new Error('Recordatorio no encontrado');
+    }
+
+    if (data.fecha !== undefined) {
+      recordatorio.fecha = new Date(data.fecha);
+    }
+
+    if (data.descripcion !== undefined) {
+      recordatorio.descripcion = data.descripcion;
+    }
+
+    return this.recordatorioRepository.save(recordatorio);
+  }
+
+  async getRecordatoriosPaginado(
+    dni: number,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<{
+    data: Recordatorio[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
+    // Validar que el usuario existe
+    await this.obtenerUsuarioPorDni(dni);
+
+    const [data, total] = await this.recordatorioRepository.findAndCount({
+      where: { usuario: { dni } },
+      relations: ['usuario'],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      order: { fecha: 'ASC' },
+    });
+
+    return { data, total, page, pageSize };
   }
 }

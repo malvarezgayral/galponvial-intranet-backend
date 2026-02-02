@@ -9,7 +9,6 @@ import {
 import { InfoAdicional } from './info-adicional.entity';
 import { StatusUpdate } from './status-update.entity';
 import { CombustibleCarga } from './combustible-carga.entity';
-import { Recordatorio } from './recordatorio.entity';
 import { VehiculoStatus, TipoVehiculo } from '../enums/vehiculo.enum';
 import { UsuarioVehiculo } from '../../usuario/entities/usuario-vehiculo.entity';
 
@@ -67,9 +66,6 @@ export class Vehiculo {
 
   @OneToMany(() => CombustibleCarga, (carga) => carga.vehiculo)
   cargas: CombustibleCarga[];
-
-  @OneToMany(() => Recordatorio, (rec) => rec.vehiculo)
-  recordatorios: Recordatorio[];
 
   @OneToMany(() => UsuarioVehiculo, (uv) => uv.vehiculo)
   usuarios: UsuarioVehiculo[];

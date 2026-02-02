@@ -9,6 +9,9 @@ export enum Permisos {
   ALL_READ = 'all:read',
 }
 
+// Alias para ValidPermissions (mismo que Permisos)
+export const ValidPermissions = Permisos;
+
 export enum ValidRoles {
   admin = 'admin', //all permissions (write/read)
   superUser = 'superuser', //some permissions

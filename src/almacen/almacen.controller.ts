@@ -11,7 +11,6 @@ import {
   ParseIntPipe,
   HttpCode,
   HttpStatus,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,6 +24,7 @@ import {
 
 import { CreateArticuloDto } from './dto/create-articulo.dto';
 import { UpdateArticuloDto } from './dto/update-articulo.dto';
+import { GetArticuloDto } from './dto/get-articulo.dto';
 
 import { CreateGrupoArticuloDto } from './dto/create-grupo-articulo.dto';
 import { UpdateGrupoArticuloDto } from './dto/update-grupo-articulo.dto';
@@ -36,6 +36,7 @@ import { CreateSalidaDto } from './dto/create-salida.dto';
 import { AlmacenService } from './almacen.service';
 import { MovimientoDTO } from './dto/movimiento.dto';
 import { Auth } from '../usuario/decorators/auth.decorator';
+import { AlmacenAuth } from '../usuario/decorators/almacen-auth.decorator';
 import { ValidRoles, Permisos } from '../usuario/enums/usuario.enum';
 import { ObjectServiceResponse } from '../usuario/interfaces/object-service-response.interface';
 import { Articulo } from './entities/articulo.entity';
@@ -43,7 +44,6 @@ import {
   AlmacenPermissions,
   AlmacenReadPermissions,
 } from '../usuario/decorators/almacen-permissions.decorator';
-import { AlmacenPermissionsGuard } from '../usuario/guards/almacen-permissions.guard';
 import { GetUser } from '../usuario/decorators/get-user.decorator';
 import { Usuario } from '../usuario/entities/usuario.entity';
 
@@ -60,8 +60,7 @@ export class AlmacenController {
   @ApiResponse({ status: 200, description: 'Listado paginado de artículos' })
   @Get('articulos')
   @HttpCode(HttpStatus.OK)
-  @Auth()
-  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenAuth()
   @AlmacenReadPermissions(
     Permisos.ALMACEN_TALLER_READ,
     Permisos.ALMACEN_COMUN_READ,
@@ -98,12 +97,45 @@ export class AlmacenController {
     };
   }
 
+  @ApiOperation({ summary: 'Obtener un artículo por su ID' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'Código del artículo (cod)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Detalle del artículo encontrado',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Artículo no encontrado',
+  })
+  @Get('/articulos/:id')
+  @HttpCode(HttpStatus.OK)
+  @AlmacenAuth()
+  @AlmacenReadPermissions(
+    Permisos.ALMACEN_TALLER_READ,
+    Permisos.ALMACEN_COMUN_READ,
+    Permisos.ALL_READ,
+  )
+  async getArticleById(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ObjectServiceResponse<GetArticuloDto>> {
+    const result: GetArticuloDto = await this.almacenService.getArticleById(id);
+
+    return {
+      success: true,
+      data: result,
+      message: 'Artículo encontrado con éxito',
+    };
+  }
+
   @ApiOperation({ summary: 'Crear un artículo' })
   @ApiBody({ type: CreateArticuloDto })
   @ApiResponse({ status: 201, description: 'Artículo creado correctamente' })
   @Post('articulos')
-  @Auth(ValidRoles.superUser, ValidRoles.admin)
-  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
     Permisos.ALMACEN_COMUN_WRITE,
@@ -132,8 +164,7 @@ export class AlmacenController {
   @ApiResponse({ status: 200, description: 'Artículo actualizado' })
   @ApiResponse({ status: 404, description: 'Artículo no encontrado' })
   @Put('articulos/:cod')
-  @Auth(ValidRoles.superUser, ValidRoles.admin)
-  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
     Permisos.ALMACEN_COMUN_WRITE,
@@ -162,8 +193,7 @@ export class AlmacenController {
   @ApiResponse({ status: 200, description: 'Artículo eliminado' })
   @ApiResponse({ status: 404, description: 'Artículo no encontrado' })
   @Delete('articulos/:cod')
-  @Auth(ValidRoles.superUser, ValidRoles.admin)
-  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
     Permisos.ALMACEN_COMUN_WRITE,
@@ -184,8 +214,7 @@ export class AlmacenController {
   @ApiOperation({ summary: 'Obtener todos los grupos de artículos' })
   @ApiResponse({ status: 200, description: 'Listado de grupos' })
   @Get('grupos')
-  @Auth()
-  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenAuth()
   @AlmacenReadPermissions(
     Permisos.ALMACEN_TALLER_READ,
     Permisos.ALMACEN_COMUN_READ,
@@ -208,8 +237,7 @@ export class AlmacenController {
   })
   @ApiResponse({ status: 404, description: 'Grupo no encontrado' })
   @Get('grupos/:id')
-  @Auth()
-  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenAuth()
   @AlmacenReadPermissions(
     Permisos.ALMACEN_TALLER_READ,
     Permisos.ALMACEN_COMUN_READ,
@@ -223,8 +251,7 @@ export class AlmacenController {
   @ApiBody({ type: CreateGrupoArticuloDto })
   @ApiResponse({ status: 201, description: 'Grupo creado correctamente' })
   @Post('grupos')
-  @Auth(ValidRoles.superUser, ValidRoles.admin)
-  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
     Permisos.ALMACEN_COMUN_WRITE,
@@ -252,8 +279,7 @@ export class AlmacenController {
   @ApiBody({ type: UpdateGrupoArticuloDto })
   @ApiResponse({ status: 200, description: 'Grupo actualizado' })
   @Put('grupos/:id')
-  @Auth(ValidRoles.superUser, ValidRoles.admin)
-  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
     Permisos.ALMACEN_COMUN_WRITE,
@@ -287,8 +313,7 @@ export class AlmacenController {
     type: [MovimientoDTO],
   })
   @Get('movimientos/:idArticulo')
-  @Auth()
-  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenAuth()
   @AlmacenReadPermissions(
     Permisos.ALMACEN_TALLER_READ,
     Permisos.ALMACEN_COMUN_READ,
@@ -310,8 +335,7 @@ export class AlmacenController {
   })
   @ApiResponse({ status: 201, description: 'Movimiento registrado' })
   @Post('movimientos')
-  @Auth()
-  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenAuth()
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
     Permisos.ALMACEN_COMUN_WRITE,

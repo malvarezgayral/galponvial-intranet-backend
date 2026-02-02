@@ -312,6 +312,35 @@ export class AlmacenService {
     return true;
   }
 
+  // src/almacen/almacen.service.ts
+
+  async getArticleById(id: number) {
+    const articulo = await this.articuloRepo.findOne({
+      where: { cod: id },
+      // Cargamos relaciones por si en el futuro quieres mostrar el Grupo o la Unidad
+      relations: ['grupo', 'unidadMedida'],
+    });
+
+    if (!articulo) {
+      throw new NotFoundException(`Artículo con código ${id} no encontrado`);
+    }
+
+    // Mapeamos a un objeto plano para ajustar nombres de propiedades al Frontend
+    // (Específicamente img_url -> img)
+    return {
+      cod: articulo.cod,
+      cod_proveedor: articulo.cod_proveedor,
+      nombre: articulo.nombre,
+      modelo: articulo.modelo,
+      descripcion: articulo.descripcion,
+      img: articulo.img_url,
+      stock: articulo.stock,
+      unidad_tipo: articulo.unidad_tipo,
+      grupo: articulo.grupo.nombre,
+      unidad_medida: articulo.unidadMedida ? articulo.unidadMedida.tipo : null,
+    };
+  }
+
   // ---------------------- GRUPOS ----------------------
 
   async getAllGroups() {

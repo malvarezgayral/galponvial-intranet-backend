@@ -25,15 +25,12 @@ import { UpdateVehiculoDto } from '../dto/update-vehiculo.dto';
 import { DeleteLogicoVehiculoDto } from '../dto/delete-logico-vehiculo.dto';
 import { Auth } from 'src/usuario/decorators/auth.decorator';
 import { ValidRoles } from 'src/usuario/enums/usuario.enum';
-import { CreateRecordatorioDto } from '../dto/create-recordatorio.dto';
-import { UpdateRecordatorioDto } from '../dto/update-recordatorio.dto';
 import { CreateReporteIncidenteDto } from '../dto/create-reporte-incidente.dto';
 import { CreateCombustibleCargaDto } from '../dto/create-combustible-carga.dto';
 import { ObjectServiceResponse } from 'src/usuario/interfaces/object-service-response.interface';
 import { Vehiculo } from '../entities/vehiculo.entity';
 import { StatusUpdate } from '../entities/status-update.entity';
 import { CombustibleCarga } from '../entities/combustible-carga.entity';
-import { Recordatorio } from '../entities/recordatorio.entity';
 import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
 import {
   VehiculoStatus,
@@ -42,6 +39,7 @@ import {
   StatusIncidente,
   TipoServicio,
 } from '../enums/vehiculo.enum';
+import { FallaIncidente } from 'src/usuario/enums/usuario.enum';
 
 @ApiTags('Vehículos')
 @Controller('vehiculos')
@@ -84,6 +82,7 @@ export class VehiculosController {
       TipoIncidente: Object.values(TipoIncidente),
       StatusIncidente: Object.values(StatusIncidente),
       TipoServicio: Object.values(TipoServicio),
+      FallaIncidente: Object.values(FallaIncidente),
       Sector: sectores,
     };
 
@@ -149,15 +148,6 @@ export class VehiculosController {
     return this.vehiculosService.cambiarStatus(id, true);
   }
 
-  @Post(':id/recordatorios')
-  @HttpCode(HttpStatus.CREATED)
-  agregarRecordatorio(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() createRecordatorioDto: CreateRecordatorioDto,
-  ) {
-    return this.vehiculosService.agregarRecordatorio(id, createRecordatorioDto);
-  }
-
   @ApiOperation({ summary: 'Agregar un incidente a un vehículo' })
   @ApiParam({
     name: 'id',
@@ -212,31 +202,6 @@ export class VehiculosController {
     );
   }
 
-  @Get(':vehiculoId/recordatorios')
-  async getRecordatorios(
-    @Param('vehiculoId', ParseIntPipe) vehiculoId: number,
-  ) {
-    return this.vehiculosService.getRecordatoriosByVehiculo(vehiculoId);
-  }
-
-  @Patch('recordatorios/:recordatorioId')
-  async updateRecordatorio(
-    @Param('recordatorioId', ParseIntPipe) recordatorioId: number,
-    @Body() dto: UpdateRecordatorioDto,
-  ) {
-    return this.vehiculosService.updateRecordatorio(recordatorioId, dto);
-  }
-
-  @ApiOperation({ summary: 'Obtener status updates paginados de un vehículo' })
-  @ApiParam({
-    name: 'vehiculoId',
-    type: Number,
-    description: 'ID del vehículo',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Listado paginado de status updates',
-  })
   @Get(':vehiculoId/status-updates')
   @HttpCode(HttpStatus.OK)
   async getStatusUpdatesPaginado(
@@ -296,42 +261,6 @@ export class VehiculosController {
       success: true,
       data: result,
       message: `${result.total} incidentes encontrados`,
-    };
-  }
-
-  @ApiOperation({ summary: 'Obtener recordatorios paginados de un vehículo' })
-  @ApiParam({
-    name: 'vehiculoId',
-    type: Number,
-    description: 'ID del vehículo',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Listado paginado de recordatorios',
-  })
-  @Get(':vehiculoId/recordatorios-paginado')
-  @HttpCode(HttpStatus.OK)
-  async getRecordatoriosPaginado(
-    @Param('vehiculoId', ParseIntPipe) vehiculoId: number,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
-  ): Promise<
-    ObjectServiceResponse<{
-      data: Recordatorio[];
-      total: number;
-      page: number;
-      pageSize: number;
-    }>
-  > {
-    const result = await this.vehiculosService.getRecordatoriosPaginado(
-      vehiculoId,
-      page,
-      pageSize,
-    );
-    return {
-      success: true,
-      data: result,
-      message: `${result.total} recordatorios encontrados`,
     };
   }
 

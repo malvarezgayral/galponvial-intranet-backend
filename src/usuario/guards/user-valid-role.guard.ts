@@ -40,9 +40,7 @@ export class UserValidRoleGuard implements CanActivate {
 
     // Verificar si el usuario tiene al menos uno de los roles requeridos
     const userRoles = user.roles.map((role) => role.rol);
-    const hasRole = userRoles.some((userRole) =>
-      validRoles.includes(userRole),
-    );
+    const hasRole = userRoles.some((userRole) => validRoles.includes(userRole));
 
     if (hasRole) {
       return true;
