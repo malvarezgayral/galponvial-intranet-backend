@@ -422,6 +422,7 @@ export class AlmacenService {
     }
 
     const g = this.grupoRepo.create(dto);
+    g.sector = sector;
     return await this.grupoRepo.save(g);
   }
 

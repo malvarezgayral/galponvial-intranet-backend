@@ -223,8 +223,7 @@ export class AlmacenController {
     description: 'No autorizado',
   })
   @Get('sectores')
-  @Auth()
-  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenAuth()
   @AlmacenReadPermissions(
     Permisos.ALMACEN_TALLER_READ,
     Permisos.ALMACEN_COMUN_READ,
