@@ -160,12 +160,17 @@ export class UsuarioController {
   // ==================== ROLES ====================
 
   @Put()
-  @Auth(ValidRoles.admin)
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   activarDesactivarUsuario(
     @GetUser() currentUser: Usuario,
     @Body() dto: DeActivateUserDto,
   ): Promise<ObjectServiceResponse<Usuario | number>> {
-    return this.usuarioService.activarDesactivarUsuario(dto, currentUser.dni);
+    const userRoles = currentUser.roles?.map((ur) => ur.rol) ?? [];
+    return this.usuarioService.activarDesactivarUsuario(
+      dto,
+      currentUser.dni,
+      userRoles,
+    );
   }
 
   @Put(':dni')
@@ -175,8 +180,8 @@ export class UsuarioController {
     @GetUser() currentUser: Usuario,
     @Body() dto: UpdateUsuarioDto,
   ): Promise<ObjectServiceResponse<Record<string, unknown>>> {
-    const userFirstRole = currentUser.roles?.[0]?.rol ?? ValidRoles.user;
-    return this.usuarioService.updateUsuario(dni, dto, userFirstRole);
+    const userRoles = currentUser.roles?.map((ur) => ur.rol) ?? [];
+    return this.usuarioService.updateUsuario(dni, dto, userRoles);
   }
 
   @UseGuards(RefreshAuthGuard)
@@ -260,12 +265,14 @@ export class UsuarioController {
     type: Rol,
   })
   @Patch('addRol/:dni')
-  @Auth(ValidRoles.admin)
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   asignarRol(
     @Param('dni') dni: number,
     @Body() dto: AssignRolDto,
+    @GetUser() currentUser: Usuario,
   ): Promise<Rol> {
-    return this.usuarioService.addRol(dto, dni);
+    const userRoles = currentUser.roles?.map((ur) => ur.rol) ?? [];
+    return this.usuarioService.addRol(dto, dni, userRoles);
   }
 
   // ==================== USUARIO - VEHÍCULO ====================

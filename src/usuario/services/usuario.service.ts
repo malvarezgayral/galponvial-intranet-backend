@@ -7,7 +7,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, In, Repository } from 'typeorm';
 import { Usuario } from '../entities/usuario.entity';
 import { Rol } from '../entities/rol.entity';
 import { UsuarioRol } from '../entities/usuario-rol.entity';
@@ -208,6 +208,7 @@ export class UsuarioService {
   async activarDesactivarUsuario(
     { dni, isActive }: DeActivateUserDto,
     currentUserDni: number,
+    currentUserRoles: ValidRoles[],
   ): Promise<ObjectServiceResponse<Usuario | number>> {
     try {
       // Validar que no intente modificarse a sí mismo
@@ -219,8 +220,28 @@ export class UsuarioService {
         }; // se retorna si no precisa cambios
       }
 
-      const usuario = await this.usuarioRepository.findOne({ where: { dni } });
+      const usuario = await this.usuarioRepository.findOne({
+        where: { dni },
+        relations: ['usuarioRoles', 'usuarioRoles.rol'],
+      });
       if (!usuario) throw new Error(`Usuario with dni ${dni} not found`);
+
+      const usuarioRoles = usuario.usuarioRoles?.map((ur) => ur.rol.rol) ?? [];
+      //Si es superadmin no se puede desactivar
+      if (usuarioRoles.includes(ValidRoles.superadmin)) {
+        throw new UnauthorizedException(
+          'No se puede activar/desactivar un usuario con rol superadmin',
+        );
+      }
+      // Validar si el usuario a modificar es admin - solo superadmin puede hacerlo
+      if (
+        usuarioRoles.includes(ValidRoles.admin) &&
+        !currentUserRoles.includes(ValidRoles.superadmin)
+      ) {
+        throw new UnauthorizedException(
+          'Solo un superadmin puede activar/desactivar usuarios con rol admin',
+        );
+      }
 
       if (isActive == usuario.isActive) {
         return {
@@ -257,7 +278,7 @@ export class UsuarioService {
   async updateUsuario(
     dni: number,
     updateDto: UpdateUsuarioDto,
-    currentUserRol: ValidRoles,
+    currentUserRoles: ValidRoles[],
   ): Promise<ObjectServiceResponse<Record<string, unknown>>> {
     try {
       // campos solo para admin
@@ -267,7 +288,9 @@ export class UsuarioService {
       );
 
       // se verifica el caso de que se quiera modificar un campo de admin sin ser admin
-      if (hasAdminFields && currentUserRol !== ValidRoles.admin) {
+      const isAdmin = currentUserRoles.includes(ValidRoles.admin);
+      const isSuperadmin = currentUserRoles.includes(ValidRoles.superadmin);
+      if (hasAdminFields && !isAdmin && !isSuperadmin) {
         return {
           success: false,
           data: {},
@@ -282,6 +305,45 @@ export class UsuarioService {
 
       if (!usuario) {
         throw new BadRequestException(`Usuario con DNI ${dni} no encontrado`);
+      }
+
+      // Validar si el usuario a modificar es admin - solo superadmin puede hacerlo
+      const usuarioRoles = usuario.usuarioRoles?.map((ur) => ur.rol.rol) ?? [];
+      if (usuarioRoles.includes(ValidRoles.admin) && !isSuperadmin) {
+        throw new UnauthorizedException(
+          'Solo un superadmin puede modificar usuarios con rol admin',
+        );
+      }
+
+      //Validar que si los roles a asignar son admin, el current user sea superadmin
+      const rolesToAdd = await this.rolRepository.findBy({
+        id: In([...(updateDto.rol_ids || [])]),
+      });
+      if (
+        rolesToAdd.some((rol) => rol.rol === ValidRoles.admin) &&
+        !isSuperadmin
+      ) {
+        throw new UnauthorizedException(
+          'Solo un superadmin puede asignar el rol admin',
+        );
+      }
+
+      // Validar que no se intente asignar el rol superadmin (singleton)
+      if (updateDto.rol_ids && updateDto.rol_ids.length > 0) {
+        const rolesAAsignar = await Promise.all(
+          updateDto.rol_ids.map((id) =>
+            this.rolRepository.findOne({ where: { id } }),
+          ),
+        );
+
+        const tieneRolSuperadmin = rolesAAsignar.some(
+          (rol) => rol && rol.rol === ValidRoles.superadmin,
+        );
+        if (tieneRolSuperadmin) {
+          throw new BadRequestException(
+            'No se puede asignar el rol superadmin, es un rol único (singleton)',
+          );
+        }
       }
 
       // Objeto para almacenar los cambios realizados
@@ -490,8 +552,29 @@ export class UsuarioService {
   }
 
   // Roles
-  async addRol(dto: AssignRolDto, dni: number): Promise<Rol> {
+  async addRol(
+    dto: AssignRolDto,
+    dni: number,
+    currentUserRoles?: ValidRoles[],
+  ): Promise<Rol> {
     try {
+      // Validar que no se intente asignar el rol superadmin (singleton)
+      if (dto.rol === ValidRoles.superadmin) {
+        throw new BadRequestException(
+          'No se puede asignar el rol superadmin, es un rol único (singleton)',
+        );
+      }
+
+      // Validar que solo superadmin pueda asignar rol admin
+      if (
+        dto.rol === ValidRoles.admin &&
+        !currentUserRoles?.includes(ValidRoles.superadmin)
+      ) {
+        throw new UnauthorizedException(
+          'Solo un superadmin puede asignar el rol admin',
+        );
+      }
+
       const usuario = await this.usuarioRepository.findOne({
         where: { dni },
         relations: ['usuarioRoles'],

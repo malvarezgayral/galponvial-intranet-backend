@@ -11,3 +11,9 @@ id,rol,permisos
 10,admin,almacen-comun:write
 11,admin,all:read
 12,admin,all:write
+13,superadmin,almacen-taller:read
+14,superadmin,almacen-taller:write
+15,superadmin,almacen-comun:read
+16,superadmin,almacen-comun:write
+17,superadmin,all:read
+18,superadmin,all:write

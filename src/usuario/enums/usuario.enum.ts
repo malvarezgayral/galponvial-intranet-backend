@@ -13,6 +13,7 @@ export enum Permisos {
 export const ValidPermissions = Permisos;
 
 export enum ValidRoles {
+  superadmin = 'superadmin', //unique singleton, all permissions (write/read)
   admin = 'admin', //all permissions (write/read)
   superUser = 'superuser', //some permissions
   user = 'user', //basic permissions (read-only)
