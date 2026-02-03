@@ -73,7 +73,8 @@ export class AlmacenService {
       .createQueryBuilder('articulo')
       .leftJoinAndSelect('articulo.grupo', 'grupo')
       .leftJoinAndSelect('articulo.unidadMedida', 'unidad')
-      .leftJoinAndSelect('grupo.sector', 'sector');
+      .leftJoinAndSelect('grupo.sector', 'sector')
+      .where('articulo.isDeleted = :isDeleted', { isDeleted: false });
 
     // Aplicar filtros según permisos del usuario
     if (userPermissions && userPermissions.length > 0) {
@@ -189,7 +190,7 @@ export class AlmacenService {
   ): Promise<void> {
     // Obtener el artículo con su grupo y sector
     const articulo = await this.articuloRepo.findOne({
-      where: { cod: articuloCod },
+      where: { cod: articuloCod, isDeleted: false },
       relations: ['grupo', 'grupo.sector'],
     });
 
@@ -237,7 +238,7 @@ export class AlmacenService {
     userPermissions?: Permisos[],
   ) {
     const art = await this.articuloRepo.findOne({
-      where: { cod },
+      where: { cod, isDeleted: false },
       relations: ['grupo', 'grupo.sector', 'unidadMedida'],
     });
 
@@ -306,9 +307,15 @@ export class AlmacenService {
       await this.validateWritePermissionByArticuloCod(cod, userPermissions);
     }
 
-    const r = await this.articuloRepo.delete({ cod });
-    if (r.affected === 0)
+    const articulo = await this.articuloRepo.findOne({
+      where: { cod, isDeleted: false },
+    });
+    if (!articulo) {
       throw new NotFoundException(`Artículo ${cod} no encontrado`);
+    }
+
+    // Realizar soft delete
+    await this.articuloRepo.update({ cod }, { isDeleted: true });
 
     return true;
   }
@@ -317,7 +324,7 @@ export class AlmacenService {
 
   async getArticleById(id: number) {
     const articulo = await this.articuloRepo.findOne({
-      where: { cod: id },
+      where: { cod: id, isDeleted: false },
       // Cargamos relaciones por si en el futuro quieres mostrar el Grupo o la Unidad
       relations: ['grupo', 'unidadMedida'],
     });
@@ -382,7 +389,7 @@ export class AlmacenService {
     }
 
     const articulos = await this.articuloRepo.find({
-      where: { grupo: { id } },
+      where: { grupo: { id }, isDeleted: false },
     });
 
     const articulosDto: UpdateArticuloDto[] = articulos.map((a) => ({
@@ -422,6 +429,7 @@ export class AlmacenService {
     }
 
     const g = this.grupoRepo.create(dto);
+    g.sector = sector;
     return await this.grupoRepo.save(g);
   }
 
@@ -470,7 +478,7 @@ export class AlmacenService {
     codArticulo: number,
   ): Promise<MovimientoDTO[]> {
     const articulo = await this.articuloRepo.findOne({
-      where: { cod: codArticulo },
+      where: { cod: codArticulo, isDeleted: false },
     });
 
     if (!articulo) {
@@ -520,6 +528,7 @@ export class AlmacenService {
 
   async createMovimiento(
     dto: CreateEntradaDto | CreateSalidaDto,
+    dniUsuario: number,
     userPermissions?: Permisos[],
   ) {
     return await this.dataSource.transaction(async (manager) => {
@@ -543,7 +552,7 @@ export class AlmacenService {
       // 2. Buscar Artículo
       // -------------------------
       const articulo = await manager.getRepository(Articulo).findOne({
-        where: { cod: dto.cod_articulo },
+        where: { cod: dto.cod_articulo, isDeleted: false },
         relations: ['grupo', 'grupo.sector'],
       });
 
@@ -570,7 +579,7 @@ export class AlmacenService {
         tipo: esEntrada ? MovimientoTipo.ENTRADA : MovimientoTipo.SALIDA,
         fecha: new Date(),
         articulo,
-        usuario_id: 12345678,
+        usuario_id: dniUsuario,
       });
 
       const movimientoGuardado = await manager
@@ -632,7 +641,7 @@ export class AlmacenService {
    */
   async getSectorTipoByArticulo(codArticulo: number): Promise<SectorTipo> {
     const articulo = await this.articuloRepo.findOne({
-      where: { cod: codArticulo },
+      where: { cod: codArticulo, isDeleted: false },
       relations: ['grupo', 'grupo.sector'],
     });
 

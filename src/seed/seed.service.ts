@@ -100,12 +100,13 @@ export class SeedService {
       results['salida'] = await this.seedSalidas();
       results['combustible_carga'] = await this.seedCombustibleCarga();
       results['status_update'] = await this.seedStatusUpdate();
-      results['recordatorio'] = await this.seedRecordatorios();
 
       // Orden de inserción para módulo usuario (respetando FK)
-      // results['rol'] = await this.seedRoles();
-      // results['usuario'] = await this.seedUsuarios();
+      results['rol'] = await this.seedRoles();
+      results['usuario'] = await this.seedUsuarios();
       results['usuario_rol'] = await this.seedUsuariosRoles();
+      results['recordatorio'] = await this.seedRecordatorios();
+
       results['refresh_token'] = await this.seedRefreshTokens();
       results['usuario_vehiculo'] = await this.seedUsuariosVehiculos();
       results['reporte_incidente'] = await this.seedReportesIncidentes();
