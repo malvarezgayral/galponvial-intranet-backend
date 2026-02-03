@@ -51,4 +51,7 @@ export class Articulo {
 
   @OneToMany(() => Movimiento, (mov) => mov.articulo)
   movimientos: Movimiento[];
+
+  @Column({ type: 'boolean', default: false })
+  isDeleted: boolean;
 }
