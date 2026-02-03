@@ -46,6 +46,7 @@ import {
 } from '../usuario/decorators/almacen-permissions.decorator';
 import { GetUser } from '../usuario/decorators/get-user.decorator';
 import { Usuario } from '../usuario/entities/usuario.entity';
+import { SectorGalponDto } from './dto/sector-galpon.dto';
 
 @ApiTags('Almacén')
 @ApiExtraModels(CreateEntradaDto, CreateSalidaDto)
@@ -207,6 +208,30 @@ export class AlmacenController {
     );
 
     return await this.almacenService.deleteArticle(cod, userPermissions);
+  }
+
+  // ---------------------- SECTORES ----------------------
+
+  @ApiOperation({ summary: 'Obtener todos los sectores del almacén' })
+  @ApiResponse({
+    status: 200,
+    description: 'Listado de sectores del galpón',
+    type: [SectorGalponDto],
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'No autorizado',
+  })
+  @Get('sectores')
+  @Auth()
+  @UseGuards(AlmacenPermissionsGuard)
+  @AlmacenReadPermissions(
+    Permisos.ALMACEN_TALLER_READ,
+    Permisos.ALMACEN_COMUN_READ,
+    Permisos.ALL_READ,
+  )
+  async getAllSectores(): Promise<SectorGalponDto[]> {
+    return await this.almacenService.getAllSectores();
   }
 
   // ---------------------- GRUPOS ----------------------
