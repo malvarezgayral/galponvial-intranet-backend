@@ -374,7 +374,11 @@ export class AlmacenController {
     const userPermissions: Permisos[] = userRoles.flatMap(
       (role) => role.permisos ?? [],
     );
-
-    return await this.almacenService.createMovimiento(dto, userPermissions);
+    const dni = user.dni;
+    return await this.almacenService.createMovimiento(
+      dto,
+      dni,
+      userPermissions,
+    );
   }
 }

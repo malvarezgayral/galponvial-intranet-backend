@@ -521,6 +521,7 @@ export class AlmacenService {
 
   async createMovimiento(
     dto: CreateEntradaDto | CreateSalidaDto,
+    dniUsuario: number,
     userPermissions?: Permisos[],
   ) {
     return await this.dataSource.transaction(async (manager) => {
@@ -571,7 +572,7 @@ export class AlmacenService {
         tipo: esEntrada ? MovimientoTipo.ENTRADA : MovimientoTipo.SALIDA,
         fecha: new Date(),
         articulo,
-        usuario_id: 12345678,
+        usuario_id: dniUsuario,
       });
 
       const movimientoGuardado = await manager
