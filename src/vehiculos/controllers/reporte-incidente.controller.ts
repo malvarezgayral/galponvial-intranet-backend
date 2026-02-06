@@ -4,6 +4,7 @@ import { ReporteIncidenteService } from '../services/reporte-incidente.service';
 import { FiltrosIncidenteDto } from '../dto/filtros.dto';
 import { Auth } from 'src/usuario/decorators/auth.decorator';
 import { ValidRoles } from 'src/usuario/enums/usuario.enum';
+import { ReporteIncidenteResponseDto } from '../dto/reporte-incidente-response.dto';
 
 @ApiTags('Vehículos - Incidentes')
 @Controller('incidentes')
@@ -21,15 +22,20 @@ export class ReporteIncidenteController {
   @ApiResponse({
     status: 200,
     description: 'Listado de incidentes',
+    type: [ReporteIncidenteResponseDto],
   })
   @Get()
   @Auth()
-  findAll(@Query() filtros: FiltrosIncidenteDto) {
+  findAll(
+    @Query() filtros: FiltrosIncidenteDto,
+  ): Promise<ReporteIncidenteResponseDto[]> {
     return this.reporteIncidenteService.findAll(filtros);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ReporteIncidenteResponseDto> {
     return this.reporteIncidenteService.findOne(id);
   }
 }

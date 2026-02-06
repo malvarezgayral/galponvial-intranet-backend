@@ -28,10 +28,10 @@ import { ValidRoles } from 'src/usuario/enums/usuario.enum';
 import { CreateReporteIncidenteDto } from '../dto/create-reporte-incidente.dto';
 import { CreateCombustibleCargaDto } from '../dto/create-combustible-carga.dto';
 import { ObjectServiceResponse } from 'src/usuario/interfaces/object-service-response.interface';
+import { ReporteIncidenteResponseDto } from '../dto/reporte-incidente-response.dto';
 import { Vehiculo } from '../entities/vehiculo.entity';
 import { StatusUpdate } from '../entities/status-update.entity';
 import { CombustibleCarga } from '../entities/combustible-carga.entity';
-import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
 import {
   VehiculoStatus,
   TipoVehiculo,
@@ -158,6 +158,7 @@ export class VehiculosController {
   @ApiResponse({
     status: 201,
     description: 'Incidente registrado correctamente',
+    type: ReporteIncidenteResponseDto,
   })
   @ApiResponse({
     status: 404,
@@ -168,7 +169,7 @@ export class VehiculosController {
   agregarIncidente(
     @Param('id') dni: number,
     @Body() createReporteIncidenteDto: CreateReporteIncidenteDto,
-  ) {
+  ): Promise<ReporteIncidenteResponseDto> {
     return this.vehiculosService.agregarIncidente(
       dni,
       createReporteIncidenteDto,
@@ -246,7 +247,7 @@ export class VehiculosController {
     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
   ): Promise<
     ObjectServiceResponse<{
-      data: ReporteIncidente[];
+      data: ReporteIncidenteResponseDto[];
       total: number;
       page: number;
       pageSize: number;

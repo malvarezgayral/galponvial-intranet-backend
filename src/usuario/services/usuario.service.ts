@@ -34,6 +34,13 @@ import {
 import { DeActivateUserDto } from '../dto/de-activate.dto';
 import { ValidRoles } from '../enums/usuario.enum';
 import { RefToken } from './ref-token.service';
+import {
+  UsuarioResponseDto,
+  UsuarioMinimalResponseDto,
+} from '../dto/usuario-response.dto';
+import { ReporteIncidenteResponseDto } from '../../vehiculos/dto/reporte-incidente-response.dto';
+import { ServicioResponseDto } from '../../vehiculos/dto/servicio-response.dto';
+import { RecordatorioResponseDto } from '../../vehiculos/dto/recordatorio-response.dto';
 
 @Injectable()
 export class UsuarioService {
@@ -60,6 +67,146 @@ export class UsuarioService {
     @Inject(forwardRef(() => RefToken))
     private refTokenService: RefToken,
   ) {}
+
+  // ===== MÉTODOS HELPER PARA FILTRADO DE DATOS SENSIBLES =====
+
+  /**
+   * Filtra un Usuario para devolver solo datos públicos
+   */
+  private filterUsuarioResponse(usuario: Usuario): UsuarioResponseDto | null {
+    if (!usuario) return null;
+    return {
+      dni: usuario.dni,
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      email: usuario.email,
+      isActive: usuario.isActive,
+      fecha_alta: usuario.fecha_alta,
+      fecha_baja: usuario.fecha_baja,
+      roles: usuario.roles,
+    };
+  }
+
+  /**
+   * Filtra un Usuario para devolver información mínima
+   */
+  private filterUsuarioMinimal(
+    usuario: Usuario,
+  ): UsuarioMinimalResponseDto | null {
+    if (!usuario) return null;
+    return {
+      dni: usuario.dni,
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      email: usuario.email,
+    };
+  }
+
+  /**
+   * Filtra un array de Usuarios
+   */
+  private filterUsuariosResponse(usuarios: Usuario[]): UsuarioResponseDto[] {
+    if (!usuarios || usuarios.length === 0) return [];
+    return usuarios
+      .map((u) => this.filterUsuarioResponse(u))
+      .filter((u) => u !== null);
+  }
+
+  /**
+   * Filtra ReporteIncidente para devolver sin datos sensibles
+   */
+  private filterReporteIncidenteResponse(
+    incidente: any,
+  ): ReporteIncidenteResponseDto | null {
+    if (!incidente) return null;
+    return {
+      id: incidente.id,
+      fecha: incidente.fecha,
+      tipo: incidente.tipo,
+      descripcion: incidente.descripcion,
+      falla: incidente.falla,
+      estado: incidente.estado,
+      id_vehiculo: incidente.id_vehiculo,
+      usuario: incidente.usuario
+        ? (this.filterUsuarioMinimal(
+            incidente.usuario,
+          ) as UsuarioMinimalResponseDto)
+        : undefined,
+      vehiculo: incidente.vehiculo,
+      servicios: incidente.servicios,
+    };
+  }
+
+  /**
+   * Filtra un array de ReporteIncidente
+   */
+  private filterReportesIncidenteResponse(
+    reportes: any[],
+  ): ReporteIncidenteResponseDto[] {
+    if (!reportes || reportes.length === 0) return [];
+    return reportes
+      .map((r) => this.filterReporteIncidenteResponse(r))
+      .filter((r) => r !== null);
+  }
+
+  /**
+   * Filtra Servicio para devolver sin datos sensibles en relaciones
+   */
+  private filterServicioResponse(servicio: any): ServicioResponseDto | null {
+    if (!servicio) return null;
+    return {
+      id: servicio.id,
+      tipo: servicio.tipo,
+      fecha_inicio: servicio.fecha_inicio,
+      fecha_hasta: servicio.fecha_hasta,
+      descripcion: servicio.descripcion,
+      incidente_id: servicio.incidente_id,
+      incidente: servicio.incidente
+        ? this.filterReporteIncidenteResponse(servicio.incidente)
+        : undefined,
+    };
+  }
+
+  /**
+   * Filtra un array de Servicio
+   */
+  private filterServiciosResponse(servicios: any[]): ServicioResponseDto[] {
+    if (!servicios || servicios.length === 0) return [];
+    return servicios
+      .map((s) => this.filterServicioResponse(s))
+      .filter((s) => s !== null);
+  }
+
+  /**
+   * Filtra Recordatorio para devolver sin datos sensibles
+   */
+  private filterRecordatorioResponse(
+    recordatorio: any,
+  ): RecordatorioResponseDto | null {
+    if (!recordatorio) return null;
+    return {
+      id: recordatorio.id,
+      fecha: recordatorio.fecha,
+      descripcion: recordatorio.descripcion,
+      usuario: recordatorio.usuario
+        ? (this.filterUsuarioMinimal(
+            recordatorio.usuario,
+          ) as UsuarioMinimalResponseDto)
+        : undefined,
+    };
+  }
+
+  /**
+   * Filtra un array de Recordatorio
+   */
+  private filterRecordatoriosResponse(
+    recordatorios: any[],
+  ): RecordatorioResponseDto[] {
+    if (!recordatorios || recordatorios.length === 0) return [];
+    return recordatorios
+      .map((r) => this.filterRecordatorioResponse(r))
+      .filter((r) => r !== null);
+  }
 
   // Usuarios
   async crearUsuario(CreateUsuarioDto: CreateUsuarioDto) {
@@ -88,7 +235,10 @@ export class UsuarioService {
     return await this.usuarioRepository.save(usuario);
   }
 
-  async obtenerUsuarios(page?: number, pageSize?: number): Promise<Usuario[]> {
+  async obtenerUsuarios(
+    page?: number,
+    pageSize?: number,
+  ): Promise<UsuarioResponseDto[]> {
     const query = this.usuarioRepository
       .createQueryBuilder('usuario')
       .leftJoinAndSelect('usuario.usuarioRoles', 'usuarioRoles')
@@ -99,10 +249,28 @@ export class UsuarioService {
       query.skip(skip).take(pageSize);
     }
 
-    return await query.getMany();
+    const usuarios = await query.getMany();
+    return this.filterUsuariosResponse(usuarios);
   }
 
-  async obtenerUsuarioPorDni(dni: number): Promise<Usuario | null> {
+  async obtenerUsuarioPorDni(dni: number): Promise<UsuarioResponseDto | null> {
+    const usuario = await this.usuarioRepository.findOne({
+      where: { dni },
+      relations: [
+        'usuarioRoles',
+        'usuarioRoles.rol',
+        'vehiculos',
+        'reportesIncidentes',
+      ],
+    });
+    return usuario ? this.filterUsuarioResponse(usuario) : null;
+  }
+
+  /**
+   * PARA USO INTERNO: Obtienne Usuario completo sin filtrados (incluyendo datos sensibles)
+   * NO usar en endpoints, solo para lógica interna de servicios
+   */
+  async obtenerUsuarioPorDniInternal(dni: number): Promise<Usuario | null> {
     return await this.usuarioRepository.findOne({
       where: { dni },
       relations: [
@@ -632,33 +800,40 @@ export class UsuarioService {
 
   // Reportes
 
-  async obtenerReportes(): Promise<ReporteIncidente[]> {
-    return this.reporteIncidenteRepository.find({
+  async obtenerReportes(): Promise<ReporteIncidenteResponseDto[]> {
+    const reportes = await this.reporteIncidenteRepository.find({
       relations: ['usuario', 'vehiculo', 'servicios'],
     });
+    return this.filterReportesIncidenteResponse(reportes);
   }
 
   async obtenerReportesPorUsuario(
     id_usuario: number,
-  ): Promise<ReporteIncidente[]> {
-    return this.reporteIncidenteRepository.find({
+  ): Promise<ReporteIncidenteResponseDto[]> {
+    const reportes = await this.reporteIncidenteRepository.find({
       where: { id_usuario },
       relations: ['vehiculo', 'servicios'],
     });
+    return this.filterReportesIncidenteResponse(reportes);
   }
 
   // Servicios
 
-  async obtenerServicios(): Promise<Servicio[]> {
-    return this.servicioRepository.find({ relations: ['incidente'] });
+  async obtenerServicios(): Promise<ServicioResponseDto[]> {
+    const servicios = await this.servicioRepository.find({
+      relations: ['incidente', 'incidente.vehiculo', 'incidente.usuario'],
+    });
+    return this.filterServiciosResponse(servicios);
   }
 
   async obtenerServiciosPorIncidente(
     incidente_id: number,
-  ): Promise<Servicio[]> {
-    return this.servicioRepository.find({
+  ): Promise<ServicioResponseDto[]> {
+    const servicios = await this.servicioRepository.find({
       where: { incidente_id },
+      relations: ['incidente', 'incidente.vehiculo', 'incidente.usuario'],
     });
+    return this.filterServiciosResponse(servicios);
   }
 
   // ===== Recordatorios =====
@@ -666,7 +841,7 @@ export class UsuarioService {
   async agregarRecordatorio(
     dni: number,
     data: { fecha: Date; descripcion: string },
-  ): Promise<Recordatorio> {
+  ): Promise<RecordatorioResponseDto> {
     const usuario = await this.usuarioRepository.findOne({
       where: { dni },
     });
@@ -681,26 +856,42 @@ export class UsuarioService {
       usuario,
     });
 
-    return await this.recordatorioRepository.save(recordatorio);
+    const recordatorioGuardado =
+      await this.recordatorioRepository.save(recordatorio);
+
+    // Cargar con relaciones para filtrar
+    const recordatorioCompleto = await this.recordatorioRepository.findOne({
+      where: { id: recordatorioGuardado.id },
+      relations: ['usuario'],
+    });
+
+    return this.filterRecordatorioResponse(
+      recordatorioCompleto,
+    ) as RecordatorioResponseDto;
   }
 
-  async getRecordatoriosByUsuario(dni: number): Promise<Recordatorio[]> {
-    return this.recordatorioRepository.find({
+  async getRecordatoriosByUsuario(
+    dni: number,
+  ): Promise<RecordatorioResponseDto[]> {
+    const recordatorios = await this.recordatorioRepository.find({
       where: {
         usuario: { dni },
       },
+      relations: ['usuario'],
       order: {
         fecha: 'ASC',
       },
     });
+    return this.filterRecordatoriosResponse(recordatorios);
   }
 
   async updateRecordatorio(
     recordatorioId: number,
     data: { fecha?: Date; descripcion?: string },
-  ): Promise<Recordatorio> {
+  ): Promise<RecordatorioResponseDto> {
     const recordatorio = await this.recordatorioRepository.findOne({
       where: { id: recordatorioId },
+      relations: ['usuario'],
     });
 
     if (!recordatorio) {
@@ -715,7 +906,11 @@ export class UsuarioService {
       recordatorio.descripcion = data.descripcion;
     }
 
-    return this.recordatorioRepository.save(recordatorio);
+    const recordatorioActualizado =
+      await this.recordatorioRepository.save(recordatorio);
+    return this.filterRecordatorioResponse(
+      recordatorioActualizado,
+    ) as RecordatorioResponseDto;
   }
 
   async getRecordatoriosPaginado(
@@ -723,7 +918,7 @@ export class UsuarioService {
     page: number = 1,
     pageSize: number = 10,
   ): Promise<{
-    data: Recordatorio[];
+    data: RecordatorioResponseDto[];
     total: number;
     page: number;
     pageSize: number;
@@ -739,6 +934,11 @@ export class UsuarioService {
       order: { fecha: 'ASC' },
     });
 
-    return { data, total, page, pageSize };
+    return {
+      data: this.filterRecordatoriosResponse(data),
+      total,
+      page,
+      pageSize,
+    };
   }
 }

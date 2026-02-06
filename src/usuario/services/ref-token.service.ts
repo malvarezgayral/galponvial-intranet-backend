@@ -25,7 +25,7 @@ export class RefToken {
     dni: number;
   }): Promise<RefreshToken> {
     const usuario: Usuario | null =
-      await this.usuarioService.obtenerUsuarioPorDni(dni);
+      await this.usuarioService.obtenerUsuarioPorDniInternal(dni);
 
     if (!usuario) {
       throw new Error('User not found');

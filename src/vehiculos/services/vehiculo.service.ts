@@ -21,6 +21,8 @@ import { Usuario } from 'src/usuario/entities/usuario.entity';
 import { CreateReporteIncidenteDto } from '../dto/create-reporte-incidente.dto';
 import { CreateCombustibleCargaDto } from '../dto/create-combustible-carga.dto';
 import { FallaIncidente } from 'src/usuario/enums/usuario.enum';
+import { ReporteIncidenteResponseDto } from '../dto/reporte-incidente-response.dto';
+import { UsuarioMinimalResponseDto } from 'src/usuario/dto/usuario-response.dto';
 
 @Injectable()
 export class VehiculosService {
@@ -41,6 +43,44 @@ export class VehiculosService {
     private readonly usuarioRepository: Repository<Usuario>,
     private readonly statusUpdateService: StatusUpdateService,
   ) {}
+
+  // ===== MÉTODOS HELPER PARA FILTRADO DE DATOS SENSIBLES =====
+
+  /**
+   * Filtra un Usuario para devolver información mínima
+   */
+  private filterUsuarioMinimal(usuario: any): UsuarioMinimalResponseDto | null {
+    if (!usuario) return null;
+    return {
+      dni: usuario.dni,
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      email: usuario.email,
+    };
+  }
+
+  /**
+   * Filtra ReporteIncidente para devolver sin datos sensibles
+   */
+  private filterReporteIncidenteResponse(
+    incidente: any,
+  ): ReporteIncidenteResponseDto | null {
+    if (!incidente) return null;
+    return {
+      id: incidente.id,
+      fecha: incidente.fecha,
+      tipo: incidente.tipo,
+      descripcion: incidente.descripcion,
+      falla: incidente.falla,
+      estado: incidente.estado,
+      id_vehiculo: incidente.id_vehiculo,
+      usuario: incidente.usuario
+        ? this.filterUsuarioMinimal(incidente.usuario) || undefined
+        : undefined,
+      vehiculo: incidente.vehiculo,
+      servicios: incidente.servicios,
+    };
+  }
 
   async create(createVehiculoDto: CreateVehiculoDto): Promise<Vehiculo> {
     const { infoAdicional, ...vehiculoData } = createVehiculoDto;
@@ -320,7 +360,7 @@ export class VehiculosService {
     page: number = 1,
     pageSize: number = 10,
   ): Promise<{
-    data: ReporteIncidente[];
+    data: ReporteIncidenteResponseDto[];
     total: number;
     page: number;
     pageSize: number;
@@ -330,13 +370,20 @@ export class VehiculosService {
 
     const [data, total] = await this.reporteIncidenteRepository.findAndCount({
       where: { vehiculo: { id_vehiculo: idVehiculo } },
-      relations: ['usuario', 'vehiculo'],
+      relations: ['usuario', 'vehiculo', 'servicios'],
       skip: (page - 1) * pageSize,
       take: pageSize,
       order: { fecha: 'DESC' },
     });
 
-    return { data, total, page, pageSize };
+    return {
+      data: data
+        .map((incidente) => this.filterReporteIncidenteResponse(incidente))
+        .filter((i) => i !== null),
+      total,
+      page,
+      pageSize,
+    };
   }
 
   async getCombustibleCargasPaginado(
@@ -366,7 +413,7 @@ export class VehiculosService {
   async agregarIncidente(
     idVehiculo: number,
     data: CreateReporteIncidenteDto,
-  ): Promise<ReporteIncidente> {
+  ): Promise<ReporteIncidenteResponseDto> {
     const vehiculo = await this.findOne(idVehiculo);
 
     const usuarioReportante = await this.usuarioRepository.findOne({
@@ -397,7 +444,18 @@ export class VehiculosService {
     incidente.usuario = usuarioReportante;
     incidente.id_usuario = usuarioReportante.dni;
 
-    return await this.reporteIncidenteRepository.save(incidente);
+    const incidenteGuardado =
+      await this.reporteIncidenteRepository.save(incidente);
+
+    // Cargar con las relaciones completas para el filtrado
+    const incidenteCompleto = await this.reporteIncidenteRepository.findOne({
+      where: { id: incidenteGuardado.id },
+      relations: ['vehiculo', 'usuario', 'servicios'],
+    });
+
+    return this.filterReporteIncidenteResponse(
+      incidenteCompleto,
+    ) as ReporteIncidenteResponseDto;
   }
 
   async agregarCombustibleCarga(

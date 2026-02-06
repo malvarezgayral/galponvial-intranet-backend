@@ -14,6 +14,9 @@ import { ReporteIncidenteService } from './reporte-incidente.service';
 import { VehiculosService } from './vehiculo.service';
 import { VehiculoStatus } from '../enums/vehiculo.enum';
 import { StatusUpdateService } from './status-update.service';
+import { ServicioResponseDto } from '../dto/servicio-response.dto';
+import { UsuarioMinimalResponseDto } from 'src/usuario/dto/usuario-response.dto';
+import { ReporteIncidenteResponseDto } from '../dto/reporte-incidente-response.dto';
 
 @Injectable()
 export class ServicioService {
@@ -25,7 +28,77 @@ export class ServicioService {
     private readonly statusUpdateService: StatusUpdateService,
   ) {}
 
-  async create(createServicioDto: CreateServicioDto): Promise<Servicio> {
+  // ===== MÉTODOS HELPER PARA FILTRADO DE DATOS SENSIBLES =====
+
+  /**
+   * Filtra ReporteIncidente para devolver sin datos sensibles
+   */
+  private filterReporteIncidenteResponse(
+    incidente: any,
+  ): ReporteIncidenteResponseDto | null {
+    if (!incidente) return null;
+    return {
+      id: incidente.id,
+      fecha: incidente.fecha,
+      tipo: incidente.tipo,
+      descripcion: incidente.descripcion,
+      falla: incidente.falla,
+      estado: incidente.estado,
+      id_vehiculo: incidente.id_vehiculo,
+      usuario: incidente.usuario
+        ? (this.filterUsuarioMinimal(
+            incidente.usuario,
+          ) as UsuarioMinimalResponseDto)
+        : undefined,
+      vehiculo: incidente.vehiculo,
+      servicios: incidente.servicios,
+    };
+  }
+
+  /**
+   * Filtra un Usuario para devolver información mínima
+   */
+  private filterUsuarioMinimal(usuario: any): UsuarioMinimalResponseDto | null {
+    if (!usuario) return null;
+    return {
+      dni: usuario.dni,
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      email: usuario.email,
+    };
+  }
+
+  /**
+   * Filtra Servicio para devolver sin datos sensibles en relaciones
+   */
+  private filterServicioResponse(servicio: any): ServicioResponseDto | null {
+    if (!servicio) return null;
+    return {
+      id: servicio.id,
+      tipo: servicio.tipo,
+      fecha_inicio: servicio.fecha_inicio,
+      fecha_hasta: servicio.fecha_hasta,
+      descripcion: servicio.descripcion,
+      incidente_id: servicio.incidente_id,
+      incidente: servicio.incidente
+        ? this.filterReporteIncidenteResponse(servicio.incidente)
+        : undefined,
+    };
+  }
+
+  /**
+   * Filtra un array de Servicio
+   */
+  private filterServiciosResponse(servicios: any[]): ServicioResponseDto[] {
+    if (!servicios || servicios.length === 0) return [];
+    return servicios
+      .map((s) => this.filterServicioResponse(s))
+      .filter((s) => s !== null);
+  }
+
+  async create(
+    createServicioDto: CreateServicioDto,
+  ): Promise<ServicioResponseDto> {
     // Obtener el vehículo según si hay incidente o no
     let vehiculo;
     let incidente;
@@ -100,7 +173,9 @@ export class ServicioService {
         throw new NotFoundException('Error al recuperar el servicio creado');
       }
 
-      return servicioCompleto;
+      return this.filterServicioResponse(
+        servicioCompleto,
+      ) as ServicioResponseDto;
     } catch (error) {
       throw new BadRequestException(
         'Error al crear servicio: ' +
@@ -109,14 +184,15 @@ export class ServicioService {
     }
   }
 
-  async findAll(): Promise<Servicio[]> {
-    return await this.servicioRepository.find({
+  async findAll(): Promise<ServicioResponseDto[]> {
+    const servicios = await this.servicioRepository.find({
       relations: ['incidente', 'incidente.vehiculo', 'incidente.usuario'],
       order: { fecha_inicio: 'DESC' },
     });
+    return this.filterServiciosResponse(servicios);
   }
 
-  async findOne(id: number): Promise<Servicio> {
+  async findOne(id: number): Promise<ServicioResponseDto> {
     const servicio = await this.servicioRepository.findOne({
       where: { id },
       relations: ['incidente', 'incidente.vehiculo', 'incidente.usuario'],
@@ -126,23 +202,24 @@ export class ServicioService {
       throw new NotFoundException(`Servicio con ID ${id} no encontrado`);
     }
 
-    return servicio;
+    return this.filterServicioResponse(servicio) as ServicioResponseDto;
   }
 
-  async findByIncidente(idIncidente: number): Promise<Servicio[]> {
+  async findByIncidente(idIncidente: number): Promise<ServicioResponseDto[]> {
     await this.reporteIncidenteService.findOne(idIncidente);
 
-    return await this.servicioRepository.find({
+    const servicios = await this.servicioRepository.find({
       where: { incidente_id: idIncidente },
-      relations: ['incidente', 'incidente.vehiculo'],
+      relations: ['incidente', 'incidente.vehiculo', 'incidente.usuario'],
       order: { fecha_inicio: 'DESC' },
     });
+    return this.filterServiciosResponse(servicios);
   }
 
-  async findByVehiculo(idVehiculo: number): Promise<Servicio[]> {
+  async findByVehiculo(idVehiculo: number): Promise<ServicioResponseDto[]> {
     await this.vehiculosService.findOne(idVehiculo);
 
-    return await this.servicioRepository.find({
+    const servicios = await this.servicioRepository.find({
       where: {
         incidente: {
           id_vehiculo: idVehiculo,
@@ -151,5 +228,6 @@ export class ServicioService {
       relations: ['incidente', 'incidente.vehiculo', 'incidente.usuario'],
       order: { fecha_inicio: 'DESC' },
     });
+    return this.filterServiciosResponse(servicios);
   }
 }
