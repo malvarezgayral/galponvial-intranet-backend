@@ -37,6 +37,7 @@ import { RefToken } from './ref-token.service';
 import {
   UsuarioResponseDto,
   UsuarioMinimalResponseDto,
+  UsuarioRolResponseDto,
 } from '../dto/usuario-response.dto';
 import { ReporteIncidenteResponseDto } from '../../vehiculos/dto/reporte-incidente-response.dto';
 import { ServicioResponseDto } from '../../vehiculos/dto/servicio-response.dto';
@@ -73,6 +74,30 @@ export class UsuarioService {
   /**
    * Filtra un Usuario para devolver solo datos públicos
    */
+  private filterUsuarioRol(usuarioRol: any): UsuarioRolResponseDto | null {
+    if (!usuarioRol) return null;
+    return {
+      fecha_asignacion: usuarioRol.fecha_asignacion,
+      fecha_actualizacion: usuarioRol.fecha_actualizacion,
+      rol: usuarioRol.rol,
+    };
+  }
+
+  /**
+   * Filtra un array de UsuarioRol para excluir datos redundantes
+   */
+  private filterUsuariosRolesResponse(
+    usuarioRoles: any[],
+  ): UsuarioRolResponseDto[] {
+    if (!usuarioRoles || usuarioRoles.length === 0) return [];
+    return usuarioRoles
+      .map((ur) => this.filterUsuarioRol(ur))
+      .filter((ur) => ur !== null);
+  }
+
+  /**
+   * Filtra un Usuario para devolver solo datos públicos
+   */
   private filterUsuarioResponse(usuario: Usuario): UsuarioResponseDto | null {
     if (!usuario) return null;
     return {
@@ -83,7 +108,9 @@ export class UsuarioService {
       isActive: usuario.isActive,
       fecha_alta: usuario.fecha_alta,
       fecha_baja: usuario.fecha_baja,
-      roles: usuario.roles,
+      usuarioRoles: usuario.usuarioRoles
+        ? this.filterUsuariosRolesResponse(usuario.usuarioRoles)
+        : undefined,
     };
   }
 

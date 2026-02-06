@@ -2,6 +2,27 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Rol } from '../entities/rol.entity';
 
 /**
+ * DTO de respuesta para UsuarioRol sin datos redundantes
+ */
+export class UsuarioRolResponseDto {
+  @ApiProperty({
+    description: 'Fecha de asignación del rol',
+  })
+  fecha_asignacion: Date;
+
+  @ApiProperty({
+    description: 'Fecha de actualización del rol',
+  })
+  fecha_actualizacion: Date;
+
+  @ApiProperty({
+    description: 'Información del rol',
+    type: () => Rol,
+  })
+  rol: Rol;
+}
+
+/**
  * DTO de respuesta para Usuario sin datos sensibles (password, tokenVersion, etc)
  */
 export class UsuarioResponseDto {
@@ -47,10 +68,10 @@ export class UsuarioResponseDto {
   fecha_baja?: Date | null;
 
   @ApiPropertyOptional({
-    description: 'Roles del usuario',
-    type: () => Array,
+    description: 'Roles asignados al usuario',
+    type: () => [UsuarioRolResponseDto],
   })
-  roles?: Rol[];
+  usuarioRoles?: UsuarioRolResponseDto[];
 }
 
 /**
