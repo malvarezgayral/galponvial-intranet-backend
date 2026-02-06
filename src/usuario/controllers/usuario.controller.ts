@@ -32,9 +32,6 @@ import {
 import { Usuario } from '../entities/usuario.entity';
 import { Rol } from '../entities/rol.entity';
 import { UsuarioVehiculo } from '../entities/usuario-vehiculo.entity';
-import { ReporteIncidente } from '../entities/reporte-incidente.entity';
-import { Servicio } from '../entities/servicio.entity';
-import { Recordatorio } from '../../vehiculos/entities/recordatorio.entity';
 import { LoginUserDto } from '../dto/login.dto';
 import { Auth } from '../decorators/auth.decorator';
 import { GetUser } from '../decorators/get-user.decorator';
@@ -45,6 +42,10 @@ import {
 } from '../interfaces/object-service-response.interface';
 import { DeActivateUserDto } from '../dto/de-activate.dto';
 import { RefreshAuthGuard } from '../guards/refresh-auth.guard';
+import { UsuarioResponseDto } from '../dto/usuario-response.dto';
+import { ReporteIncidenteResponseDto } from '../../vehiculos/dto/reporte-incidente-response.dto';
+import { ServicioResponseDto } from '../../vehiculos/dto/servicio-response.dto';
+import { RecordatorioResponseDto } from '../../vehiculos/dto/recordatorio-response.dto';
 
 @ApiTags('Usuarios')
 @Controller('usuario')
@@ -128,14 +129,14 @@ export class UsuarioController {
   @ApiResponse({
     status: 200,
     description: 'Listado de usuarios',
-    type: [Usuario],
+    type: [UsuarioResponseDto],
   })
   @Get()
   @Auth()
   obtenerUsuarios(
     @Query('page') page?: number,
     @Query('pageSize') pageSize?: number,
-  ): Promise<Usuario[]> {
+  ): Promise<UsuarioResponseDto[]> {
     return this.usuarioService.obtenerUsuarios(page, pageSize);
   }
 
@@ -148,12 +149,14 @@ export class UsuarioController {
   @ApiResponse({
     status: 200,
     description: 'Usuario encontrado',
-    type: Usuario,
+    type: UsuarioResponseDto,
   })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
   @Get(':dni')
   @Auth()
-  obtenerUsuarioPorDni(@Param('dni') dni: number): Promise<Usuario | null> {
+  obtenerUsuarioPorDni(
+    @Param('dni') dni: number,
+  ): Promise<UsuarioResponseDto | null> {
     return this.usuarioService.obtenerUsuarioPorDni(dni);
   }
 
@@ -314,11 +317,11 @@ export class UsuarioController {
   @ApiResponse({
     status: 200,
     description: 'Listado de reportes',
-    type: [ReporteIncidente],
+    type: [ReporteIncidenteResponseDto],
   })
   @Get('reporte/all')
   @Auth()
-  obtenerReportes(): Promise<ReporteIncidente[]> {
+  obtenerReportes(): Promise<ReporteIncidenteResponseDto[]> {
     return this.usuarioService.obtenerReportes();
   }
 
@@ -331,13 +334,13 @@ export class UsuarioController {
   @ApiResponse({
     status: 200,
     description: 'Listado de reportes del usuario',
-    type: [ReporteIncidente],
+    type: [ReporteIncidenteResponseDto],
   })
   @Get(':id_usuario/reportes')
   @Auth()
   obtenerReportesPorUsuario(
     @Param('id_usuario') id_usuario: string,
-  ): Promise<ReporteIncidente[]> {
+  ): Promise<ReporteIncidenteResponseDto[]> {
     return this.usuarioService.obtenerReportesPorUsuario(parseInt(id_usuario));
   }
 
@@ -347,11 +350,11 @@ export class UsuarioController {
   @ApiResponse({
     status: 200,
     description: 'Listado de servicios',
-    type: [Servicio],
+    type: [ServicioResponseDto],
   })
   @Get('servicio/all')
   @Auth()
-  obtenerServicios(): Promise<Servicio[]> {
+  obtenerServicios(): Promise<ServicioResponseDto[]> {
     return this.usuarioService.obtenerServicios();
   }
 
@@ -364,13 +367,13 @@ export class UsuarioController {
   @ApiResponse({
     status: 200,
     description: 'Servicios asociados al incidente',
-    type: [Servicio],
+    type: [ServicioResponseDto],
   })
   @Get('servicio/incidente/:incidente_id')
   @Auth()
   obtenerServiciosPorIncidente(
     @Param('incidente_id') incidente_id: string,
-  ): Promise<Servicio[]> {
+  ): Promise<ServicioResponseDto[]> {
     return this.usuarioService.obtenerServiciosPorIncidente(
       parseInt(incidente_id),
     );
@@ -396,7 +399,7 @@ export class UsuarioController {
   @ApiResponse({
     status: 201,
     description: 'Recordatorio creado correctamente',
-    type: Recordatorio,
+    type: RecordatorioResponseDto,
   })
   @Post(':dni/recordatorios')
   @HttpCode(HttpStatus.CREATED)
@@ -404,7 +407,7 @@ export class UsuarioController {
   agregarRecordatorio(
     @Param('dni', ParseIntPipe) dni: number,
     @Body() data: { fecha: Date; descripcion: string },
-  ) {
+  ): Promise<RecordatorioResponseDto> {
     return this.usuarioService.agregarRecordatorio(dni, data);
   }
 
@@ -417,12 +420,14 @@ export class UsuarioController {
   @ApiResponse({
     status: 200,
     description: 'Listado de recordatorios',
-    type: [Recordatorio],
+    type: [RecordatorioResponseDto],
   })
   @Get(':dni/recordatorios')
   @HttpCode(HttpStatus.OK)
   @Auth()
-  async getRecordatorios(@Param('dni', ParseIntPipe) dni: number) {
+  async getRecordatorios(
+    @Param('dni', ParseIntPipe) dni: number,
+  ): Promise<RecordatorioResponseDto[]> {
     return this.usuarioService.getRecordatoriosByUsuario(dni);
   }
 
@@ -443,7 +448,7 @@ export class UsuarioController {
   @ApiResponse({
     status: 200,
     description: 'Recordatorio actualizado correctamente',
-    type: Recordatorio,
+    type: RecordatorioResponseDto,
   })
   @Patch('recordatorios/:recordatorioId')
   @HttpCode(HttpStatus.OK)
@@ -451,7 +456,7 @@ export class UsuarioController {
   async updateRecordatorio(
     @Param('recordatorioId', ParseIntPipe) recordatorioId: number,
     @Body() dto: { fecha?: Date; descripcion?: string },
-  ) {
+  ): Promise<RecordatorioResponseDto> {
     return this.usuarioService.updateRecordatorio(recordatorioId, dto);
   }
 
@@ -474,7 +479,7 @@ export class UsuarioController {
     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
   ): Promise<
     ObjectServiceResponse<{
-      data: Recordatorio[];
+      data: RecordatorioResponseDto[];
       total: number;
       page: number;
       pageSize: number;
