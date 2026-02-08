@@ -473,8 +473,9 @@ export class AlmacenService {
     return this.grupoRepo.save(g);
   }
 
-  async deleteGroup(id: number): Promise<void> {
+  async deleteGroup(id: number): Promise<GrupoArticulo> {
     const grupo = await this.grupoRepo.findOne({ where: { id } });
+
     if (!grupo) {
       throw new NotFoundException(`El grupo con id ${id} no existe`);
     }
@@ -492,6 +493,8 @@ export class AlmacenService {
     }
 
     await this.grupoRepo.delete(id);
+
+    return grupo;
   }
 
   // ---------------------- MOVIMIENTOS ----------------------

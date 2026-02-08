@@ -47,6 +47,7 @@ import {
 import { GetUser } from '../usuario/decorators/get-user.decorator';
 import { Usuario } from '../usuario/entities/usuario.entity';
 import { SectorGalponDto } from './dto/sector-galpon.dto';
+import { GrupoArticulo } from './entities/grupo-articulo.entity';
 
 @ApiTags('Almacén')
 @ApiExtraModels(CreateEntradaDto, CreateSalidaDto)
@@ -341,8 +342,15 @@ export class AlmacenController {
     Permisos.ALMACEN_COMUN_WRITE,
     Permisos.ALL_WRITE,
   )
-  async deleteGroup(@Param('id') id: number): Promise<void> {
-    return await this.almacenService.deleteGroup(id);
+  async deleteGroup(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ObjectServiceResponse<GrupoArticulo>> {
+    const grupoEliminado = await this.almacenService.deleteGroup(id);
+    return {
+      success: true,
+      data: grupoEliminado,
+      message: `Grupo con ID ${id} eliminado correctamente`,
+    };
   }
 
   // ---------------------- MOVIMIENTOS ----------------------
