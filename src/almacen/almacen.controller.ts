@@ -323,6 +323,28 @@ export class AlmacenController {
     return await this.almacenService.updateGroup(id, dto, userPermissions);
   }
 
+  @ApiOperation({ summary: 'Eliminar un grupo de artículos' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID del grupo a eliminar',
+  })
+  @ApiResponse({ status: 200, description: 'Grupo eliminado correctamente' })
+  @ApiResponse({
+    status: 400,
+    description: 'No se puede eliminar: tiene artículos asociados',
+  })
+  @Delete('grupos/:id')
+  @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin, ValidRoles.superadmin)
+  @AlmacenPermissions(
+    Permisos.ALMACEN_TALLER_WRITE,
+    Permisos.ALMACEN_COMUN_WRITE,
+    Permisos.ALL_WRITE,
+  )
+  async deleteGroup(@Param('id') id: number): Promise<void> {
+    return await this.almacenService.deleteGroup(id);
+  }
+
   // ---------------------- MOVIMIENTOS ----------------------
 
   @ApiOperation({ summary: 'Obtener movimientos de un artículo' })
