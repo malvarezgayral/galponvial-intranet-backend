@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Controller,
   Get,
@@ -11,6 +15,7 @@ import {
   ParseIntPipe,
   HttpCode,
   HttpStatus,
+  HttpException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -345,12 +350,24 @@ export class AlmacenController {
   async deleteGroup(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<ObjectServiceResponse<GrupoArticulo>> {
-    const grupoEliminado = await this.almacenService.deleteGroup(id);
-    return {
-      success: true,
-      data: grupoEliminado,
-      message: `Grupo con ID ${id} eliminado correctamente`,
-    };
+    try {
+      const grupoEliminado = await this.almacenService.deleteGroup(id);
+
+      return {
+        success: true,
+        data: grupoEliminado,
+        message: `Grupo con ID ${id} eliminado correctamente`,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          data: null,
+          message: error.message || 'Error desconocido al eliminar',
+        },
+        error.getStatus ? error.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   // ---------------------- MOVIMIENTOS ----------------------
