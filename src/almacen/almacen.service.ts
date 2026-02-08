@@ -406,7 +406,8 @@ export class AlmacenService {
       id: grupo.id,
       nombre: grupo.nombre,
       descripcion: grupo.descripcion,
-      sector_galpon: grupo.sector.nro_sector,
+      sector_galpon: grupo.sector ? grupo.sector.nro_sector : undefined,
+      nombre_sector: grupo.sector ? grupo.sector.tipo : 'Sin Sector Asignado',
       articulos: articulosDto,
     };
 

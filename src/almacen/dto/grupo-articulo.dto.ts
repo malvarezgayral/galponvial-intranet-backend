@@ -14,6 +14,9 @@ export class GrupoArticuloDto {
   @ApiProperty({ example: 2, required: false })
   sector_galpon?: number;
 
+  @ApiProperty({ example: 'Almacen-Taller', required: false })
+  nombre_sector?: string;
+
   @ApiProperty({ type: () => [UpdateArticuloDto] })
   articulos: Array<UpdateArticuloDto>;
 }
