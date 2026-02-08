@@ -102,8 +102,8 @@ export class SeedService {
       results['status_update'] = await this.seedStatusUpdate();
 
       // Orden de inserción para módulo usuario (respetando FK)
-      results['rol'] = await this.seedRoles();
-      results['usuario'] = await this.seedUsuarios();
+      // results['rol'] = await this.seedRoles();
+      // results['usuario'] = await this.seedUsuarios();
       results['usuario_rol'] = await this.seedUsuariosRoles();
       results['recordatorio'] = await this.seedRecordatorios();
 

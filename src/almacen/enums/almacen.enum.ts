@@ -2,10 +2,13 @@
 export enum UnidadTipo {
   PIEZA = 'pieza',
   CAJA = 'caja',
-  PESO = 'peso',
+  KILOGRAMO = 'kilogramo',
   VOLUMEN = 'volumen',
   DISTANCIA = 'distancia',
   PAQUETE = 'paquete',
+  METRO = 'metro',
+  LITRO = 'litro',
+  UNIDAD = 'unidad',
 }
 
 export enum SectorTipo {
