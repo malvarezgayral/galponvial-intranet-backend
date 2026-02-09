@@ -102,7 +102,6 @@ export class VehiculosService {
     try {
       const vehiculo = this.vehiculoRepository.create({
         ...vehiculoData,
-        status: VehiculoStatus.DISPONIBLE,
         uso_km: vehiculoData.uso_km || 0,
         uso_combustible: vehiculoData.uso_combustible || 0,
       });
