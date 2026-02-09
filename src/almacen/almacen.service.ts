@@ -406,7 +406,8 @@ export class AlmacenService {
       id: grupo.id,
       nombre: grupo.nombre,
       descripcion: grupo.descripcion,
-      sector_galpon: grupo.sector.nro_sector,
+      sector_galpon: grupo.sector ? grupo.sector.nro_sector : undefined,
+      nombre_sector: grupo.sector ? grupo.sector.tipo : 'Sin Sector Asignado',
       articulos: articulosDto,
     };
 
@@ -470,6 +471,30 @@ export class AlmacenService {
 
     Object.assign(g, dto);
     return this.grupoRepo.save(g);
+  }
+
+  async deleteGroup(id: number): Promise<GrupoArticulo> {
+    const grupo = await this.grupoRepo.findOne({ where: { id } });
+
+    if (!grupo) {
+      throw new NotFoundException(`El grupo con id ${id} no existe`);
+    }
+
+    const count = await this.articuloRepo.count({
+      where: {
+        grupo: { id: id },
+      },
+    });
+
+    if (count > 0) {
+      throw new BadRequestException(
+        'No se puede eliminar el grupo porque tiene artículos asociados. Mueva o elimine los artículos primero.',
+      );
+    }
+
+    await this.grupoRepo.delete(id);
+
+    return grupo;
   }
 
   // ---------------------- MOVIMIENTOS ----------------------

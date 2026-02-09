@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Controller,
   Get,
@@ -11,6 +15,7 @@ import {
   ParseIntPipe,
   HttpCode,
   HttpStatus,
+  HttpException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -47,6 +52,7 @@ import {
 import { GetUser } from '../usuario/decorators/get-user.decorator';
 import { Usuario } from '../usuario/entities/usuario.entity';
 import { SectorGalponDto } from './dto/sector-galpon.dto';
+import { GrupoArticulo } from './entities/grupo-articulo.entity';
 
 @ApiTags('Almacén')
 @ApiExtraModels(CreateEntradaDto, CreateSalidaDto)
@@ -321,6 +327,47 @@ export class AlmacenController {
     );
 
     return await this.almacenService.updateGroup(id, dto, userPermissions);
+  }
+
+  @ApiOperation({ summary: 'Eliminar un grupo de artículos' })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID del grupo a eliminar',
+  })
+  @ApiResponse({ status: 200, description: 'Grupo eliminado correctamente' })
+  @ApiResponse({
+    status: 400,
+    description: 'No se puede eliminar: tiene artículos asociados',
+  })
+  @Delete('grupos/:id')
+  @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin, ValidRoles.superadmin)
+  @AlmacenPermissions(
+    Permisos.ALMACEN_TALLER_WRITE,
+    Permisos.ALMACEN_COMUN_WRITE,
+    Permisos.ALL_WRITE,
+  )
+  async deleteGroup(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ObjectServiceResponse<GrupoArticulo>> {
+    try {
+      const grupoEliminado = await this.almacenService.deleteGroup(id);
+
+      return {
+        success: true,
+        data: grupoEliminado,
+        message: `Grupo con ID ${id} eliminado correctamente`,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          data: null,
+          message: error.message || 'Error desconocido al eliminar',
+        },
+        error.getStatus ? error.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   // ---------------------- MOVIMIENTOS ----------------------
