@@ -39,9 +39,14 @@ export class CreateArticuloDto {
   @IsNotEmpty()
   descripcion: string;
 
+  @ApiPropertyOptional({
+    description:
+      'URL de la imagen (se genera automáticamente al subir archivo)',
+    example: 'https://res.cloudinary.com/...',
+  })
   @IsString()
   @IsOptional()
-  img_url: string;
+  img_url?: string;
 
   @ApiProperty({
     enum: UnidadTipo,
@@ -52,6 +57,7 @@ export class CreateArticuloDto {
 
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   stock?: number;
 
   @ApiProperty({

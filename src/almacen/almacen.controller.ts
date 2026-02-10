@@ -197,10 +197,10 @@ export class AlmacenController {
     type: Number,
     description: 'Código del artículo',
   })
-  @ApiBody({ type: UpdateArticuloDto })
   @ApiResponse({ status: 200, description: 'Artículo actualizado' })
   @ApiResponse({ status: 404, description: 'Artículo no encontrado' })
   @Put('articulos/:cod')
+  @UseInterceptors(FileInterceptor('file'))
   @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin, ValidRoles.superadmin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
@@ -211,12 +211,34 @@ export class AlmacenController {
     @Param('cod') cod: number,
     @Body() dto: UpdateArticuloDto,
     @GetUser() user: Usuario,
+    @UploadedFile() file: FileUpload,
   ) {
+    console.log('--- START UPDATE ---');
+    console.log('1. Archivo recibido:', file ? 'SÍ' : 'NO');
+    if (file) console.log('   Mimetype:', file.mimetype);
+    console.log('2. DTO recibido (antes de procesar):', dto);
+
+    if (file) {
+      try {
+        const imageResult = await this.cloudinaryService.uploadImage(file);
+        console.log('3. Imagen subida a Cloudinary:', imageResult.secure_url);
+        dto.img_url = imageResult.secure_url;
+      } catch (error) {
+        console.error('Error Cloudinary:', error);
+        throw new BadRequestException('Error al subir la imagen');
+      }
+    }
+
+    if (dto.grupo_id) dto.grupo_id = Number(dto.grupo_id);
+    if (dto.stock) dto.stock = Number(dto.stock);
+    if (dto.unidad_medida_id)
+      dto.unidad_medida_id = Number(dto.unidad_medida_id);
+
     const userRoles = user.roles ?? [];
     const userPermissions: Permisos[] = userRoles.flatMap(
       (role) => role.permisos ?? [],
     );
-
+    console.log('4. DTO final enviado al servicio:', dto);
     return await this.almacenService.updateArticle(cod, dto, userPermissions);
   }
 
