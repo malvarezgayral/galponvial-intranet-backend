@@ -320,12 +320,9 @@ export class AlmacenService {
     return true;
   }
 
-  // src/almacen/almacen.service.ts
-
   async getArticleById(id: number) {
     const articulo = await this.articuloRepo.findOne({
       where: { cod: id, isDeleted: false },
-      // Cargamos relaciones por si en el futuro quieres mostrar el Grupo o la Unidad
       relations: ['grupo', 'unidadMedida'],
     });
 
@@ -333,8 +330,6 @@ export class AlmacenService {
       throw new NotFoundException(`Artículo con código ${id} no encontrado`);
     }
 
-    // Mapeamos a un objeto plano para ajustar nombres de propiedades al Frontend
-    // (Específicamente img_url -> img)
     return {
       cod: articulo.cod,
       cod_proveedor: articulo.cod_proveedor,
