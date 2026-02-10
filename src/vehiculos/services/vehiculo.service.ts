@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { Vehiculo } from '../entities/vehiculo.entity';
 import { InfoAdicional } from '../entities/info-adicional.entity';
 import { Sector } from '../entities/sector.entity';
@@ -23,6 +23,7 @@ import { CreateCombustibleCargaDto } from '../dto/create-combustible-carga.dto';
 import { FallaIncidente } from 'src/usuario/enums/usuario.enum';
 import { ReporteIncidenteResponseDto } from '../dto/reporte-incidente-response.dto';
 import { UsuarioMinimalResponseDto } from 'src/usuario/dto/usuario-response.dto';
+import { UsuarioVehiculo } from 'src/usuario/entities/usuario-vehiculo.entity';
 
 @Injectable()
 export class VehiculosService {
@@ -41,6 +42,8 @@ export class VehiculosService {
     private readonly reporteIncidenteRepository: Repository<ReporteIncidente>,
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
+    @InjectRepository(UsuarioVehiculo)
+    private readonly usuarioVehiculoRepository: Repository<UsuarioVehiculo>,
     private readonly statusUpdateService: StatusUpdateService,
   ) {}
 
@@ -471,6 +474,134 @@ export class VehiculosService {
     carga.vehiculo = vehiculo;
 
     return await this.combustibleCargaRepository.save(carga);
+  }
+
+  /**
+   * Asigna un vehículo a un usuario
+   * @param dni DNI del usuario
+   * @param idVehiculo ID del vehículo
+   * @returns UsuarioVehiculo con la nueva relación creada
+   */
+  async assignVehicleToUser(
+    dni: number,
+    idVehiculo: number,
+  ): Promise<UsuarioVehiculo> {
+    // Buscar usuario por DNI
+    const usuario = await this.usuarioRepository.findOne({
+      where: { dni },
+    });
+
+    if (!usuario) {
+      throw new NotFoundException(`Usuario con DNI ${dni} no encontrado`);
+    }
+
+    // Verificar que el usuario esté activo
+    if (!usuario.isActive) {
+      throw new BadRequestException('El usuario no está activo');
+    }
+
+    // Buscar vehículo por ID
+    const vehiculo = await this.vehiculoRepository.findOne({
+      where: { id_vehiculo: idVehiculo },
+    });
+
+    if (!vehiculo) {
+      throw new NotFoundException(
+        `Vehículo con ID ${idVehiculo} no encontrado`,
+      );
+    }
+
+    // Verificar que el vehículo no esté en estados inactivos
+    if (
+      vehiculo.status === VehiculoStatus.EN_TALLER ||
+      vehiculo.status === VehiculoStatus.FUERA_DE_SERVICIO
+    ) {
+      throw new BadRequestException(
+        `El vehículo no puede ser asignado porque está en estado: ${vehiculo.status}`,
+      );
+    }
+
+    // Verificar que no exista una relación activa (sin fecha_hasta)
+    const relacionExistente = await this.usuarioVehiculoRepository.findOne({
+      where: {
+        id_usuario: usuario.dni,
+        id_vehiculo: idVehiculo,
+        fecha_hasta: IsNull(),
+      },
+    });
+
+    if (relacionExistente) {
+      throw new BadRequestException('Vehículo y usuario ya están relacionados');
+    }
+
+    // Crear nueva relación
+    const nuevaRelacion = new UsuarioVehiculo();
+    nuevaRelacion.id_usuario = usuario.dni;
+    nuevaRelacion.id_vehiculo = idVehiculo;
+    nuevaRelacion.fecha_desde = new Date();
+    nuevaRelacion.fecha_hasta = null;
+    nuevaRelacion.usuario = usuario;
+    nuevaRelacion.vehiculo = vehiculo;
+
+    return await this.usuarioVehiculoRepository.save(nuevaRelacion);
+  }
+
+  /**
+   * Obtiene todas las relaciones usuario-vehículo paginado
+   * @param page Número de página (default: 1)
+   * @param pageSize Cantidad de registros por página (default: 10)
+   * @returns Objeto con datos paginados, total de registros, página y pageSize
+   */
+  async getAllUsuarioVehiculo(
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<{
+    data: UsuarioVehiculo[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
+    const [data, total] = await this.usuarioVehiculoRepository.findAndCount({
+      relations: ['usuario', 'vehiculo'],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      order: { id_usuario_vehiculo: 'DESC' },
+    });
+
+    return { data, total, page, pageSize };
+  }
+
+  /**
+   * Desasigna un vehículo de un usuario marcando fecha_hasta
+   * @param idUsuarioVehiculo ID de la relación usuario-vehículo
+   * @returns Relación actualizada con fecha_hasta marcada
+   */
+  async unassignVehicleFromUser(
+    idUsuarioVehiculo: number,
+  ): Promise<UsuarioVehiculo> {
+    // Buscar la relación
+    const relacion = await this.usuarioVehiculoRepository.findOne({
+      where: { id_usuario_vehiculo: idUsuarioVehiculo },
+      relations: ['usuario', 'vehiculo'],
+    });
+
+    if (!relacion) {
+      throw new NotFoundException(
+        `Relación usuario-vehículo con ID ${idUsuarioVehiculo} no encontrada`,
+      );
+    }
+
+    // Verificar que la relación está activa (fecha_hasta es null)
+    if (relacion.fecha_hasta !== null) {
+      throw new BadRequestException(
+        'La relación usuario-vehículo ya ha sido desasignada',
+      );
+    }
+
+    // Marcar fecha_hasta con la fecha actual
+    relacion.fecha_hasta = new Date();
+
+    return await this.usuarioVehiculoRepository.save(relacion);
   }
 
   /**
