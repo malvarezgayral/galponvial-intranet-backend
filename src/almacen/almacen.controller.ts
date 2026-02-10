@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -164,11 +164,16 @@ export class AlmacenController {
     @GetUser() user: Usuario,
     @UploadedFile() file: FileUpload,
   ) {
+    console.log('--- DEBUG CREATE ARTICLE ---');
+    console.log('DTO recibido:', dto);
+    console.log('FILE recibido:', file);
     if (file) {
       try {
+        console.log('Entrando a Cloudinary...');
         const imageResult = await this.cloudinaryService.uploadImage(file);
         dto.img_url = imageResult.secure_url;
       } catch (error) {
+        console.error('Error Cloudinary:', error);
         throw new BadRequestException('Error al subir la imagen');
       }
     }
@@ -207,7 +212,6 @@ export class AlmacenController {
     @Body() dto: UpdateArticuloDto,
     @GetUser() user: Usuario,
   ) {
-    // Combinar permisos de todos los roles del usuario
     const userRoles = user.roles ?? [];
     const userPermissions: Permisos[] = userRoles.flatMap(
       (role) => role.permisos ?? [],

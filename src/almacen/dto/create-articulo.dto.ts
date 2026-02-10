@@ -7,6 +7,7 @@ import {
 } from 'class-validator';
 import { UnidadTipo } from '../enums/almacen.enum';
 import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class CreateArticuloDto {
   @ApiPropertyOptional({
@@ -59,6 +60,7 @@ export class CreateArticuloDto {
   })
   @IsNotEmpty()
   @IsNumber()
+  @Type(() => Number)
   grupo_id: number;
 
   @ApiPropertyOptional({
@@ -67,5 +69,6 @@ export class CreateArticuloDto {
   })
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   unidad_medida_id?: number;
 }
