@@ -9,6 +9,7 @@ import {
   HttpStatus,
   Get,
   Put,
+  Delete,
   Query,
   DefaultValuePipe,
 } from '@nestjs/common';
@@ -23,6 +24,7 @@ import { VehiculosService } from '../services/vehiculo.service';
 import { CreateVehiculoDto } from '../dto/create-vehiculo.dto';
 import { UpdateVehiculoDto } from '../dto/update-vehiculo.dto';
 import { DeleteLogicoVehiculoDto } from '../dto/delete-logico-vehiculo.dto';
+import { AssignVehicleToUserDto } from '../dto/assign-vehicle-to-user.dto';
 import { Auth } from 'src/usuario/decorators/auth.decorator';
 import { ValidRoles } from 'src/usuario/enums/usuario.enum';
 import { CreateReporteIncidenteDto } from '../dto/create-reporte-incidente.dto';
@@ -32,6 +34,7 @@ import { ReporteIncidenteResponseDto } from '../dto/reporte-incidente-response.d
 import { Vehiculo } from '../entities/vehiculo.entity';
 import { StatusUpdate } from '../entities/status-update.entity';
 import { CombustibleCarga } from '../entities/combustible-carga.entity';
+import { UsuarioVehiculo } from 'src/usuario/entities/usuario-vehiculo.entity';
 import {
   VehiculoStatus,
   TipoVehiculo,
@@ -90,6 +93,104 @@ export class VehiculosController {
       success: true,
       data: enumsEstructura,
       message: 'Estructura de enums obtenida correctamente',
+    };
+  }
+
+  @ApiOperation({
+    summary: 'Asignar un vehículo a un usuario',
+  })
+  @ApiBody({ type: AssignVehicleToUserDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Vehículo asignado al usuario correctamente',
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'El usuario no está activo, vehículo en estado inactivo, o relación ya existe',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Usuario o vehículo no encontrado',
+  })
+  @Post('assign')
+  @HttpCode(HttpStatus.CREATED)
+  @Auth(ValidRoles.admin, ValidRoles.superadmin, ValidRoles.superUser)
+  async assignVehicleToUser(
+    @Body() dto: AssignVehicleToUserDto,
+  ): Promise<ObjectServiceResponse<UsuarioVehiculo>> {
+    const relacionCreada = await this.vehiculosService.assignVehicleToUser(
+      dto.dni,
+      dto.id_vehiculo,
+    );
+    return {
+      success: true,
+      data: relacionCreada,
+      message: 'Vehículo asignado al usuario correctamente',
+    };
+  }
+  @ApiOperation({ summary: 'Obtener todas las relaciones usuario-vehículo' })
+  @ApiResponse({
+    status: 200,
+    description: 'Listado paginado de todas las relaciones usuario-vehículo',
+  })
+  @Get('usuario-vehiculo')
+  @HttpCode(HttpStatus.OK)
+  @Auth(ValidRoles.admin, ValidRoles.superadmin, ValidRoles.superUser)
+  async getAllUsuarioVehiculo(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
+  ): Promise<
+    ObjectServiceResponse<{
+      data: UsuarioVehiculo[];
+      total: number;
+      page: number;
+      pageSize: number;
+    }>
+  > {
+    const resultado = await this.vehiculosService.getAllUsuarioVehiculo(
+      page,
+      pageSize,
+    );
+    return {
+      success: true,
+      data: resultado,
+      message: `${resultado.total} relaciones usuario-vehículo encontradas (página ${page} de ${Math.ceil(resultado.total / pageSize)})`,
+    };
+  }
+
+  @ApiOperation({
+    summary: 'Desasignar un vehículo de un usuario',
+  })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'ID de la relación usuario-vehículo',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Vehículo desasignado del usuario correctamente',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'La relación ya ha sido desasignada',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Relación usuario-vehículo no encontrada',
+  })
+  @Delete('usuario-vehiculo/:id')
+  @HttpCode(HttpStatus.OK)
+  @Auth(ValidRoles.admin, ValidRoles.superadmin, ValidRoles.superUser)
+  async unassignVehicleFromUser(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ObjectServiceResponse<UsuarioVehiculo>> {
+    const relacionActualizada =
+      await this.vehiculosService.unassignVehicleFromUser(id);
+    return {
+      success: true,
+      data: relacionActualizada,
+      message: 'Vehículo desasignado del usuario correctamente',
     };
   }
 

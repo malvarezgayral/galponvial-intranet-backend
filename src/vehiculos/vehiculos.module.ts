@@ -10,6 +10,7 @@ import { Recordatorio } from './entities/recordatorio.entity';
 import { StatusUpdate } from './entities/status-update.entity';
 import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
+import { UsuarioVehiculo } from 'src/usuario/entities/usuario-vehiculo.entity';
 import { Servicio } from 'src/usuario/entities/servicio.entity';
 
 // Módulos externos
@@ -39,6 +40,7 @@ import { ServicioController } from './controllers/servicio.controller';
       StatusUpdate,
       ReporteIncidente,
       Usuario,
+      UsuarioVehiculo,
       Servicio,
     ]),
     UsuarioModule,
