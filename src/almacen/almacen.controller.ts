@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -16,6 +17,9 @@ import {
   HttpCode,
   HttpStatus,
   HttpException,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -53,13 +57,19 @@ import { GetUser } from '../usuario/decorators/get-user.decorator';
 import { Usuario } from '../usuario/entities/usuario.entity';
 import { SectorGalponDto } from './dto/sector-galpon.dto';
 import { GrupoArticulo } from './entities/grupo-articulo.entity';
+import { FileInterceptor } from '@nestjs/platform-express/multer';
+import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
+import { FileUpload } from 'src/common/interfaces/file.interface';
 
 @ApiTags('Almacén')
 @ApiExtraModels(CreateEntradaDto, CreateSalidaDto)
 @Controller('almacen')
 @Auth(ValidRoles.admin, ValidRoles.superadmin)
 export class AlmacenController {
-  constructor(private readonly almacenService: AlmacenService) {}
+  constructor(
+    private readonly almacenService: AlmacenService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   // ---------------------- ARTÍCULOS ----------------------
 
@@ -142,6 +152,7 @@ export class AlmacenController {
   @ApiBody({ type: CreateArticuloDto })
   @ApiResponse({ status: 201, description: 'Artículo creado correctamente' })
   @Post('articulos')
+  @UseInterceptors(FileInterceptor('file'))
   @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin, ValidRoles.superadmin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
@@ -151,8 +162,27 @@ export class AlmacenController {
   async createArticle(
     @Body() dto: CreateArticuloDto,
     @GetUser() user: Usuario,
+    @UploadedFile() file: FileUpload,
   ) {
-    // Combinar permisos de todos los roles del usuario
+    console.log('--- DEBUG CREATE ARTICLE ---');
+    console.log('DTO recibido:', dto);
+    console.log('FILE recibido:', file);
+    if (file) {
+      try {
+        console.log('Entrando a Cloudinary...');
+        const imageResult = await this.cloudinaryService.uploadImage(file);
+        dto.img_url = imageResult.secure_url;
+      } catch (error) {
+        console.error('Error Cloudinary:', error);
+        throw new BadRequestException('Error al subir la imagen');
+      }
+    }
+
+    if (dto.grupo_id) dto.grupo_id = Number(dto.grupo_id);
+    if (dto.stock) dto.stock = Number(dto.stock);
+    if (dto.unidad_medida_id)
+      dto.unidad_medida_id = Number(dto.unidad_medida_id);
+
     const userRoles = user.roles ?? [];
     const userPermissions: Permisos[] = userRoles.flatMap(
       (role) => role.permisos ?? [],
@@ -167,10 +197,10 @@ export class AlmacenController {
     type: Number,
     description: 'Código del artículo',
   })
-  @ApiBody({ type: UpdateArticuloDto })
   @ApiResponse({ status: 200, description: 'Artículo actualizado' })
   @ApiResponse({ status: 404, description: 'Artículo no encontrado' })
   @Put('articulos/:cod')
+  @UseInterceptors(FileInterceptor('file'))
   @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin, ValidRoles.superadmin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
@@ -181,13 +211,34 @@ export class AlmacenController {
     @Param('cod') cod: number,
     @Body() dto: UpdateArticuloDto,
     @GetUser() user: Usuario,
+    @UploadedFile() file: FileUpload,
   ) {
-    // Combinar permisos de todos los roles del usuario
+    console.log('--- START UPDATE ---');
+    console.log('1. Archivo recibido:', file ? 'SÍ' : 'NO');
+    if (file) console.log('   Mimetype:', file.mimetype);
+    console.log('2. DTO recibido (antes de procesar):', dto);
+
+    if (file) {
+      try {
+        const imageResult = await this.cloudinaryService.uploadImage(file);
+        console.log('3. Imagen subida a Cloudinary:', imageResult.secure_url);
+        dto.img_url = imageResult.secure_url;
+      } catch (error) {
+        console.error('Error Cloudinary:', error);
+        throw new BadRequestException('Error al subir la imagen');
+      }
+    }
+
+    if (dto.grupo_id) dto.grupo_id = Number(dto.grupo_id);
+    if (dto.stock) dto.stock = Number(dto.stock);
+    if (dto.unidad_medida_id)
+      dto.unidad_medida_id = Number(dto.unidad_medida_id);
+
     const userRoles = user.roles ?? [];
     const userPermissions: Permisos[] = userRoles.flatMap(
       (role) => role.permisos ?? [],
     );
-
+    console.log('4. DTO final enviado al servicio:', dto);
     return await this.almacenService.updateArticle(cod, dto, userPermissions);
   }
 

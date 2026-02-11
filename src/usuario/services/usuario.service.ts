@@ -331,6 +331,8 @@ export class UsuarioService {
           isActive: true,
           dni: true,
           tokenVersion: true,
+          nombre: true,
+          apellido: true,
         },
       });
 
@@ -376,6 +378,8 @@ export class UsuarioService {
       const jwtResponse: JwtLoginResponse = {
         dni: user.dni,
         email: user.email,
+        nombre: user.nombre,
+        apellido: user.apellido,
         rol: userWithRoles?.roles?.[0]?.rol ?? 'sin_rol',
         permisos,
         accessToken,

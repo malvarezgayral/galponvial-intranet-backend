@@ -206,7 +206,6 @@ export class AlmacenService {
   }
 
   async createArticle(dto: CreateArticuloDto, userPermissions?: Permisos[]) {
-    // Obtener el grupo (obligatorio)
     const grupo = await this.grupoRepo.findOne({
       where: { id: dto.grupo_id },
       relations: ['sector'],
@@ -218,7 +217,6 @@ export class AlmacenService {
       );
     }
 
-    // Validar permisos WRITE para el sector del grupo
     if (userPermissions && userPermissions.length > 0) {
       this.validateWritePermissionBySectorTipo(
         grupo.sector.tipo,
@@ -226,9 +224,11 @@ export class AlmacenService {
       );
     }
 
-    // Crear el artículo con el grupo asignado
-    const art = this.articuloRepo.create(dto);
-    art.grupo = grupo;
+    const art = this.articuloRepo.create({
+      ...dto,
+      grupo: grupo,
+    });
+
     return await this.articuloRepo.save(art);
   }
 
@@ -320,12 +320,9 @@ export class AlmacenService {
     return true;
   }
 
-  // src/almacen/almacen.service.ts
-
   async getArticleById(id: number) {
     const articulo = await this.articuloRepo.findOne({
       where: { cod: id, isDeleted: false },
-      // Cargamos relaciones por si en el futuro quieres mostrar el Grupo o la Unidad
       relations: ['grupo', 'unidadMedida'],
     });
 
@@ -333,15 +330,13 @@ export class AlmacenService {
       throw new NotFoundException(`Artículo con código ${id} no encontrado`);
     }
 
-    // Mapeamos a un objeto plano para ajustar nombres de propiedades al Frontend
-    // (Específicamente img_url -> img)
     return {
       cod: articulo.cod,
       cod_proveedor: articulo.cod_proveedor,
       nombre: articulo.nombre,
       modelo: articulo.modelo,
       descripcion: articulo.descripcion,
-      img: articulo.img_url,
+      img_url: articulo.img_url,
       stock: articulo.stock,
       unidad_tipo: articulo.unidad_tipo,
       grupo: articulo.grupo.nombre,

@@ -10,6 +10,8 @@ import { Salida } from './entities/salida.entity';
 import { SectorGalpon } from './entities/sector-galpon.entity';
 import { UnidadMedidaCuant } from './entities/unidad-medida-cuant.entity';
 import { UsuarioModule } from 'src/usuario/usuario.module';
+import { CloudinaryProvider } from 'src/common/cloudinary/cloudinary.provider';
+import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 
 @Module({
   imports: [
@@ -25,7 +27,7 @@ import { UsuarioModule } from 'src/usuario/usuario.module';
     UsuarioModule,
   ],
   controllers: [AlmacenController],
-  providers: [AlmacenService],
+  providers: [AlmacenService, CloudinaryProvider, CloudinaryService],
   exports: [AlmacenService],
 })
 export class AlmacenModule {}

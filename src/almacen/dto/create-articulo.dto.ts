@@ -7,6 +7,7 @@ import {
 } from 'class-validator';
 import { UnidadTipo } from '../enums/almacen.enum';
 import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class CreateArticuloDto {
   @ApiPropertyOptional({
@@ -38,9 +39,14 @@ export class CreateArticuloDto {
   @IsNotEmpty()
   descripcion: string;
 
+  @ApiPropertyOptional({
+    description:
+      'URL de la imagen (se genera automáticamente al subir archivo)',
+    example: 'https://res.cloudinary.com/...',
+  })
   @IsString()
   @IsOptional()
-  img_url: string;
+  img_url?: string;
 
   @ApiProperty({
     enum: UnidadTipo,
@@ -51,6 +57,7 @@ export class CreateArticuloDto {
 
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   stock?: number;
 
   @ApiProperty({
@@ -59,6 +66,7 @@ export class CreateArticuloDto {
   })
   @IsNotEmpty()
   @IsNumber()
+  @Type(() => Number)
   grupo_id: number;
 
   @ApiPropertyOptional({
@@ -67,5 +75,6 @@ export class CreateArticuloDto {
   })
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   unidad_medida_id?: number;
 }
