@@ -62,15 +62,13 @@ export class CreateVehiculoDto {
 
   @ApiPropertyOptional({ example: 12.5 })
   @IsNumber()
-  @IsOptional()
   @Min(0)
-  uso_combustible?: number;
+  uso_combustible: number;
 
   @ApiPropertyOptional({ example: 150000 })
   @IsNumber()
-  @IsOptional()
   @Min(0)
-  uso_km?: number;
+  uso_km: number;
 
   @ApiProperty({
     type: () => InfoAdicionalDto,
