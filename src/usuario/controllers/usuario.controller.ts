@@ -7,6 +7,7 @@ import {
   Logger,
   Patch,
   Put,
+  Delete,
   UseGuards,
   Query,
   ParseIntPipe,
@@ -495,5 +496,51 @@ export class UsuarioController {
       data: result,
       message: `${result.total} recordatorios encontrados`,
     };
+  }
+
+  @ApiOperation({ summary: 'Eliminar un recordatorio específico' })
+  @ApiParam({
+    name: 'recordatorioId',
+    type: Number,
+    description: 'ID del recordatorio',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Recordatorio eliminado correctamente',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Recordatorio no encontrado',
+  })
+  @Delete('recordatorios/:recordatorioId')
+  @HttpCode(HttpStatus.OK)
+  @Auth()
+  async deleteRecordatorio(
+    @Param('recordatorioId', ParseIntPipe) recordatorioId: number,
+  ): Promise<ObjectServiceResponse<{ deleted: number }>> {
+    return this.usuarioService.deleteRecordatorio(recordatorioId);
+  }
+
+  @ApiOperation({ summary: 'Eliminar todos los recordatorios de un usuario' })
+  @ApiParam({
+    name: 'dni',
+    type: String,
+    description: 'DNI del usuario',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Recordatorios eliminados correctamente',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Usuario no encontrado',
+  })
+  @Delete(':dni/recordatorios')
+  @HttpCode(HttpStatus.OK)
+  @Auth()
+  async deleteAllRecordatoriosByUsuario(
+    @Param('dni', ParseIntPipe) dni: number,
+  ): Promise<ObjectServiceResponse<{ deleted: number }>> {
+    return this.usuarioService.deleteAllRecordatoriosByUsuario(dni);
   }
 }

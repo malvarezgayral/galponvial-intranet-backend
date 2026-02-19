@@ -972,4 +972,45 @@ export class UsuarioService {
       pageSize,
     };
   }
+
+  async deleteRecordatorio(recordatorioId: number): Promise<ObjectServiceResponse<{ deleted: number }>> {
+    const recordatorio = await this.recordatorioRepository.findOne({
+      where: { id: recordatorioId },
+    });
+
+    if (!recordatorio) {
+      throw new Error('Recordatorio no encontrado');
+    }
+
+    const result = await this.recordatorioRepository.delete(recordatorioId);
+
+    return {
+      success: true,
+      data: { deleted: result.affected || 0 },
+      message: 'Recordatorio eliminado correctamente',
+    };
+  }
+
+  async deleteAllRecordatoriosByUsuario(
+    dni: number,
+  ): Promise<ObjectServiceResponse<{ deleted: number }>> {
+    // Validar que el usuario existe
+    const usuario = await this.usuarioRepository.findOne({
+      where: { dni },
+    });
+
+    if (!usuario) {
+      throw new Error(`Usuario con DNI ${dni} no encontrado`);
+    }
+
+    const result = await this.recordatorioRepository.delete({
+      usuario: { dni },
+    });
+
+    return {
+      success: true,
+      data: { deleted: result.affected || 0 },
+      message: `${result.affected || 0} recordatorios eliminados correctamente`,
+    };
+  }
 }
