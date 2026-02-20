@@ -13,6 +13,7 @@ import {
   HttpCode,
   HttpStatus,
   DefaultValuePipe,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -495,5 +496,38 @@ export class UsuarioController {
       data: result,
       message: `${result.total} recordatorios encontrados`,
     };
+  }
+
+  @ApiOperation({ summary: 'Eliminar todos los recordatorios de un usuario' })
+  @ApiParam({
+    name: 'dni',
+    type: String,
+    description: 'DNI del usuario del que se eliminarán los recordatorios',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Todos los recordatorios del usuario fueron eliminados correctamente',
+    schema: {
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: {
+          type: 'string',
+          example: 'Se eliminaron 3 recordatorios del usuario con DNI 87654321',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'No autorizado (Falta token o es inválido)',
+  })
+  @Delete(':dni/recordatorios')
+  @HttpCode(HttpStatus.OK)
+  @Auth()
+  eliminarRecordatoriosUsuario(
+    @Param('dni', ParseIntPipe) dni: number,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.usuarioService.eliminarRecordatoriosDeUsuario(dni);
   }
 }

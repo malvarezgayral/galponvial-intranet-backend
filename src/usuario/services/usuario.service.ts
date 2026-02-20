@@ -5,6 +5,7 @@ import {
   BadRequestException,
   Inject,
   forwardRef,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, In, Repository } from 'typeorm';
@@ -971,5 +972,32 @@ export class UsuarioService {
       page,
       pageSize,
     };
+  }
+
+  async eliminarRecordatoriosDeUsuario(
+    dni: number,
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      // Usamos QueryBuilder porque es la forma más directa de borrar usando la FK
+      const result = await this.recordatorioRepository
+        .createQueryBuilder()
+        .delete()
+        .from(Recordatorio)
+        .where('dni_usuario = :dni', { dni })
+        .execute();
+
+      return {
+        success: true,
+        message: `Se eliminaron ${result.affected || 0} recordatorios del usuario con DNI ${dni}`,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Error al eliminar recordatorios del DNI ${dni}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'UsuarioService.eliminarRecordatoriosDeUsuario',
+      );
+      throw new InternalServerErrorException(
+        'No se pudieron eliminar los recordatorios',
+      );
+    }
   }
 }
