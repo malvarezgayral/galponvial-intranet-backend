@@ -68,6 +68,7 @@ export class UsuarioController {
     status: 400,
     description: 'Datos inválidos o usuario existente',
   })
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   async crearUsuario(@Body() createUserDto: CreateUsuarioDto) {
     try {
       return this.usuarioService.crearUsuario(createUserDto);
@@ -115,7 +116,7 @@ export class UsuarioController {
   })
   @Get('roles/estructura')
   @HttpCode(HttpStatus.OK)
-  @Auth()
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   async getEstructuraRolesConPermisos(): Promise<ObjectServiceResponse<Rol[]>> {
     const roles = await this.rolService.getRoles();
 
@@ -133,7 +134,7 @@ export class UsuarioController {
     type: [UsuarioResponseDto],
   })
   @Get()
-  @Auth()
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   obtenerUsuarios(
     @Query('page') page?: number,
     @Query('pageSize') pageSize?: number,
@@ -154,7 +155,7 @@ export class UsuarioController {
   })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
   @Get(':dni')
-  @Auth()
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   obtenerUsuarioPorDni(
     @Param('dni') dni: number,
   ): Promise<UsuarioResponseDto | null> {
@@ -178,7 +179,7 @@ export class UsuarioController {
   }
 
   @Put(':dni')
-  @Auth()
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   async updateUsuario(
     @Param('dni') dni: number,
     @GetUser() currentUser: Usuario,
@@ -190,6 +191,7 @@ export class UsuarioController {
 
   @UseGuards(RefreshAuthGuard)
   @Post('refresh')
+  @Auth()
   refreshToken(@GetUser() user: Usuario): Promise<
     ObjectServiceResponse<{
       accessToken: string;
@@ -203,7 +205,7 @@ export class UsuarioController {
   }
 
   @Post('logout')
-  @Auth(ValidRoles.admin)
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   @ApiOperation({ summary: 'Logout de usuario' })
   @ApiResponse({
     status: 200,
@@ -288,7 +290,7 @@ export class UsuarioController {
     description: 'Vehículo asignado al usuario',
   })
   @Post('asignar-vehiculo')
-  @Auth(ValidRoles.admin)
+  @Auth(ValidRoles.superUser, ValidRoles.admin, ValidRoles.superadmin)
   asignarVehiculo(@Body() dto: CreateUsuarioVehiculoDto) {
     return this.usuarioService.asignarVehiculo(dto);
   }
@@ -305,7 +307,7 @@ export class UsuarioController {
     type: [UsuarioVehiculo],
   })
   @Get(':id_usuario/vehiculos')
-  @Auth()
+  @Auth(ValidRoles.superUser, ValidRoles.admin, ValidRoles.superadmin)
   obtenerVehiculosPorUsuario(
     @Param('id_usuario') id_usuario: string,
   ): Promise<UsuarioVehiculo[]> {
