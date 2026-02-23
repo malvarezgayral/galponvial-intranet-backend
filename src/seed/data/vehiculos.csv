@@ -1,62 +1,62 @@
 id_vehiculo,codigo,nombre,marca,modelo,anio,status,uso_combustible,uso_km,tipo_vehiculo
-1,sin info,sin info,FIAT,STRADA,2020,disponible,sin info,sin info,TRASLADO
-2,sin info,sin info,IVECO,DAILY,2021,disponible,sin info,sin info,PLAYO
-3,sin info,sin info,NEW HOLLAND,0,2021,disponible,sin info,sin info,RETRO A ORUGAS
-4,sin info,sin info,RENAULT,ALASKAN,2021,disponible,sin info,sin info,TRASLADO
-5,sin info,sin info,IVECO,17220,2021,disponible,sin info,sin info,VOLCADOR
-6,sin info,sin info,M. BENZ,0,2022,disponible,sin info,sin info,COLECTIVO
-7,sin info,sin info,IVECO,DAILY,2022,disponible,sin info,sin info,Hidrogrúa
-8,sin info,sin info,NEW HOLLAND,170,2022,disponible,sin info,sin info,MOTONIVELADORA
-9,sin info,sin info,NEW HOLLAND,0,2022,disponible,sin info,sin info,PALA / RETRO
-10,sin info,sin info,PAUNY,230ª,2022,disponible,sin info,sin info,TRACTOR
-11,sin info,sin info,VW,AMAROK,2022,disponible,sin info,sin info,TRASLADO
-12,sin info,sin info,FORD,TRANSIT,2023,disponible,sin info,sin info,AMBULANCIA
-13,sin info,sin info,M. BENZ,SPRINTER,2023,disponible,sin info,sin info,AMBULANCIA
-14,sin info,sin info,FORD,Ranger,2024,disponible,sin info,sin info,4X4
-15,sin info,sin info,FORD,F-600,1960,disponible,sin info,sin info,PLAYO
-16,sin info,sin info,MICHIGAN,55,1965,disponible,sin info,sin info,PALA FRONTAL
-17,sin info,sin info,DODGE,D-500,1965,disponible,sin info,sin info,RIEGO
-18,sin info,sin info,FORD,F-600,1969,disponible,sin info,sin info,VOLCADOR
-19,sin info,sin info,FIAT,NORTON,1970,disponible,sin info,sin info,PALA FRONTAL
-20,sin info,sin info,FIAT,780,1970,disponible,sin info,sin info,TRACTOR
-21,sin info,sin info,FIAT,400 E,1974,disponible,sin info,sin info,TRACTOR
-22,sin info,sin info,FORD,F-6000,1978,disponible,sin info,sin info,VOLCADOR
-23,sin info,sin info,M. BENZ,1215,1979,disponible,sin info,sin info,RIEGO
-24,sin info,sin info,FORD,F-6000,1979,disponible,sin info,sin info,VOLCADOR
-25,sin info,sin info,FORD,F-7000,1980,disponible,sin info,sin info,RIEGO
-26,sin info,sin info,MASSEY FERGUSON,1075,1980,disponible,sin info,sin info,TRACTOR
-27,sin info,sin info,DODGE,D-100,1980,disponible,sin info,sin info,TRASLADO
-28,sin info,sin info,FORD,7000,1980,disponible,sin info,sin info,VOLCADOR
-29,sin info,sin info,FORD/JEEP,F-100,1981,disponible,sin info,sin info,4X4
-30,sin info,sin info,FORD,F-100,1983,disponible,sin info,sin info,TRASLADO
-31,sin info,sin info,M. BENZ,1114,1985,disponible,sin info,sin info,VOLCADOR
-32,sin info,sin info,FORD,F-100,1987,disponible,sin info,sin info,TRASLADO
-33,sin info,sin info,FORD,F-100,1988,disponible,sin info,sin info,TRASLADO
-34,sin info,sin info,FORD,F-100,1988,disponible,sin info,sin info,TRASLADO
-35,sin info,sin info,M. BENZ,1114,1990,disponible,sin info,sin info,RIEGO
-36,sin info,sin info,FIAT,sin info,1990,disponible,sin info,sin info,TRACTOR
-37,sin info,sin info,FORD,F-100,1992,disponible,sin info,sin info,TRASLADO
-38,sin info,sin info,RENAULT,TRAFIC,1993,disponible,sin info,sin info,MINIBUS
-39,sin info,sin info,DRESSER,0,1994,disponible,sin info,sin info,MOTONIVELADORA
-40,sin info,sin info,BELAVTOMAZ,200,1994,disponible,sin info,sin info,VOLCADOR
-41,sin info,sin info,FORD,14000,1994,disponible,sin info,sin info,VOLCADOR
-42,sin info,sin info,FORD,14000,1995,disponible,sin info,sin info,Hidrogrúa
-43,sin info,sin info,FORD,F-100,1995,disponible,sin info,sin info,TRASLADO
-44,sin info,sin info,FORD,14000,1996,disponible,sin info,sin info,COMPACTADOR RESIDUOS
-45,sin info,sin info,M. BENZ,SPRINTER,1997,disponible,sin info,sin info,MINIBUS
-46,sin info,sin info,CHAMPION,0,1997,disponible,sin info,sin info,MOTONIVELADORA
-47,sin info,sin info,TOYOTA,HILUX,1998,disponible,sin info,sin info,4X4
-48,sin info,sin info,FIAT,DUCATO,1998,disponible,sin info,sin info,AMBULANCIA
-49,sin info,sin info,FIAT,DUCATO,1998,disponible,sin info,sin info,AMBULANCIA
-50,sin info,sin info,FORD,14000,1998,disponible,sin info,sin info,VOLCADOR
-51,sin info,sin info,FIAT,DUCATO,1999,disponible,sin info,sin info,TRASLADO
-52,sin info,sin info,IVECO,17220,1999,disponible,sin info,sin info,VOLCADOR
-53,sin info,sin info,M. BENZ,1215,1999,disponible,sin info,sin info,VOLCADOR
-54,sin info,sin info,M. BENZ,1215,1999,disponible,sin info,sin info,VOLCADOR
-55,sin info,sin info,FIAT,170,2000,disponible,sin info,sin info,MOTONIVELADORA
-56,sin info,sin info,FERMEC/JCB,0,2000,disponible,sin info,sin info,PALA / RETRO
-57,sin info,sin info,FORD,Ranger,2001,disponible,sin info,sin info,TRASLADO
-58,sin info,sin info,VW,1722,2001,disponible,sin info,sin info,VOLCADOR
-59,sin info,sin info,FIAT,DUCATO,2005,disponible,sin info,sin info,AMBULANCIA
-60,sin info,sin info,M. BENZ,0,2005,disponible,sin info,sin info,COLECTIVO
-61,sin info,sin info,VW,BORA,2005,disponible,sin info,sin info,TRASLADO
+1,1,sin info,FIAT,STRADA,2020,disponible,0.0,0.0,TRASLADO
+2,2,sin info,IVECO,DAILY,2021,disponible,0.0,0.0,PLAYO
+3,3,sin info,NEW HOLLAND,0,2021,disponible,0.0,0.0,RETRO A ORUGAS
+4,4,sin info,RENAULT,ALASKAN,2021,disponible,0.0,0.0,TRASLADO
+5,5,sin info,IVECO,17220,2021,disponible,0.0,0.0,VOLCADOR
+6,6,sin info,M. BENZ,0,2022,disponible,0.0,0.0,COLECTIVO
+7,7,sin info,IVECO,DAILY,2022,disponible,0.0,0.0,Hidrogrúa
+8,8,sin info,NEW HOLLAND,170,2022,disponible,0.0,0.0,MOTONIVELADORA
+9,9,sin info,NEW HOLLAND,0,2022,disponible,0.0,0.0,PALA / RETRO
+10,10,sin info,PAUNY,230ª,2022,disponible,0.0,0.0,TRACTOR
+11,11,sin info,VW,AMAROK,2022,disponible,0.0,0.0,TRASLADO
+12,12,sin info,FORD,TRANSIT,2023,disponible,0.0,0.0,AMBULANCIA
+13,13,sin info,M. BENZ,SPRINTER,2023,disponible,0.0,0.0,AMBULANCIA
+14,14,sin info,FORD,Ranger,2024,disponible,0.0,0.0,4X4
+15,15,sin info,FORD,F-600,1960,disponible,0.0,0.0,PLAYO
+16,16,sin info,MICHIGAN,55,1965,disponible,0.0,0.0,PALA FRONTAL
+17,17,sin info,DODGE,D-500,1965,disponible,0.0,0.0,RIEGO
+18,18,sin info,FORD,F-600,1969,disponible,0.0,0.0,VOLCADOR
+19,19,sin info,FIAT,NORTON,1970,disponible,0.0,0.0,PALA FRONTAL
+20,20,sin info,FIAT,780,1970,disponible,0.0,0.0,TRACTOR
+21,21,sin info,FIAT,400 E,1974,disponible,0.0,0.0,TRACTOR
+22,22,sin info,FORD,F-6000,1978,disponible,0.0,0.0,VOLCADOR
+23,23,sin info,M. BENZ,1215,1979,disponible,0.0,0.0,RIEGO
+24,24,sin info,FORD,F-6000,1979,disponible,0.0,0.0,VOLCADOR
+25,25,sin info,FORD,F-7000,1980,disponible,0.0,0.0,RIEGO
+26,26,sin info,MASSEY FERGUSON,1075,1980,disponible,0.0,0.0,TRACTOR
+27,27,sin info,DODGE,D-100,1980,disponible,0.0,0.0,TRASLADO
+28,28,sin info,FORD,7000,1980,disponible,0.0,0.0,VOLCADOR
+29,29,sin info,FORD/JEEP,F-100,1981,disponible,0.0,0.0,4X4
+30,30,sin info,FORD,F-100,1983,disponible,0.0,0.0,TRASLADO
+31,31,sin info,M. BENZ,1114,1985,disponible,0.0,0.0,VOLCADOR
+32,32,sin info,FORD,F-100,1987,disponible,0.0,0.0,TRASLADO
+33,33,sin info,FORD,F-100,1988,disponible,0.0,0.0,TRASLADO
+34,34,sin info,FORD,F-100,1988,disponible,0.0,0.0,TRASLADO
+35,35,sin info,M. BENZ,1114,1990,disponible,0.0,0.0,RIEGO
+36,36,sin info,FIAT,sin info,1990,disponible,0.0,0.0,TRACTOR
+37,37,sin info,FORD,F-100,1992,disponible,0.0,0.0,TRASLADO
+38,38,sin info,RENAULT,TRAFIC,1993,disponible,0.0,0.0,MINIBUS
+39,39,sin info,DRESSER,0,1994,disponible,0.0,0.0,MOTONIVELADORA
+40,40,sin info,BELAVTOMAZ,200,1994,disponible,0.0,0.0,VOLCADOR
+41,41,sin info,FORD,14000,1994,disponible,0.0,0.0,VOLCADOR
+42,42,sin info,FORD,14000,1995,disponible,0.0,0.0,Hidrogrúa
+43,43,sin info,FORD,F-100,1995,disponible,0.0,0.0,TRASLADO
+44,44,sin info,FORD,14000,1996,disponible,0.0,0.0,COMPACTADOR RESIDUOS
+45,45,sin info,M. BENZ,SPRINTER,1997,disponible,0.0,0.0,MINIBUS
+46,46,sin info,CHAMPION,0,1997,disponible,0.0,0.0,MOTONIVELADORA
+47,47,sin info,TOYOTA,HILUX,1998,disponible,0.0,0.0,4X4
+48,48,sin info,FIAT,DUCATO,1998,disponible,0.0,0.0,AMBULANCIA
+49,49,sin info,FIAT,DUCATO,1998,disponible,0.0,0.0,AMBULANCIA
+50,50,sin info,FORD,14000,1998,disponible,0.0,0.0,VOLCADOR
+51,51,sin info,FIAT,DUCATO,1999,disponible,0.0,0.0,TRASLADO
+52,52,sin info,IVECO,17220,1999,disponible,0.0,0.0,VOLCADOR
+53,53,sin info,M. BENZ,1215,1999,disponible,0.0,0.0,VOLCADOR
+54,54,sin info,M. BENZ,1215,1999,disponible,0.0,0.0,VOLCADOR
+55,55,sin info,FIAT,170,2000,disponible,0.0,0.0,MOTONIVELADORA
+56,56,sin info,FERMEC/JCB,0,2000,disponible,0.0,0.0,PALA / RETRO
+57,57,sin info,FORD,Ranger,2001,disponible,0.0,0.0,TRASLADO
+58,58,sin info,VW,1722,2001,disponible,0.0,0.0,VOLCADOR
+59,59,sin info,FIAT,DUCATO,2005,disponible,0.0,0.0,AMBULANCIA
+60,60,sin info,M. BENZ,0,2005,disponible,0.0,0.0,COLECTIVO
+61,61,sin info,VW,BORA,2005,disponible,0.0,0.0,TRASLADO
