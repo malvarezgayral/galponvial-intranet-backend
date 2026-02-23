@@ -1,10 +1,11 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsDate,
   IsEnum,
   IsNotEmpty,
   IsNumber,
   IsString,
+  IsOptional,
 } from 'class-validator';
 import { MovimientoTipo } from '../enums/almacen.enum';
 
@@ -26,7 +27,7 @@ export class MovimientoDTO {
     example: 1001,
   })
   @IsNotEmpty()
-  @IsString()
+  @IsNumber()
   codArticulo: number;
 
   @ApiProperty({
@@ -48,4 +49,26 @@ export class MovimientoDTO {
   })
   @IsString()
   detalle: string;
+
+  // Nuevos campos agregados:
+  @ApiPropertyOptional({
+    example: 'Proveedor SA',
+  })
+  @IsOptional()
+  @IsString()
+  proveedor?: string;
+
+  @ApiPropertyOptional({
+    example: 'Uso en obra',
+  })
+  @IsOptional()
+  @IsString()
+  motivo_salida?: string;
+
+  @ApiPropertyOptional({
+    example: 'Se entregó a Juan Pérez',
+  })
+  @IsOptional()
+  @IsString()
+  detalle_motivo?: string;
 }

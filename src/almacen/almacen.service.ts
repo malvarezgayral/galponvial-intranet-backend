@@ -530,11 +530,12 @@ export class AlmacenService {
       if (mov.tipo === MovimientoTipo.ENTRADA && entrada) {
         dto.motivo = entrada.tipo;
         dto.detalle = entrada.detalle;
+        dto.proveedor = entrada.proveedor;
       } else if (mov.tipo === MovimientoTipo.SALIDA && salida) {
         dto.motivo = salida.tipo;
-
-        dto.detalle =
-          salida.detalle_motivo ?? salida.detalle ?? salida.motivo_salida;
+        dto.detalle = salida.detalle;
+        dto.motivo_salida = salida.motivo_salida;
+        dto.detalle_motivo = salida.detalle_motivo;
       } else {
         dto.motivo = mov.tipo;
         dto.detalle = '';
