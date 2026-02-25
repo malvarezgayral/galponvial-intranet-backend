@@ -12,7 +12,7 @@ import { Servicio } from 'src/usuario/entities/servicio.entity';
 import { CreateServicioDto } from '../dto/create-servicio.dto';
 import { ReporteIncidenteService } from './reporte-incidente.service';
 import { VehiculosService } from './vehiculo.service';
-import { VehiculoStatus } from '../enums/vehiculo.enum';
+import { VehiculoStatus, StatusIncidente } from '../enums/vehiculo.enum';
 import { StatusUpdateService } from './status-update.service';
 import { ServicioResponseDto } from '../dto/servicio-response.dto';
 import { UsuarioMinimalResponseDto } from 'src/usuario/dto/usuario-response.dto';
@@ -113,9 +113,10 @@ export class ServicioService {
           vehiculo = await this.vehiculosService.findOne(incidente.id_vehiculo);
         }
 
-        // Marcar incidente como "en tratamiento"
-        await this.reporteIncidenteService.marcarEnTratamiento(
+        // Marcar incidente como "en tratamiento" (PENDIENTE)
+        await this.reporteIncidenteService.actualizarEstadoIncidente(
           createServicioDto.incidente_id,
+          StatusIncidente.PENDIENTE,
         );
       }
       // Caso 2: Si no hay incidente, usar id_vehiculo directamente

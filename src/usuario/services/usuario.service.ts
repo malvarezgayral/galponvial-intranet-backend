@@ -354,6 +354,16 @@ export class UsuarioService {
         relations: ['usuarioRoles', 'usuarioRoles.rol'],
       });
 
+      //si no tiene roles asignados se lo inautoriza
+      if (
+        !userWithRoles?.usuarioRoles ||
+        userWithRoles.usuarioRoles.length === 0
+      ) {
+        throw new UnauthorizedException(
+          'El usuario no tiene roles asignados, contacta al administrador',
+        );
+      }
+
       const accessToken = this.getJwtToken(
         { email: user.email },
         {
@@ -973,7 +983,9 @@ export class UsuarioService {
     };
   }
 
-  async deleteRecordatorio(recordatorioId: number): Promise<ObjectServiceResponse<{ deleted: number }>> {
+  async deleteRecordatorio(
+    recordatorioId: number,
+  ): Promise<ObjectServiceResponse<{ deleted: number }>> {
     const recordatorio = await this.recordatorioRepository.findOne({
       where: { id: recordatorioId },
     });

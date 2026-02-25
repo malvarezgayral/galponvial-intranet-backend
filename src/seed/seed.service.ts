@@ -225,7 +225,16 @@ export class SeedService {
   private async seedVehiculos(): Promise<number> {
     this.logger.log('Cargando vehículos...');
     const data = await this.csvReaderService.readCsv('vehiculos');
-    await this.vehiculoRepository.save(data);
+
+    const mappedData = data.map((item) => ({
+      ...item,
+      nombre: (!item.nombre ||
+      String(item.nombre).toLowerCase().trim() === 'sin info'
+        ? `${item.marca} ${item.modelo} ${item.anio}`
+        : item.nombre) as string,
+    }));
+
+    await this.vehiculoRepository.save(mappedData);
     this.logger.log(`✓ ${data.length} vehículos cargados`);
     return data.length;
   }
