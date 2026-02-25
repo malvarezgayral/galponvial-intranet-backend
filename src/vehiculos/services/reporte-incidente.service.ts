@@ -6,6 +6,7 @@ import { FiltrosIncidenteDto } from '../dto/filtros.dto';
 import { StatusIncidente } from '../enums/vehiculo.enum';
 import { ReporteIncidenteResponseDto } from '../dto/reporte-incidente-response.dto';
 import { UsuarioMinimalResponseDto } from 'src/usuario/dto/usuario-response.dto';
+import { ObjectServiceResponse } from 'src/usuario/interfaces/object-service-response.interface';
 
 @Injectable()
 export class ReporteIncidenteService {
@@ -115,7 +116,10 @@ export class ReporteIncidenteService {
     ) as ReporteIncidenteResponseDto;
   }
 
-  async marcarEnTratamiento(id: number): Promise<ReporteIncidenteResponseDto> {
+  async actualizarEstadoIncidente(
+    id: number,
+    nuevoEstado: StatusIncidente,
+  ): Promise<ObjectServiceResponse<ReporteIncidenteResponseDto>> {
     const incidente = await this.reporteIncidenteRepository.findOne({
       where: { id },
       relations: ['vehiculo', 'usuario', 'servicios'],
@@ -125,51 +129,19 @@ export class ReporteIncidenteService {
       throw new NotFoundException(`Incidente con ID ${id} no encontrado`);
     }
 
-    // Mantener como PENDIENTE (está en tratamiento pero no resuelto)
-    incidente.estado = StatusIncidente.PENDIENTE;
+    const estadoAnterior = incidente.estado;
+
+    incidente.estado = nuevoEstado;
 
     const incidenteActualizado =
       await this.reporteIncidenteRepository.save(incidente);
-    return this.filterReporteIncidenteResponse(
-      incidenteActualizado,
-    ) as ReporteIncidenteResponseDto;
-  }
 
-  async marcarResuelto(id: number): Promise<ReporteIncidenteResponseDto> {
-    const incidente = await this.reporteIncidenteRepository.findOne({
-      where: { id },
-      relations: ['vehiculo', 'usuario', 'servicios'],
-    });
-
-    if (!incidente) {
-      throw new NotFoundException(`Incidente con ID ${id} no encontrado`);
-    }
-
-    incidente.estado = StatusIncidente.RESUELTO;
-
-    const incidenteActualizado =
-      await this.reporteIncidenteRepository.save(incidente);
-    return this.filterReporteIncidenteResponse(
-      incidenteActualizado,
-    ) as ReporteIncidenteResponseDto;
-  }
-
-  async marcarCerrado(id: number): Promise<ReporteIncidenteResponseDto> {
-    const incidente = await this.reporteIncidenteRepository.findOne({
-      where: { id },
-      relations: ['vehiculo', 'usuario', 'servicios'],
-    });
-
-    if (!incidente) {
-      throw new NotFoundException(`Incidente con ID ${id} no encontrado`);
-    }
-
-    incidente.estado = StatusIncidente.CERRADO;
-
-    const incidenteActualizado =
-      await this.reporteIncidenteRepository.save(incidente);
-    return this.filterReporteIncidenteResponse(
-      incidenteActualizado,
-    ) as ReporteIncidenteResponseDto;
+    return {
+      success: true,
+      data: this.filterReporteIncidenteResponse(
+        incidenteActualizado,
+      ) as ReporteIncidenteResponseDto,
+      message: `Incidente actualizado de ${estadoAnterior} a ${nuevoEstado}`,
+    };
   }
 }
