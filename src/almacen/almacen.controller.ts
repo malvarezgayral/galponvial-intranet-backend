@@ -20,6 +20,7 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -112,6 +113,26 @@ export class AlmacenController {
       data: result,
       message: `${result.total} artículos encontrados`,
     };
+  }
+
+  @Get('articulos/eliminados')
+  @AlmacenAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ApiOperation({
+    summary: 'Listar artículos eliminados',
+    description: 'Obtiene todos los artículos que tienen isDeleted en true',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de artículos eliminados',
+    type: [Articulo],
+  })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  @ApiResponse({
+    status: 403,
+    description: 'No tienes los permisos necesarios',
+  })
+  async getDeletedArticles() {
+    return await this.almacenService.getDeletedArticles();
   }
 
   @ApiOperation({ summary: 'Obtener un artículo por su ID' })
@@ -265,6 +286,36 @@ export class AlmacenController {
     );
 
     return await this.almacenService.deleteArticle(cod, userPermissions);
+  }
+
+  @Patch('articulos/:cod/restaurar')
+  @AlmacenAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ApiOperation({
+    summary: 'Restaurar artículo',
+    description:
+      'Restaura un artículo eliminado cambiando su isDeleted a false',
+  })
+  @ApiParam({
+    name: 'cod',
+    description: 'Código numérico del artículo',
+    type: 'number',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Artículo restaurado con éxito',
+    type: Articulo,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Artículo no encontrado o no está eliminado',
+  })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  @ApiResponse({
+    status: 403,
+    description: 'No tienes los permisos necesarios',
+  })
+  async restoreArticle(@Param('cod', ParseIntPipe) cod: number) {
+    return await this.almacenService.restoreArticle(cod);
   }
 
   // ---------------------- SECTORES ----------------------

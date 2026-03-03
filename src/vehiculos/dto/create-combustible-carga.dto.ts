@@ -26,6 +26,14 @@ export class CreateCombustibleCargaDto {
   despachante?: string;
 
   @ApiProperty({
+    description: 'Tipo de combustible (Ej: Diesel, Nafta, GNC)',
+    example: 'Diesel',
+  })
+  @IsString()
+  @IsNotEmpty()
+  tipo_combustible: string;
+
+  @ApiProperty({
     description: 'Kilometraje actual del vehículo',
     example: 125000,
   })

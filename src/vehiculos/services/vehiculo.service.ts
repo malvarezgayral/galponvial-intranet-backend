@@ -467,6 +467,7 @@ export class VehiculosService {
     const carga = new CombustibleCarga();
     carga.fecha_carga = new Date(data.fecha_carga);
     carga.despachante = data.despachante || '';
+    carga.tipo_combustible = data.tipo_combustible;
     carga.km_actual = data.km_actual;
     carga.cant_combustible_despachado = data.cant_combustible_despachado;
     carga.vehiculo = vehiculo;

@@ -1,7 +1,7 @@
 dni,nombre,apellido,email,password,isActive,tokenVersion,fecha_alta,fecha_baja
-12345678,Juan,Pérez,juan.perez@galpelvial.com,eljovEnquenunc4fue,false,0,2023-01-15,
+12345678,Juan,Pérez,juan.perez@galpelvial.com,eljovEnquenunc4fue,true,0,2023-01-15,
 87654321,María,García,maria.garcia@galpelvial.com,eljovEnquenunc4fue,true,0,2023-02-20,
-11223344,Carlos,López,carlos.lopez@galpelvial.com,eljovEnquenunc6fue,false,0,2023-03-10,2024-06-30
+11223344,Carlos,López,carlos.lopez@galpelvial.com,eljovEnquenunc6fue,true,0,2023-03-10,2024-06-30
 55667788,Ana,Martínez,ana.martinez@galpelvial.com,eljovEnquenunc4fue,true,0,2023-04-05,
-99887766,Pedro,Rodríguez,pedro.rodriguez@galpelvial.com,eljovEnquenunc4fue,false,0,2023-05-12,,1
+99887766,Pedro,Rodríguez,pedro.rodriguez@galpelvial.com,eljovEnquenunc4fue,true,0,2023-05-12,,1
 10000001,SuperAdmin,Master,superadmin@galpelvial.com,eljovEnquenunc4fue,true,0,2023-01-01,

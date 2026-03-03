@@ -18,6 +18,9 @@ export class CombustibleCarga {
   @Column({ nullable: true })
   despachante: string;
 
+  @Column({ type: 'varchar', length: 50 })
+  tipo_combustible: string;
+
   @Column('float')
   km_actual: number;
 
