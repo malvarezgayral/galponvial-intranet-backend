@@ -344,6 +344,33 @@ export class AlmacenService {
     };
   }
 
+  /**
+   * Obtiene todos los artículos que están marcados como eliminados
+   */
+  async getDeletedArticles(): Promise<Articulo[]> {
+    return await this.articuloRepo.find({
+      where: { isDeleted: true },
+      relations: ['grupo', 'unidadMedida'],
+    });
+  }
+
+  /**
+   * Restaura un artículo previamente eliminado
+   */
+  async restoreArticle(cod: number): Promise<Articulo> {
+    const articulo = await this.articuloRepo.findOne({
+      where: { cod, isDeleted: true },
+    });
+
+    if (!articulo) {
+      throw new NotFoundException(
+        `El artículo con código ${cod} no existe o no se encuentra en la papelera`,
+      );
+    }
+    articulo.isDeleted = false;
+    return await this.articuloRepo.save(articulo);
+  }
+
   //---------------------- SECTORES ----------------------
 
   async getAllSectores(): Promise<SectorGalponDto[]> {
