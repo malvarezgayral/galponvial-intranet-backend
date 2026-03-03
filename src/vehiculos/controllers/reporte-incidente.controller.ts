@@ -59,7 +59,7 @@ export class ReporteIncidenteController {
     description: 'Incidente actualizado exitosamente',
   })
   @Patch(':id/estado')
-  @Auth(ValidRoles.admin, ValidRoles.superUser)
+  @Auth(ValidRoles.admin, ValidRoles.superUser, ValidRoles.superadmin)
   actualizarEstado(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateEstadoDto: UpdateEstadoIncidenteDto,
