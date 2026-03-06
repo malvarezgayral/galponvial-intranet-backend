@@ -1,6 +1,1 @@
 id,fecha,tipo,descripcion,falla,id_usuario,id_vehiculo
-1,2024-01-15,Falla Mecánica,Motor no enciende correctamente,critica,12345678,1
-2,2024-02-03,Falla Eléctrica,Sistema de luces intermitente,moderada,87654321,2
-3,2024-02-28,Falla Neumático,Pinchazo en llanta trasera,baja,11223344,3
-4,2024-03-10,Falla Combustible,Pérdida de combustible,moderada,55667788,4
-5,2024-03-25,Falla Frenos,Baja presión en sistema de frenos,critica,99887766,5
