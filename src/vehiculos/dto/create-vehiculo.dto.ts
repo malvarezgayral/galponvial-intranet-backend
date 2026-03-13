@@ -70,6 +70,12 @@ export class CreateVehiculoDto {
   @Min(0)
   uso_km: number;
 
+  @ApiPropertyOptional({ example: 'Delegación Centro' })
+  @IsString()
+  @MaxLength(100)
+  @IsOptional()
+  delegacion?: string;
+
   @ApiProperty({
     type: () => InfoAdicionalDto,
   })

@@ -6,7 +6,7 @@ import { ValidRoles } from 'src/usuario/enums/usuario.enum';
 
 @ApiTags('Seed')
 @Controller('seed')
-@Auth(ValidRoles.admin, ValidRoles.superUser)
+//@Auth(ValidRoles.admin, ValidRoles.superUser)
 export class SeedController {
   constructor(private readonly seedService: SeedService) {}
 
@@ -39,7 +39,7 @@ export class SeedController {
     description: 'Seed de roles ejecutado correctamente',
   })
   @Post('run/roles')
-  @Auth()
+  //@Auth()
   @HttpCode(HttpStatus.OK)
   runSeedRoles(): Promise<{
     message: string;
@@ -49,7 +49,7 @@ export class SeedController {
   }
 
   @Post('run/usuarios')
-  @Auth()
+  //@Auth()
   @HttpCode(HttpStatus.OK)
   runSeedUsuarios(): Promise<{
     message: string;

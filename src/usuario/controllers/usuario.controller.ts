@@ -68,7 +68,7 @@ export class UsuarioController {
     status: 400,
     description: 'Datos inválidos o usuario existente',
   })
-  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  //@Auth(ValidRoles.admin, ValidRoles.superadmin)
   async crearUsuario(@Body() createUserDto: CreateUsuarioDto) {
     try {
       return this.usuarioService.crearUsuario(createUserDto);
