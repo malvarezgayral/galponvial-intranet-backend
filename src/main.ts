@@ -5,6 +5,7 @@ import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const globalPrefix = process.env.API_GLOBAL_PREFIX ?? '' ;
 
   // Configuración de CORS para desarrollo
   app.enableCors({
@@ -21,7 +22,7 @@ async function bootstrap() {
     }),
   );
 
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix(globalPrefix);
 
   const config = new DocumentBuilder()
     .setTitle('API Galpón Vial')
@@ -29,6 +30,7 @@ async function bootstrap() {
       'API para la gestión y administración del galpón vial municipal de Lobería',
     )
     .setVersion('1.0')
+    .addServer(`/${globalPrefix}`)
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
