@@ -1,0 +1,34 @@
+SUBDIRECTORIOS=galponvial-intranet-backend galponvial-frontend/galponvial-front
+
+OBJETIVOS_GIT_PULL=$(SUBDIRECTORIOS:%=%_gp)
+
+OBJETIVOS_DEPLOY=$(SUBDIRECTORIOS:%=%_d)
+
+OBJETIVOS_INSTALL=$(SUBDIRECTORIOS:%=%_i)
+
+.PHONY: help git-pull install deploy $(OBJETIVOS_GIT_PULL) $(OBJETIVOS_DEPLOY) \
+	$(OBJETIVOS_INSTALL)
+
+help :
+	@echo "\nmake git-pull"
+	@echo "  Actualización de los repositorios de Frontend y Backend desde GitHUB."
+	@echo "\nmake deploy"
+	@echo "  Despliegue puro, debe hacerse desde el usuario $(USUARIO_DESPLIEGUE)"
+	@echo "\nmake install"
+	@echo "  Instalación completa, debe hacerse desde un usuario"
+	@echo "  con privilegios de administrador (sudo)\n"
+
+git-pull: $(OBJETIVOS_GIT_PULL)
+
+install : $(OBJETIVOS_INSTALL)
+
+deploy : $(OBJETIVOS_DEPLOY)
+
+$(OBJETIVOS_GIT_PULL) : %_gp :
+	cd $* && git pull
+
+$(OBJETIVOS_DEPLOY) : %_d :
+	$(MAKE) -C $* deploy
+
+$(OBJETIVOS_INSTALL) : %_i :
+	$(MAKE) -C $* install
