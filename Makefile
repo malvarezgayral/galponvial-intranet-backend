@@ -31,7 +31,7 @@ install : build
 	sudo systemctl enable galponvial_backend
 	sudo systemctl restart galponvial_backend
 
-deploy :
-	rsync -rlD --delete --exclude .env $(TARGET) $(DIRECTORIO_BASE)
+deploy : build
+	rsync -rlD --delete --exclude .env --exclude node_modules $(TARGET) $(DIRECTORIO_BASE)
 	rsync -rlD --delete $(NODE_MODULES) $(DIRECTORIO_BASE)
 	sudo systemctl restart galponvial_backend
