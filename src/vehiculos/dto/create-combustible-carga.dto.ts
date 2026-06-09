@@ -15,7 +15,7 @@ export class CreateCombustibleCargaDto {
   })
   @IsDateString()
   @IsNotEmpty()
-  fecha_carga: string;
+  fecha_carga!: string;
 
   @ApiPropertyOptional({
     description: 'Nombre del despachante',
@@ -31,7 +31,7 @@ export class CreateCombustibleCargaDto {
   })
   @IsString()
   @IsNotEmpty()
-  tipo_combustible: string;
+  tipo_combustible!: string;
 
   @ApiProperty({
     description: 'Kilometraje actual del vehículo',
@@ -39,7 +39,7 @@ export class CreateCombustibleCargaDto {
   })
   @IsNumber()
   @Min(0)
-  km_actual: number;
+  km_actual!: number;
 
   @ApiProperty({
     description: 'Cantidad de combustible despachado (en litros)',
@@ -47,5 +47,45 @@ export class CreateCombustibleCargaDto {
   })
   @IsNumber()
   @Min(0)
-  cant_combustible_despachado: number;
+  cant_combustible_despachado!: number;
+
+  @ApiProperty({
+    description: 'Nombre del chofer',
+    example: 'Carlos García',
+  })
+  @IsString()
+  @IsNotEmpty()
+  chofer!: string;
+
+  @ApiProperty({
+    description: 'Nombre de la estación de servicio',
+    example: 'YPF Lobería',
+  })
+  @IsString()
+  @IsNotEmpty()
+  estacion_servicio!: string;
+
+  @ApiProperty({
+    description: 'Litros de entrada al tanque',
+    example: 50.0,
+  })
+  @IsNumber()
+  @Min(0)
+  litros_entrada!: number;
+
+  @ApiProperty({
+    description: 'Litros de salida del tanque',
+    example: 45.5,
+  })
+  @IsNumber()
+  @Min(0)
+  litros_salida!: number;
+
+  @ApiProperty({
+    description: 'Estado parcial del vehículo o la carga',
+    example: 'Normal',
+  })
+  @IsString()
+  @IsNotEmpty()
+  estado_parcial!: string;
 }

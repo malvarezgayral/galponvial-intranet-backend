@@ -9,12 +9,11 @@ async function bootstrap() {
 
   // Configuración de CORS para desarrollo
   app.enableCors({
-    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+    origin: 'https://silver-spork-qvqr5jv7gpx63xpxv-5173.app.github.dev',
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: 'Content-Type,Authorization',
   });
-
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
