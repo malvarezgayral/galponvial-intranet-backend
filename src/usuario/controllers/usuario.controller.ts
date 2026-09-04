@@ -68,7 +68,7 @@ export class UsuarioController {
     status: 400,
     description: 'Datos inválidos o usuario existente',
   })
-  //@Auth(ValidRoles.admin, ValidRoles.superadmin)
+  @Auth(ValidRoles.superadmin)
   async crearUsuario(@Body() createUserDto: CreateUsuarioDto) {
     try {
       return this.usuarioService.crearUsuario(createUserDto);
@@ -191,7 +191,6 @@ export class UsuarioController {
 
   @UseGuards(RefreshAuthGuard)
   @Post('refresh')
-  @Auth()
   refreshToken(@GetUser() user: Usuario): Promise<
     ObjectServiceResponse<{
       accessToken: string;
@@ -270,8 +269,8 @@ export class UsuarioController {
     description: 'Rol asignado correctamente',
     type: Rol,
   })
-  @Patch('addRol/:dni')
-  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+    @Patch('addRol/:dni')
+  @Auth(ValidRoles.superadmin)
   asignarRol(
     @Param('dni') dni: number,
     @Body() dto: AssignRolDto,
@@ -290,7 +289,7 @@ export class UsuarioController {
     description: 'Vehículo asignado al usuario',
   })
   @Post('asignar-vehiculo')
-  @Auth(ValidRoles.superUser, ValidRoles.admin, ValidRoles.superadmin)
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   asignarVehiculo(@Body() dto: CreateUsuarioVehiculoDto) {
     return this.usuarioService.asignarVehiculo(dto);
   }
@@ -307,7 +306,7 @@ export class UsuarioController {
     type: [UsuarioVehiculo],
   })
   @Get(':id_usuario/vehiculos')
-  @Auth(ValidRoles.superUser, ValidRoles.admin, ValidRoles.superadmin)
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   obtenerVehiculosPorUsuario(
     @Param('id_usuario') id_usuario: string,
   ): Promise<UsuarioVehiculo[]> {
@@ -406,7 +405,7 @@ export class UsuarioController {
   })
   @Post(':dni/recordatorios')
   @HttpCode(HttpStatus.CREATED)
-  @Auth()
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   agregarRecordatorio(
     @Param('dni', ParseIntPipe) dni: number,
     @Body() data: { fecha: Date; descripcion: string },
@@ -455,7 +454,7 @@ export class UsuarioController {
   })
   @Patch('recordatorios/:recordatorioId')
   @HttpCode(HttpStatus.OK)
-  @Auth()
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   async updateRecordatorio(
     @Param('recordatorioId', ParseIntPipe) recordatorioId: number,
     @Body() dto: { fecha?: Date; descripcion?: string },
@@ -516,7 +515,7 @@ export class UsuarioController {
   })
   @Delete('recordatorios/:recordatorioId')
   @HttpCode(HttpStatus.OK)
-  @Auth()
+  @Auth(ValidRoles.superadmin)
   async deleteRecordatorio(
     @Param('recordatorioId', ParseIntPipe) recordatorioId: number,
   ): Promise<ObjectServiceResponse<{ deleted: number }>> {
@@ -539,7 +538,7 @@ export class UsuarioController {
   })
   @Delete(':dni/recordatorios')
   @HttpCode(HttpStatus.OK)
-  @Auth()
+  @Auth(ValidRoles.superadmin)
   async deleteAllRecordatoriosByUsuario(
     @Param('dni', ParseIntPipe) dni: number,
   ): Promise<ObjectServiceResponse<{ deleted: number }>> {
