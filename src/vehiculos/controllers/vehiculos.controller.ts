@@ -58,6 +58,7 @@ export class VehiculosController {
   })
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   create(@Body() createVehiculoDto: CreateVehiculoDto) {
     return this.vehiculosService.create(createVehiculoDto);
   }
@@ -115,7 +116,7 @@ export class VehiculosController {
   })
   @Post('assign')
   @HttpCode(HttpStatus.CREATED)
-  @Auth(ValidRoles.admin, ValidRoles.superadmin, ValidRoles.superUser)
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   async assignVehicleToUser(
     @Body() dto: AssignVehicleToUserDto,
   ): Promise<ObjectServiceResponse<UsuarioVehiculo>> {
@@ -136,7 +137,7 @@ export class VehiculosController {
   })
   @Get('usuario-vehiculo')
   @HttpCode(HttpStatus.OK)
-  @Auth(ValidRoles.admin, ValidRoles.superadmin, ValidRoles.superUser)
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   async getAllUsuarioVehiculo(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
@@ -179,9 +180,9 @@ export class VehiculosController {
     status: 404,
     description: 'Relación usuario-vehículo no encontrada',
   })
-  @Delete('usuario-vehiculo/:id')
+   @Delete('usuario-vehiculo/:id')
   @HttpCode(HttpStatus.OK)
-  @Auth(ValidRoles.admin, ValidRoles.superadmin, ValidRoles.superUser)
+  @Auth(ValidRoles.superadmin)
   async unassignVehicleFromUser(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<ObjectServiceResponse<UsuarioVehiculo>> {
@@ -230,6 +231,7 @@ export class VehiculosController {
   })
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateVehiculoDto: UpdateVehiculoDto,
@@ -239,12 +241,14 @@ export class VehiculosController {
 
   @Patch(':id/baja')
   @HttpCode(HttpStatus.OK)
+  @Auth(ValidRoles.superadmin)
   darDeBaja(@Param('id', ParseIntPipe) id: number) {
     return this.vehiculosService.cambiarStatus(id, false);
   }
 
   @Patch(':id/alta')
   @HttpCode(HttpStatus.OK)
+  @Auth(ValidRoles.superadmin)
   darDeAlta(@Param('id', ParseIntPipe) id: number) {
     return this.vehiculosService.cambiarStatus(id, true);
   }
@@ -267,6 +271,7 @@ export class VehiculosController {
   })
   @Post(':id/incidentes')
   @HttpCode(HttpStatus.CREATED)
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   agregarIncidente(
     @Param('id') dni: number,
     @Body() createReporteIncidenteDto: CreateReporteIncidenteDto,
@@ -294,6 +299,7 @@ export class VehiculosController {
   })
   @Post(':id/combustible-cargas')
   @HttpCode(HttpStatus.CREATED)
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   agregarCombustibleCarga(
     @Param('id', ParseIntPipe) id: number,
     @Body() createCombustibleCargaDto: CreateCombustibleCargaDto,
@@ -306,6 +312,7 @@ export class VehiculosController {
 
   @Get(':vehiculoId/status-updates')
   @HttpCode(HttpStatus.OK)
+  @Auth()
   async getStatusUpdatesPaginado(
     @Param('vehiculoId', ParseIntPipe) vehiculoId: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -342,6 +349,7 @@ export class VehiculosController {
   })
   @Get(':vehiculoId/incidentes')
   @HttpCode(HttpStatus.OK)
+  @Auth()
   async getIncidentesPaginado(
     @Param('vehiculoId', ParseIntPipe) vehiculoId: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -380,6 +388,7 @@ export class VehiculosController {
   })
   @Get(':vehiculoId/combustible-cargas')
   @HttpCode(HttpStatus.OK)
+  @Auth()
   async getCombustibleCargasPaginado(
     @Param('vehiculoId', ParseIntPipe) vehiculoId: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -466,6 +475,7 @@ export class VehiculosController {
   })
   @Put(':id/eliminar')
   @HttpCode(HttpStatus.OK)
+  @Auth(ValidRoles.superadmin)
   async softDelete(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: DeleteLogicoVehiculoDto,
