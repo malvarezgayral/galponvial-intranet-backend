@@ -7,7 +7,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, In, Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { Usuario } from '../entities/usuario.entity';
 import { Rol } from '../entities/rol.entity';
 import { UsuarioRol } from '../entities/usuario-rol.entity';
@@ -33,6 +33,7 @@ import {
 } from '../interfaces/object-service-response.interface';
 import { DeActivateUserDto } from '../dto/de-activate.dto';
 import { ValidRoles } from '../enums/usuario.enum';
+import { ConfigService } from '@nestjs/config';
 import { RefToken } from './ref-token.service';
 import {
   UsuarioResponseDto,
@@ -67,6 +68,7 @@ export class UsuarioService {
     private readonly jwtService: JwtService,
     @Inject(forwardRef(() => RefToken))
     private refTokenService: RefToken,
+    private readonly configService: ConfigService,
   ) {}
 
   // ===== MÉTODOS HELPER PARA FILTRADO DE DATOS SENSIBLES =====
@@ -233,6 +235,39 @@ export class UsuarioService {
     return recordatorios
       .map((r) => this.filterRecordatorioResponse(r))
       .filter((r) => r !== null);
+  }
+
+  /**
+   * Lee y parsea SUPERADMIN_ALLOWED_DNIS desde el entorno.
+   * Fail-safe: si la variable falta o está mal formada, devuelve []
+   * (bloquea la asignación de superadmin para todos, nunca la habilita por error).
+   */
+  private getSuperadminAllowedDnis(): number[] {
+    const raw = this.configService.get<string>('SUPERADMIN_ALLOWED_DNIS');
+    if (!raw || raw.trim() === '') {
+      this.logger.warn(
+        'SUPERADMIN_ALLOWED_DNIS no está definida en el entorno. ' +
+          'Nadie podrá ser asignado como superadmin hasta que se configure.',
+      );
+      return [];
+    }
+
+    const dnis = raw
+      .split(',')
+      .map((v) => v.trim())
+      .filter((v) => v.length > 0)
+      .map((v) => Number(v));
+
+    const invalidos = dnis.filter((d) => Number.isNaN(d));
+    if (invalidos.length > 0) {
+      this.logger.error(
+        `SUPERADMIN_ALLOWED_DNIS contiene valores inválidos: "${raw}". ` +
+          'Nadie podrá ser asignado como superadmin hasta que se corrija.',
+      );
+      return [];
+    }
+
+    return dnis;
   }
 
   // Usuarios
@@ -491,7 +526,7 @@ export class UsuarioService {
   ): Promise<ObjectServiceResponse<Record<string, unknown>>> {
     try {
       // campos solo para admin
-      const adminOnlyFields = ['password', 'tokenVersion', 'rol_ids'];
+      const adminOnlyFields = ['password', 'tokenVersion'];
       const hasAdminFields = adminOnlyFields.some(
         (field) => updateDto[field] !== undefined,
       );
@@ -524,37 +559,6 @@ export class UsuarioService {
         );
       }
 
-      //Validar que si los roles a asignar son admin, el current user sea superadmin
-      const rolesToAdd = await this.rolRepository.findBy({
-        id: In([...(updateDto.rol_ids || [])]),
-      });
-      if (
-        rolesToAdd.some((rol) => rol.rol === ValidRoles.admin) &&
-        !isSuperadmin
-      ) {
-        throw new UnauthorizedException(
-          'Solo un superadmin puede asignar el rol admin',
-        );
-      }
-
-      // Validar que no se intente asignar el rol superadmin (singleton)
-      if (updateDto.rol_ids && updateDto.rol_ids.length > 0) {
-        const rolesAAsignar = await Promise.all(
-          updateDto.rol_ids.map((id) =>
-            this.rolRepository.findOne({ where: { id } }),
-          ),
-        );
-
-        const tieneRolSuperadmin = rolesAAsignar.some(
-          (rol) => rol && rol.rol === ValidRoles.superadmin,
-        );
-        if (tieneRolSuperadmin) {
-          throw new BadRequestException(
-            'No se puede asignar el rol superadmin, es un rol único (singleton)',
-          );
-        }
-      }
-
       // Objeto para almacenar los cambios realizados
       const cambiosRealizados: Record<string, unknown> = {};
 
@@ -584,49 +588,9 @@ export class UsuarioService {
         cambiosRealizados.tokenVersion = updateDto.tokenVersion;
       }
 
-      // Manejar actualización de roles
-      if (updateDto.rol_ids !== undefined && updateDto.rol_ids.length >= 0) {
-        // Validar y traer cada rol individualmente
-        const roles: Rol[] = [];
-        for (const rol_id of updateDto.rol_ids) {
-          const rol = await this.rolRepository.findOne({
-            where: { id: rol_id },
-          });
-
-          if (!rol) {
-            throw new BadRequestException(
-              `El rol con ID ${rol_id} no existe en la base de datos`,
-            );
-          }
-
-          roles.push(rol);
-        }
-
-        // Eliminar todas las asignaciones de rol previas
-        await this.usuarioRolRepository.delete({ dni: usuario.dni });
-
-        // Crear nuevas asignaciones para cada rol
-        if (roles.length > 0) {
-          const usuarioRoles = roles.map((rol) =>
-            this.usuarioRolRepository.create({
-              dni: usuario.dni,
-              rol_id: rol.id,
-              usuario,
-              rol,
-            }),
-          );
-
-          // Guardar todos los nuevos registros
-          await this.usuarioRolRepository.save(usuarioRoles);
-          usuario.usuarioRoles = usuarioRoles;
-          cambiosRealizados.rol_ids = updateDto.rol_ids;
-          cambiosRealizados.roles = usuarioRoles.map((ur) => ({
-            id: ur.rol_id,
-            rol: ur.rol.rol,
-            permisos: ur.rol.permisos,
-          }));
-        }
-      }
+      // NOTA: el manejo de roles (rol_ids) fue removido de este método.
+      // La única vía oficial para cambiar el rol de un usuario es
+      // PATCH /usuario/addRol/:dni -> UsuarioService.addRol()
 
       // Guardar cambios
       await this.usuarioRepository.save(usuario);
@@ -761,17 +725,20 @@ export class UsuarioService {
   }
 
   // Roles
-  async addRol(
+   async addRol(
     dto: AssignRolDto,
     dni: number,
     currentUserRoles?: ValidRoles[],
   ): Promise<Rol> {
     try {
-      // Validar que no se intente asignar el rol superadmin (singleton)
+      // Validar la allowlist para asignación de superadmin (2 usuarios fijos: Juan y Daniel)
       if (dto.rol === ValidRoles.superadmin) {
-        throw new BadRequestException(
-          'No se puede asignar el rol superadmin, es un rol único (singleton)',
-        );
+        const allowedDnis = this.getSuperadminAllowedDnis();
+        if (!allowedDnis.includes(dni)) {
+          throw new BadRequestException(
+            `No se puede asignar el rol superadmin al usuario con DNI ${dni}: no está en la lista de usuarios autorizados a tener ese rol`,
+          );
+        }
       }
 
       // Validar que solo superadmin pueda asignar rol admin
@@ -792,22 +759,30 @@ export class UsuarioService {
       if (!usuario) {
         throw new Error(`Usuario with dni ${dni} not found`);
       }
+
       this.logger.log(`Assigning role ${dto.rol} to user ${usuario.nombre}`);
+
       const rol = await this.rolRepository.findOne({ where: { rol: dto.rol } });
 
       if (!rol) {
         throw new Error(`Rol ${dto.rol} not found`);
       }
 
-      // Crear la asignación en la tabla usuario_rol
-      const usuarioRol = this.usuarioRolRepository.create({
-        dni: usuario.dni,
-        rol_id: rol.id,
-        usuario,
-        rol,
+      // Reemplazo total del rol: se borran las asignaciones previas de ESTE dni
+      // (y solo de este dni) y se crea la nueva, en una misma transacción para
+      // no dejar al usuario sin ningún rol si algo falla a mitad de camino.
+      await this.usuarioRolRepository.manager.transaction(async (manager) => {
+        await manager.delete(UsuarioRol, { dni: usuario.dni });
+
+        const usuarioRol = manager.create(UsuarioRol, {
+          dni: usuario.dni,
+          rol_id: rol.id,
+          usuario,
+          rol,
+        });
+        await manager.save(usuarioRol);
       });
 
-      await this.usuarioRolRepository.save(usuarioRol);
       return rol;
     } catch (error) {
       this.logger.error(

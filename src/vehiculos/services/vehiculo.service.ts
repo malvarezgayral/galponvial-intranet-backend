@@ -286,7 +286,7 @@ export class VehiculosService {
     dto: DeleteLogicoVehiculoDto,
   ): Promise<Vehiculo> {
     const vehiculo = await this.vehiculoRepository.findOne({
-      where: { id_vehiculo: idVehiculo, eliminado: false },
+      where: { id_vehiculo: idVehiculo },
       relations: ['infoAdicional', 'infoAdicional.sector'],
     });
 
@@ -432,6 +432,7 @@ export class VehiculosService {
     carga.fecha_carga = new Date(data.fecha_carga);
     carga.despachante = data.despachante || '';
     carga.tipo_combustible = data.tipo_combustible;
+    carga.Galpón_Vial = data.Galpón_Vial;
     carga.km_actual = data.km_actual;
     carga.cant_combustible_despachado = data.cant_combustible_despachado;
     carga.chofer = data.chofer;
