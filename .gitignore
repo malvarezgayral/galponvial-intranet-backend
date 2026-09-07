@@ -58,3 +58,7 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 generate_report.py
 
 package-lock.json
+
+# Backups de base de datos de producción (nunca deben trackearse)
+/usuario_rol_backup*.sql
+/*.sql

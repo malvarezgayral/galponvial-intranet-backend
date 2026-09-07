@@ -331,14 +331,38 @@ export class SeedService {
   private async seedRoles(): Promise<number> {
     this.logger.log('Cargando roles...');
     const data = await this.csvReaderService.readCsv('roles');
-    const mappedData = data.map((item) => ({
-      id: item.id,
-      rol: item.rol,
-      permisos: [item.permisos], // Cada fila es un permiso individual
-    })) as unknown as Partial<Rol>[];
-    await this.rolRepository.save(mappedData);
-    this.logger.log(`✓ ${data.length} permisos/roles cargados`);
-    return data.length;
+
+    // Agrupar todos los permisos de cada rol en una sola fila
+    // (antes: una fila por cada permiso individual, generaba filas duplicadas por rol)
+    const rolesMap = new Map<string, string[]>();
+    for (const item of data) {
+      const nombreRol = item.rol as string;
+      if (!rolesMap.has(nombreRol)) {
+        rolesMap.set(nombreRol, []);
+      }
+      rolesMap.get(nombreRol)!.push(item.permisos as string);
+    }
+
+    const mappedData = Array.from(rolesMap.entries()).map(
+      ([rol, permisos]) => ({
+        rol,
+        permisos,
+      }),
+    ) as unknown as Partial<Rol>[];
+
+    for (const item of mappedData) {
+      const existente = await this.rolRepository.findOne({
+        where: { rol: item.rol },
+      });
+      if (existente) {
+        existente.permisos = item.permisos as Rol["permisos"];
+        await this.rolRepository.save(existente);
+      } else {
+        await this.rolRepository.save(item);
+      }
+    }
+    this.logger.log(`✓ ${mappedData.length} roles cargados`);
+    return mappedData.length;
   }
 
   private async seedUsuarios(): Promise<number> {

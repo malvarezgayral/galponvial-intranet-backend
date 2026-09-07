@@ -174,7 +174,7 @@ export class AlmacenController {
   @ApiResponse({ status: 201, description: 'Artículo creado correctamente' })
   @Post('articulos')
   @UseInterceptors(FileInterceptor('file'))
-  @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin, ValidRoles.superadmin)
+  @AlmacenAuth(ValidRoles.admin, ValidRoles.superadmin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
     Permisos.ALMACEN_COMUN_WRITE,
@@ -222,7 +222,7 @@ export class AlmacenController {
   @ApiResponse({ status: 404, description: 'Artículo no encontrado' })
   @Put('articulos/:cod')
   @UseInterceptors(FileInterceptor('file'))
-  @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin, ValidRoles.superadmin)
+  @AlmacenAuth(ValidRoles.admin, ValidRoles.superadmin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
     Permisos.ALMACEN_COMUN_WRITE,
@@ -271,8 +271,8 @@ export class AlmacenController {
   })
   @ApiResponse({ status: 200, description: 'Artículo eliminado' })
   @ApiResponse({ status: 404, description: 'Artículo no encontrado' })
-  @Delete('articulos/:cod')
-  @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin, ValidRoles.superadmin)
+   @Delete('articulos/:cod')
+  @AlmacenAuth(ValidRoles.superadmin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
     Permisos.ALMACEN_COMUN_WRITE,
@@ -383,7 +383,7 @@ export class AlmacenController {
   @ApiBody({ type: CreateGrupoArticuloDto })
   @ApiResponse({ status: 201, description: 'Grupo creado correctamente' })
   @Post('grupos')
-  @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin, ValidRoles.superadmin)
+  @AlmacenAuth(ValidRoles.admin, ValidRoles.superadmin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
     Permisos.ALMACEN_COMUN_WRITE,
@@ -411,7 +411,7 @@ export class AlmacenController {
   @ApiBody({ type: UpdateGrupoArticuloDto })
   @ApiResponse({ status: 200, description: 'Grupo actualizado' })
   @Put('grupos/:id')
-  @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin, ValidRoles.superadmin)
+  @AlmacenAuth(ValidRoles.admin, ValidRoles.superadmin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
     Permisos.ALMACEN_COMUN_WRITE,
@@ -442,8 +442,8 @@ export class AlmacenController {
     status: 400,
     description: 'No se puede eliminar: tiene artículos asociados',
   })
-  @Delete('grupos/:id')
-  @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin, ValidRoles.superadmin)
+   @Delete('grupos/:id')
+  @AlmacenAuth(ValidRoles.superadmin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
     Permisos.ALMACEN_COMUN_WRITE,
@@ -508,7 +508,7 @@ export class AlmacenController {
   })
   @ApiResponse({ status: 201, description: 'Movimiento registrado' })
   @Post('movimientos')
-  @AlmacenAuth(ValidRoles.superUser, ValidRoles.admin, ValidRoles.superadmin)
+  @AlmacenAuth(ValidRoles.admin, ValidRoles.superadmin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
     Permisos.ALMACEN_COMUN_WRITE,

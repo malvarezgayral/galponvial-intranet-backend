@@ -18,7 +18,7 @@ import { ObjectServiceResponse } from 'src/usuario/interfaces/object-service-res
 
 @ApiTags('Vehículos - Incidentes')
 @Controller('incidentes')
-@Auth(ValidRoles.admin, ValidRoles.superUser)
+@Auth()
 export class ReporteIncidenteController {
   constructor(
     private readonly reporteIncidenteService: ReporteIncidenteService,
@@ -59,7 +59,7 @@ export class ReporteIncidenteController {
     description: 'Incidente actualizado exitosamente',
   })
   @Patch(':id/estado')
-  @Auth(ValidRoles.admin, ValidRoles.superUser, ValidRoles.superadmin)
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
   actualizarEstado(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateEstadoDto: UpdateEstadoIncidenteDto,

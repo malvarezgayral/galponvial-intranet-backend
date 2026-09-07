@@ -116,15 +116,7 @@ export class UpdateUsuarioDto {
   @IsNumber()
   tokenVersion?: number;
 
-  @ApiPropertyOptional({
-    description: 'Array de IDs de roles a asignar al usuario',
-    type: [Number],
-    example: [1, 2, 3],
-  })
-  @IsOptional()
-  @IsArray()
-  @IsNumber({}, { each: true })
-  rol_ids?: number[];
+  
 }
 
 /* =========================
