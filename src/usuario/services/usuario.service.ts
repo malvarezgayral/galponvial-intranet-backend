@@ -762,28 +762,33 @@ export class UsuarioService {
 
       this.logger.log(`Assigning role ${dto.rol} to user ${usuario.nombre}`);
 
-      const rol = await this.rolRepository.findOne({ where: { rol: dto.rol } });
+      const roles = await this.rolRepository.find({ where: { rol: dto.rol } });
 
-      if (!rol) {
+      if (!roles.length) {
         throw new Error(`Rol ${dto.rol} not found`);
       }
 
       // Reemplazo total del rol: se borran las asignaciones previas de ESTE dni
-      // (y solo de este dni) y se crea la nueva, en una misma transacción para
-      // no dejar al usuario sin ningún rol si algo falla a mitad de camino.
+      // (y solo de este dni) y se crean TODAS las filas de permisos que
+      // componen este rol (un rol puede estar compuesto por varias filas en
+      // la tabla `rol`, una por cada permiso individual), en una misma
+      // transacción para no dejar al usuario sin ningún rol si algo falla a
+      // mitad de camino.
       await this.usuarioRolRepository.manager.transaction(async (manager) => {
         await manager.delete(UsuarioRol, { dni: usuario.dni });
 
-        const usuarioRol = manager.create(UsuarioRol, {
-          dni: usuario.dni,
-          rol_id: rol.id,
-          usuario,
-          rol,
-        });
-        await manager.save(usuarioRol);
+        const usuarioRoles = roles.map((rol) =>
+          manager.create(UsuarioRol, {
+            dni: usuario.dni,
+            rol_id: rol.id,
+            usuario,
+            rol,
+          }),
+        );
+        await manager.save(usuarioRoles);
       });
 
-      return rol;
+      return roles[0];
     } catch (error) {
       this.logger.error(
         error instanceof Error ? error.message : 'Unknown error',
