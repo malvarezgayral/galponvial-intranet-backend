@@ -31,17 +31,17 @@ export class NotificacionesService {
       return [];
     }
 
-    const nuevas = superadmins.map((superadmin) =>
-      this.notificacionRepository.create({
-        tipo,
-        titulo,
-        mensaje,
-        leida: false,
-        dniUsuario: superadmin.dni,
-      }),
-    );
+    // Se guarda una única fila (no una por superadmin) para evitar duplicados
+    // en la vista de notificaciones, ya que obtenerPorTipo no filtra por dniUsuario.
+    const nueva = this.notificacionRepository.create({
+      tipo,
+      titulo,
+      mensaje,
+      leida: false,
+      dniUsuario: superadmins[0].dni,
+    });
 
-    return this.notificacionRepository.save(nuevas);
+    return [await this.notificacionRepository.save(nueva)];
   }
 
   async obtenerPorTipo(tipo: string): Promise<Notificacion[]> {

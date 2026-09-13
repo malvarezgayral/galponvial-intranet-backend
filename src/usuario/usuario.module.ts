@@ -18,6 +18,7 @@ import { RolService } from './services/rol.service';
 import { JwtAccessStrategy } from './authStrategies/jwt-access.strategy';
 import { JwtRefreshStrategy } from './authStrategies/jwt-refresh.strategy';
 import { RefToken } from './services/ref-token.service';
+import { NotificacionesModule } from '../notificaciones/notificaciones.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { RefToken } from './services/ref-token.service';
       Recordatorio,
     ]),
     PassportModule.register({ defaultStrategy: 'jwt-access' }),
+    NotificacionesModule,
 
     JwtModule.registerAsync({
       imports: [ConfigModule],

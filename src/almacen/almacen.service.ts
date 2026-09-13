@@ -27,6 +27,7 @@ import { CreateSalidaDto } from './dto/create-salida.dto';
 import { CreateEntradaDto } from './dto/create-entrada.dto';
 import { UnidadMedidaCuant } from './entities/unidad-medida-cuant.entity';
 import { Permisos } from '../usuario/enums/usuario.enum';
+import { NotificacionesService } from '../notificaciones/services/notificaciones.service';
 import { SectorGalponDto } from './dto/sector-galpon.dto';
 
 @Injectable()
@@ -54,6 +55,8 @@ export class AlmacenService {
 
     @InjectRepository(SectorGalpon)
     private readonly sectorGalponRepo: Repository<SectorGalpon>,
+
+    private readonly notificacionesService: NotificacionesService,
   ) {}
 
   // ---------------------- ARTÍCULOS ----------------------
@@ -229,7 +232,18 @@ export class AlmacenService {
       grupo: grupo,
     });
 
-    return await this.articuloRepo.save(art);
+    const articuloGuardado = await this.articuloRepo.save(art);
+
+    await this.notificacionesService.crearNotificacionParaSuperadmin(
+      'almacen',
+      'Nuevo artículo creado en Almacén',
+      [
+        `Artículo: ${articuloGuardado.nombre}`,
+        `Grupo: ${grupo.nombre}`,
+      ].join(' | '),
+    );
+
+    return articuloGuardado;
   }
 
   async updateArticle(
@@ -298,7 +312,15 @@ export class AlmacenService {
       art.unidadMedida = unidad;
     }
 
-    return this.articuloRepo.save(art);
+    const articuloActualizado = await this.articuloRepo.save(art);
+
+    await this.notificacionesService.crearNotificacionParaSuperadmin(
+      'almacen',
+      'Artículo actualizado en Almacén',
+      `Artículo: ${articuloActualizado.nombre}`,
+    );
+
+    return articuloActualizado;
   }
 
   async deleteArticle(cod: number, userPermissions?: Permisos[]) {
@@ -453,7 +475,15 @@ export class AlmacenService {
 
     const g = this.grupoRepo.create(dto);
     g.sector = sector;
-    return await this.grupoRepo.save(g);
+    const grupoGuardado = await this.grupoRepo.save(g);
+
+    await this.notificacionesService.crearNotificacionParaSuperadmin(
+      'almacen',
+      'Nuevo grupo de artículos creado en Almacén',
+      `Grupo: ${grupoGuardado.nombre}`,
+    );
+
+    return grupoGuardado;
   }
 
   async updateGroup(
@@ -492,7 +522,15 @@ export class AlmacenService {
     }
 
     Object.assign(g, dto);
-    return this.grupoRepo.save(g);
+    const grupoActualizado = await this.grupoRepo.save(g);
+
+    await this.notificacionesService.crearNotificacionParaSuperadmin(
+      'almacen',
+      'Grupo de artículos actualizado en Almacén',
+      `Grupo: ${grupoActualizado.nombre}`,
+    );
+
+    return grupoActualizado;
   }
 
   async deleteGroup(id: number): Promise<GrupoArticulo> {
@@ -651,6 +689,19 @@ export class AlmacenService {
           .getRepository(Entrada)
           .save(entrada);
 
+        await this.notificacionesService.crearNotificacionParaSuperadmin(
+          'almacen',
+          'Nueva entrada de Almacén cargada',
+          [
+            `Artículo: ${articulo.nombre}`,
+            `Tipo: ${dtoEntrada.tipo}`,
+            dtoEntrada.detalle ? `Detalle: ${dtoEntrada.detalle}` : null,
+            dtoEntrada.proveedor ? `Proveedor: ${dtoEntrada.proveedor}` : null,
+          ]
+            .filter(Boolean)
+            .join(' | '),
+        );
+
         return {
           message: 'Entrada registrada correctamente.',
           movimiento: movimientoGuardado,
@@ -673,6 +724,20 @@ export class AlmacenService {
         });
 
         const salidaGuardada = await manager.getRepository(Salida).save(salida);
+
+        await this.notificacionesService.crearNotificacionParaSuperadmin(
+          'almacen',
+          'Nueva salida de Almacén cargada',
+          [
+            `Artículo: ${articulo.nombre}`,
+            `Tipo: ${dtoSalida.tipo}`,
+            dtoSalida.detalle ? `Detalle: ${dtoSalida.detalle}` : null,
+            dtoSalida.motivo_salida ? `Motivo: ${dtoSalida.motivo_salida}` : null,
+            dtoSalida.detalle_motivo ? `Detalle motivo: ${dtoSalida.detalle_motivo}` : null,
+          ]
+            .filter(Boolean)
+            .join(' | '),
+        );
 
         return {
           message: 'Salida registrada correctamente.',
