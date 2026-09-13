@@ -10,6 +10,7 @@ import { Salida } from './entities/salida.entity';
 import { SectorGalpon } from './entities/sector-galpon.entity';
 import { UnidadMedidaCuant } from './entities/unidad-medida-cuant.entity';
 import { UsuarioModule } from 'src/usuario/usuario.module';
+import { NotificacionesModule } from 'src/notificaciones/notificaciones.module';
 import { CloudinaryProvider } from 'src/common/cloudinary/cloudinary.provider';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 
@@ -25,6 +26,7 @@ import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
       UnidadMedidaCuant,
     ]),
     UsuarioModule,
+    NotificacionesModule,
   ],
   controllers: [AlmacenController],
   providers: [AlmacenService, CloudinaryProvider, CloudinaryService],

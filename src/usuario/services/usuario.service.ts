@@ -43,6 +43,7 @@ import {
 import { ReporteIncidenteResponseDto } from '../../vehiculos/dto/reporte-incidente-response.dto';
 import { ServicioResponseDto } from '../../vehiculos/dto/servicio-response.dto';
 import { RecordatorioResponseDto } from '../../vehiculos/dto/recordatorio-response.dto';
+import { NotificacionesService } from '../../notificaciones/services/notificaciones.service';
 
 @Injectable()
 export class UsuarioService {
@@ -69,6 +70,7 @@ export class UsuarioService {
     @Inject(forwardRef(() => RefToken))
     private refTokenService: RefToken,
     private readonly configService: ConfigService,
+    private readonly notificacionesService: NotificacionesService,
   ) {}
 
   // ===== MÉTODOS HELPER PARA FILTRADO DE DATOS SENSIBLES =====
@@ -886,6 +888,16 @@ export class UsuarioService {
       relations: ['usuario'],
     });
 
+    await this.notificacionesService.crearNotificacionParaSuperadmin(
+      'recordatorio',
+      'Nuevo recordatorio cargado',
+      [
+        `Usuario: ${usuario.nombre} ${usuario.apellido} (DNI ${usuario.dni})`,
+        `Fecha: ${data.fecha}`,
+        `Descripción: ${data.descripcion}`,
+      ].join(' | '),
+    );
+
     return this.filterRecordatorioResponse(
       recordatorioCompleto,
     ) as RecordatorioResponseDto;
@@ -929,6 +941,17 @@ export class UsuarioService {
 
     const recordatorioActualizado =
       await this.recordatorioRepository.save(recordatorio);
+
+    await this.notificacionesService.crearNotificacionParaSuperadmin(
+      'recordatorio',
+      'Recordatorio actualizado',
+      [
+        `Usuario: ${recordatorio.usuario.nombre} ${recordatorio.usuario.apellido} (DNI ${recordatorio.usuario.dni})`,
+        `Fecha: ${recordatorioActualizado.fecha}`,
+        `Descripción: ${recordatorioActualizado.descripcion}`,
+      ].join(' | '),
+    );
+
     return this.filterRecordatorioResponse(
       recordatorioActualizado,
     ) as RecordatorioResponseDto;
