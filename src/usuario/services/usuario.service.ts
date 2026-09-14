@@ -303,17 +303,24 @@ export class UsuarioService {
     page?: number,
     pageSize?: number,
   ): Promise<UsuarioResponseDto[]> {
-    const query = this.usuarioRepository
-      .createQueryBuilder('usuario')
-      .leftJoinAndSelect('usuario.usuarioRoles', 'usuarioRoles')
-      .leftJoinAndSelect('usuarioRoles.rol', 'rol');
+    const baseQuery = this.usuarioRepository.createQueryBuilder('usuario');
 
     if (page && pageSize) {
       const skip = (page - 1) * pageSize;
-      query.skip(skip).take(pageSize);
+      baseQuery.skip(skip).take(pageSize);
     }
 
-    const usuarios = await query.getMany();
+    const usuariosPagina = await baseQuery.select('usuario.dni').getMany();
+    const dnis = usuariosPagina.map((u) => u.dni);
+
+    if (dnis.length === 0) return [];
+
+    const usuarios = await this.usuarioRepository
+      .createQueryBuilder('usuario')
+      .leftJoinAndSelect('usuario.usuarioRoles', 'usuarioRoles')
+      .leftJoinAndSelect('usuarioRoles.rol', 'rol')
+      .whereInIds(dnis)
+      .getMany();
     return this.filterUsuariosResponse(usuarios);
   }
 
