@@ -6,6 +6,10 @@ import { AlmacenModule } from './almacen/almacen.module';
 import { SeedModule } from './seed/seed.module';
 import { UsuarioModule } from './usuario/usuario.module';
 import { ServiceModule } from './service/service.module';
+import { ReparacionModule } from './reparacion/reparacion.module';
+import { ProveedorModule } from './proveedores/proveedor.module';
+import { ComprasModule } from './compras/compras.module';
+import { LubricentroModule } from './lubricentro/lubricentro.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
 const isTestEnv = process.env.NODE_ENV === 'test';
 @Module({
@@ -34,6 +38,10 @@ const isTestEnv = process.env.NODE_ENV === 'test';
     SeedModule,
     UsuarioModule,
     ServiceModule,
+    ReparacionModule,
+    ProveedorModule,
+    ComprasModule,
+    LubricentroModule,
     NotificacionesModule,
   ],
 })

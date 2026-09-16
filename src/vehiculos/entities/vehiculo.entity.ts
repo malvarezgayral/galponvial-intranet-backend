@@ -11,6 +11,8 @@ import { StatusUpdate } from './status-update.entity';
 import { CombustibleCarga } from './combustible-carga.entity';
 import { VehiculoStatus, TipoVehiculo } from '../enums/vehiculo.enum';
 import { UsuarioVehiculo } from '../../usuario/entities/usuario-vehiculo.entity';
+import { Reparacion } from '../../reparacion/entities/reparacion.entity';
+import { Lubricante } from '../../lubricentro/entities/lubricante.entity';
 
 @Entity('vehiculo')
 export class Vehiculo {
@@ -72,4 +74,10 @@ export class Vehiculo {
 
   @OneToMany(() => UsuarioVehiculo, (uv) => uv.vehiculo)
   usuarios: UsuarioVehiculo[];
+
+  @OneToMany(() => Reparacion, (reparacion) => reparacion.vehiculo)
+  reparaciones: Reparacion[];
+
+  @OneToMany(() => Lubricante, (lubricante) => lubricante.vehiculo)
+  lubricantes: Lubricante[];
 }

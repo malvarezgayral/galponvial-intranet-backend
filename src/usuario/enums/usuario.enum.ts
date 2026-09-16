@@ -7,6 +7,9 @@ export enum Permisos {
   // Permisos generales
   ALL_WRITE = 'all:write',
   ALL_READ = 'all:read',
+  // Permisos de Lubricentro
+  LUBRICENTRO_READ = 'lubricentro:read',
+  LUBRICENTRO_WRITE = 'lubricentro:write',
 }
 
 // Alias para ValidPermissions (mismo que Permisos)
