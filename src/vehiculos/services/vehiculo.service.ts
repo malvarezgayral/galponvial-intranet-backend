@@ -148,6 +148,7 @@ export class VehiculosService {
     }
 
     const { infoAdicional: infoData, ...vehiculoData } = updateVehiculoDto;
+    const statusViejo: VehiculoStatus = vehiculo.status;
 
     if (infoData?.id_sector_pertenencia) {
       const sector = await this.sectorRepository.findOne({
@@ -163,7 +164,18 @@ export class VehiculosService {
 
     try {
       Object.assign(vehiculo, vehiculoData);
-      await this.vehiculoRepository.save(vehiculo);
+      const vehiculoGuardado = await this.vehiculoRepository.save(vehiculo);
+
+      // Registrar historial solo si el status realmente cambió
+      if (
+        vehiculoData.status !== undefined &&
+        vehiculoData.status !== statusViejo
+      ) {
+        await this.statusUpdateService.crearStatusUpdate(
+          vehiculoGuardado,
+          statusViejo,
+        );
+      }
 
       if (infoData && vehiculo.infoAdicional) {
         Object.assign(vehiculo.infoAdicional, infoData);
