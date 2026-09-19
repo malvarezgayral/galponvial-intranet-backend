@@ -1,14 +1,16 @@
 // src/service/dto/create-service.dto.ts
 import { IsString, IsOptional, IsNotEmpty } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateServiceDto {
   @IsString()
   @IsNotEmpty()
   vehiculo!: string;
 
+  @Transform(({ value }) => (value === '' ? null : value))
   @IsString()
   @IsOptional()
-  fecha?: string;
+  fecha?: string | null;
 
   @IsString()
   @IsOptional()
@@ -66,9 +68,10 @@ export class CreateServiceDto {
   @IsOptional()
   cambioDamper?: string;
 
+  @Transform(({ value }) => (value === '' ? null : value))
   @IsString()
   @IsOptional()
-  proximoService?: string;
+  proximoService?: string | null;
 
   @IsString()
   @IsOptional()

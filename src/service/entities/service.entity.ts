@@ -10,7 +10,7 @@ export class Service {
   vehiculo!: string;
 
   @Column({ type: 'date', nullable: true })
-  fecha!: string;
+  fecha!: string | null;
 
   @Column({ name: 'aceite_motor', type: 'varchar', length: 10, nullable: true })
   aceiteMotor!: string;
@@ -55,7 +55,7 @@ export class Service {
   cambioDamper!: string;
 
   @Column({ name: 'proximo_service', type: 'date', nullable: true })
-  proximoService!: string;
+  proximoService!: string | null;
 
   @Column({ name: 'cuenta_hora', type: 'varchar', length: 50, nullable: true })
   cuentaHora!: string;
