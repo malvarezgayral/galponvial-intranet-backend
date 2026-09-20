@@ -1,5 +1,5 @@
 // src/notificaciones/controllers/notificaciones.controller.ts
-import { Controller, Get, Patch, Param, Query, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Query, ParseIntPipe, ForbiddenException } from '@nestjs/common';
 import { NotificacionesService } from '../services/notificaciones.service';
 import { Auth } from '../../usuario/decorators/auth.decorator';
 import { ValidRoles } from '../../usuario/enums/usuario.enum';
@@ -19,13 +19,18 @@ export class NotificacionesController {
 
   @Get()
   @Auth(ValidRoles.admin, ValidRoles.superadmin)
-  obtenerPorTipo(@Query('tipo') tipo: string) {
+  obtenerPorTipo(@Query('tipo') tipo: string, @GetUser() user: Usuario) {
+    // Personal es confidencial: solo el superadmin
+    if (tipo === 'personal' && !user.roles.some((r) => r.rol === ValidRoles.superadmin)) {
+      throw new ForbiddenException('No autorizado');
+    }
     return this.notificacionesService.obtenerPorTipo(tipo);
   }
 
   @Patch(':id/leida')
   @Auth(ValidRoles.admin, ValidRoles.superadmin)
-  marcarComoLeida(@Param('id', ParseIntPipe) id: number) {
-    return this.notificacionesService.marcarComoLeida(id);
+  marcarComoLeida(@Param('id', ParseIntPipe) id: number, @GetUser() user: Usuario) {
+    const esSuperadmin = user.roles.some((r) => r.rol === ValidRoles.superadmin);
+    return this.notificacionesService.marcarComoLeida(id, esSuperadmin);
   }
 }
