@@ -48,6 +48,26 @@ export class NotificacionesService {
     return [await this.notificacionRepository.save(nueva)];
   }
 
+  async contarNoLeidasPorTipo(
+    incluirPersonal: boolean,
+  ): Promise<Record<string, number>> {
+    const filas = await this.notificacionRepository
+      .createQueryBuilder('n')
+      .select('n.tipo', 'tipo')
+      .addSelect('COUNT(*)', 'total')
+      .where('n.leida = :leida', { leida: false })
+      .groupBy('n.tipo')
+      .getRawMany<{ tipo: string; total: string }>();
+
+    const resultado: Record<string, number> = {};
+    for (const f of filas) {
+      // Personal es confidencial: solo se informa al superadmin
+      if (f.tipo === 'personal' && !incluirPersonal) continue;
+      resultado[f.tipo] = Number(f.total);
+    }
+    return resultado;
+  }
+
   async obtenerPorTipo(tipo: string): Promise<Notificacion[]> {
     return this.notificacionRepository.find({
       where: { tipo },
