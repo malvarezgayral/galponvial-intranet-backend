@@ -10,6 +10,9 @@ export enum Permisos {
   // Permisos de Lubricentro
   LUBRICENTRO_READ = 'lubricentro:read',
   LUBRICENTRO_WRITE = 'lubricentro:write',
+  // Permisos de Personal
+  PERSONAL_READ = 'personal:read',
+  PERSONAL_WRITE = 'personal:write',
 }
 
 // Alias para ValidPermissions (mismo que Permisos)
