@@ -19,6 +19,8 @@ export class NotificacionesService {
     tipo: string,
     titulo: string,
     mensaje: string,
+    referenciaTipo?: string,
+    referenciaId?: number,
   ): Promise<Notificacion[]> {
     const superadmins = await this.usuarioRepository
       .createQueryBuilder('usuario')
@@ -39,6 +41,8 @@ export class NotificacionesService {
       mensaje,
       leida: false,
       dniUsuario: superadmins[0].dni,
+      referenciaTipo: referenciaTipo ?? null,
+      referenciaId: referenciaId ?? null,
     });
 
     return [await this.notificacionRepository.save(nueva)];

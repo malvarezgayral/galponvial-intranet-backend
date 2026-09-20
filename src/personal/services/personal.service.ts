@@ -19,12 +19,19 @@ export class PersonalService {
   ) {}
 
   // Aviso a superadmin sin datos personales. Si falla, no rompe el guardado.
-  private async notificar(titulo: string, mensaje: string): Promise<void> {
+  private async notificar(
+    titulo: string,
+    mensaje: string,
+    referenciaTipo: string,
+    referenciaId: number,
+  ): Promise<void> {
     try {
       await this.notificacionesService.crearNotificacionParaSuperadmin(
         'personal',
         titulo,
         mensaje,
+        referenciaTipo,
+        referenciaId,
       );
     } catch (e) {
       console.error('No se pudo crear la notificación de Personal', e);
@@ -40,6 +47,8 @@ export class PersonalService {
     await this.notificar(
       'Nueva documentación personal cargada',
       'Se cargó un registro de Documentación Personal.',
+      'documentacion',
+      guardado.id,
     );
     return guardado;
   }
@@ -81,6 +90,8 @@ export class PersonalService {
     await this.notificar(
       'Nuevo registro administrativo cargado',
       'Se cargó un Registro Administrativo.',
+      'registro',
+      guardado.id,
     );
     return guardado;
   }
