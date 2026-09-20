@@ -23,4 +23,10 @@ export class Notificacion {
 
   @Column({ name: 'dni_usuario', type: 'bigint' })
 dniUsuario!: number;
+
+  @Column({ name: 'referencia_tipo', type: 'varchar', length: 30, nullable: true })
+  referenciaTipo?: string | null;
+
+  @Column({ name: 'referencia_id', type: 'int', nullable: true })
+  referenciaId?: number | null;
 }
