@@ -75,9 +75,13 @@ export class NotificacionesService {
     });
   }
 
-  async marcarComoLeida(id: number): Promise<Notificacion> {
+  async marcarComoLeida(id: number, esSuperadmin = true): Promise<Notificacion> {
     const notificacion = await this.notificacionRepository.findOneBy({ id });
     if (!notificacion) {
+      throw new NotFoundException(`Notificación con ID ${id} no encontrada`);
+    }
+    // Personal es confidencial: a un no superadmin se le responde como si no existiera
+    if (notificacion.tipo === 'personal' && !esSuperadmin) {
       throw new NotFoundException(`Notificación con ID ${id} no encontrada`);
     }
     notificacion.leida = true;
