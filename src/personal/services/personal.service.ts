@@ -6,6 +6,7 @@ import { DocumentacionPersonal } from '../entities/documentacion-personal.entity
 import { RegistroAdministrativo } from '../entities/registro-administrativo.entity';
 import { CreateDocumentacionPersonalDto } from '../dto/create-documentacion-personal.dto';
 import { CreateRegistroAdministrativoDto } from '../dto/create-registro-administrativo.dto';
+import { NotificacionesService } from 'src/notificaciones/services/notificaciones.service';
 
 @Injectable()
 export class PersonalService {
@@ -14,14 +15,33 @@ export class PersonalService {
     private readonly docRepo: Repository<DocumentacionPersonal>,
     @InjectRepository(RegistroAdministrativo)
     private readonly regRepo: Repository<RegistroAdministrativo>,
+    private readonly notificacionesService: NotificacionesService,
   ) {}
+
+  // Aviso a superadmin sin datos personales. Si falla, no rompe el guardado.
+  private async notificar(titulo: string, mensaje: string): Promise<void> {
+    try {
+      await this.notificacionesService.crearNotificacionParaSuperadmin(
+        'personal',
+        titulo,
+        mensaje,
+      );
+    } catch (e) {
+      console.error('No se pudo crear la notificación de Personal', e);
+    }
+  }
 
   // ---------- Documentación personal ----------
   async crearDocumentacion(
     dto: CreateDocumentacionPersonalDto,
   ): Promise<DocumentacionPersonal> {
     const nuevo = this.docRepo.create(dto);
-    return this.docRepo.save(nuevo);
+    const guardado = await this.docRepo.save(nuevo);
+    await this.notificar(
+      'Nueva documentación personal cargada',
+      'Se cargó un registro de Documentación Personal.',
+    );
+    return guardado;
   }
 
   async obtenerDocumentaciones(): Promise<DocumentacionPersonal[]> {
@@ -57,7 +77,12 @@ export class PersonalService {
     dto: CreateRegistroAdministrativoDto,
   ): Promise<RegistroAdministrativo> {
     const nuevo = this.regRepo.create(dto);
-    return this.regRepo.save(nuevo);
+    const guardado = await this.regRepo.save(nuevo);
+    await this.notificar(
+      'Nuevo registro administrativo cargado',
+      'Se cargó un Registro Administrativo.',
+    );
+    return guardado;
   }
 
   async obtenerRegistros(): Promise<RegistroAdministrativo[]> {
