@@ -75,6 +75,14 @@ export class NotificacionesService {
     });
   }
 
+  async marcarTipoComoLeido(tipo: string): Promise<{ actualizadas: number }> {
+    const r = await this.notificacionRepository.update(
+      { tipo, leida: false },
+      { leida: true },
+    );
+    return { actualizadas: r.affected ?? 0 };
+  }
+
   async marcarComoLeida(id: number, esSuperadmin = true): Promise<Notificacion> {
     const notificacion = await this.notificacionRepository.findOneBy({ id });
     if (!notificacion) {

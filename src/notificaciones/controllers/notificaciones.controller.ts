@@ -27,6 +27,16 @@ export class NotificacionesController {
     return this.notificacionesService.obtenerPorTipo(tipo);
   }
 
+  @Patch('tipo/:tipo/leidas')
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  marcarTipoComoLeido(@Param('tipo') tipo: string, @GetUser() user: Usuario) {
+    // Personal es confidencial: solo el superadmin
+    if (tipo === 'personal' && !user.roles.some((r) => r.rol === ValidRoles.superadmin)) {
+      throw new ForbiddenException('No autorizado');
+    }
+    return this.notificacionesService.marcarTipoComoLeido(tipo);
+  }
+
   @Patch(':id/leida')
   @Auth(ValidRoles.admin, ValidRoles.superadmin)
   marcarComoLeida(@Param('id', ParseIntPipe) id: number, @GetUser() user: Usuario) {
