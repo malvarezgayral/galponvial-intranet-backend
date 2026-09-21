@@ -23,6 +23,7 @@ interface RequestWithUser extends Request {
 // Personal y Lubricentro quedan afuera a proposito.
 const PERMISOS_CON_COMODIN_ALL_WRITE: Permisos[] = [
   Permisos.COMBUSTIBLE_WRITE,
+  Permisos.SERVICE_WRITE,
 ];
 
 @Injectable()

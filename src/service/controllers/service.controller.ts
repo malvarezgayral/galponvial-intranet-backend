@@ -12,14 +12,17 @@ import {
 import { ServiceService } from '../services/service.service';
 import { CreateServiceDto } from '../dto/create-service.dto';
 import { Auth } from 'src/usuario/decorators/auth.decorator';
-import { ValidRoles } from 'src/usuario/enums/usuario.enum';
+import { ScopedAuth } from 'src/usuario/decorators/scoped-auth.decorator';
+import { ScopedPermissions } from 'src/usuario/decorators/scoped-permissions.decorator';
+import { Permisos, ValidRoles } from 'src/usuario/enums/usuario.enum';
 
 @Controller('service')
 export class ServiceController {
   constructor(private readonly serviceService: ServiceService) {}
 
   @Post()
-  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.SERVICE_WRITE)
   crear(@Body() dto: CreateServiceDto) {
     return this.serviceService.crear(dto);
   }
@@ -31,7 +34,8 @@ export class ServiceController {
   }
 
   @Put(':id')
-  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.SERVICE_WRITE)
   actualizar(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CreateServiceDto,
