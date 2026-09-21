@@ -26,7 +26,9 @@ import { UpdateVehiculoDto } from '../dto/update-vehiculo.dto';
 import { DeleteLogicoVehiculoDto } from '../dto/delete-logico-vehiculo.dto';
 import { AssignVehicleToUserDto } from '../dto/assign-vehicle-to-user.dto';
 import { Auth } from 'src/usuario/decorators/auth.decorator';
-import { ValidRoles } from 'src/usuario/enums/usuario.enum';
+import { ScopedAuth } from 'src/usuario/decorators/scoped-auth.decorator';
+import { ScopedPermissions } from 'src/usuario/decorators/scoped-permissions.decorator';
+import { Permisos, ValidRoles } from 'src/usuario/enums/usuario.enum';
 import { CreateReporteIncidenteDto } from '../dto/create-reporte-incidente.dto';
 import { CreateCombustibleCargaDto } from '../dto/create-combustible-carga.dto';
 import { ObjectServiceResponse } from 'src/usuario/interfaces/object-service-response.interface';
@@ -299,7 +301,8 @@ export class VehiculosController {
   })
   @Post(':id/combustible-cargas')
   @HttpCode(HttpStatus.CREATED)
-  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.COMBUSTIBLE_WRITE)
   agregarCombustibleCarga(
     @Param('id', ParseIntPipe) id: number,
     @Body() createCombustibleCargaDto: CreateCombustibleCargaDto,

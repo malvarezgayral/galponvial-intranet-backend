@@ -13,6 +13,8 @@ export enum Permisos {
   // Permisos de Personal
   PERSONAL_READ = 'personal:read',
   PERSONAL_WRITE = 'personal:write',
+  // Permisos de Combustible
+  COMBUSTIBLE_WRITE = 'combustible:write',
 }
 
 // Alias para ValidPermissions (mismo que Permisos)

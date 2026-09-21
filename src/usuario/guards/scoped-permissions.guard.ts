@@ -19,6 +19,12 @@ interface RequestWithUser extends Request {
   user: Usuario;
 }
 
+// Permisos de escritura que tambien acepta all:write como comodin.
+// Personal y Lubricentro quedan afuera a proposito.
+const PERMISOS_CON_COMODIN_ALL_WRITE: Permisos[] = [
+  Permisos.COMBUSTIBLE_WRITE,
+];
+
 @Injectable()
 export class ScopedPermissionsGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
@@ -59,8 +65,11 @@ export class ScopedPermissionsGuard implements CanActivate {
     );
 
     if (requiredPermissions && requiredPermissions.length > 0) {
-      const hasWritePermission = requiredPermissions.some((permission) =>
-        userPermissions.includes(permission),
+      const hasAllWrite = userPermissions.includes(Permisos.ALL_WRITE);
+      const hasWritePermission = requiredPermissions.some(
+        (permission) =>
+          userPermissions.includes(permission) ||
+          (hasAllWrite && PERMISOS_CON_COMODIN_ALL_WRITE.includes(permission)),
       );
 
       if (!hasWritePermission) {
