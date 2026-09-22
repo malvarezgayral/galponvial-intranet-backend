@@ -117,6 +117,11 @@ export class AlmacenController {
 
   @Get('articulos/eliminados')
   @AlmacenAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @AlmacenReadPermissions(
+    Permisos.ALMACEN_TALLER_READ,
+    Permisos.ALMACEN_COMUN_READ,
+    Permisos.ALL_READ,
+  )
   @ApiOperation({
     summary: 'Listar artículos eliminados',
     description: 'Obtiene todos los artículos que tienen isDeleted en true',
