@@ -64,7 +64,25 @@ export class ReparacionService {
       ...dto,
       vehiculo: { id_vehiculo: dto.id_vehiculo } as any,
     });
-    return this.obtenerUno(id);
+    const actualizada = await this.obtenerUno(id);
+
+    const mensaje = [
+      `Taller: ${actualizada.taller}`,
+      `Fecha de entrada: ${actualizada.fecha_entrada}`,
+      actualizada.fecha_salida ? `Fecha de salida: ${actualizada.fecha_salida}` : null,
+      `Descripción: ${actualizada.descripcion}`,
+      actualizada.observaciones ? `Observaciones: ${actualizada.observaciones}` : null,
+    ]
+      .filter(Boolean)
+      .join(' | ');
+
+    await this.notificacionesService.crearNotificacionParaSuperadmin(
+      'reparacion',
+      'Registro de Reparación editado',
+      mensaje,
+    );
+
+    return actualizada;
   }
 
   async eliminar(id: number): Promise<void> {
