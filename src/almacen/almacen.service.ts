@@ -30,6 +30,17 @@ import { Permisos } from '../usuario/enums/usuario.enum';
 import { NotificacionesService } from '../notificaciones/services/notificaciones.service';
 import { SectorGalponDto } from './dto/sector-galpon.dto';
 
+const TITULO_MAX = 150;
+
+function recortarTitulo(partes: (string | null | undefined | false)[]): string {
+  const t = partes.filter(Boolean).join(' · ');
+  return t.length > TITULO_MAX ? t.slice(0, TITULO_MAX - 1) + '…' : t;
+}
+
+function distinto(a: unknown, b: unknown): boolean {
+  return String(a ?? '') !== String(b ?? '');
+}
+
 @Injectable()
 export class AlmacenService {
   constructor(
@@ -236,7 +247,7 @@ export class AlmacenService {
 
     await this.notificacionesService.crearNotificacionParaSuperadmin(
       'almacen',
-      'Nuevo artículo creado en Almacén',
+      recortarTitulo(['Artículo creado', `${articuloGuardado.nombre} (cód. ${articuloGuardado.cod})`, `Grupo: ${grupo.nombre}`]),
       [
         `Artículo: ${articuloGuardado.nombre}`,
         `Grupo: ${grupo.nombre}`,
@@ -264,6 +275,17 @@ export class AlmacenService {
     if (userPermissions && userPermissions.length > 0) {
       await this.validateWritePermissionByArticuloCod(cod, userPermissions);
     }
+
+    const cambios: string[] = [];
+    if (dto.nombre !== undefined && distinto(dto.nombre, art.nombre)) cambios.push('nombre');
+    if (dto.descripcion !== undefined && distinto(dto.descripcion, art.descripcion)) cambios.push('descripción');
+    if (dto.modelo !== undefined && distinto(dto.modelo, art.modelo)) cambios.push('modelo');
+    if (dto.img_url !== undefined && distinto(dto.img_url, art.img_url)) cambios.push('imagen');
+    if (dto.unidad_tipo !== undefined && distinto(dto.unidad_tipo, art.unidad_tipo)) cambios.push('tipo de unidad');
+    if (dto.stock !== undefined && distinto(dto.stock, art.stock)) cambios.push('stock');
+    if (dto.cod_proveedor !== undefined && distinto(dto.cod_proveedor, art.cod_proveedor)) cambios.push('cód. proveedor');
+    if (dto.grupo_id !== undefined && distinto(dto.grupo_id, art.grupo?.id)) cambios.push('grupo');
+    if (dto.unidad_medida_id !== undefined && distinto(dto.unidad_medida_id, art.unidadMedida?.id)) cambios.push('unidad de medida');
 
     // Actualizar propiedades simples
     if (dto.nombre !== undefined) art.nombre = dto.nombre;
@@ -316,7 +338,7 @@ export class AlmacenService {
 
     await this.notificacionesService.crearNotificacionParaSuperadmin(
       'almacen',
-      'Artículo actualizado en Almacén',
+      recortarTitulo(['Artículo editado', `${articuloActualizado.nombre} (cód. ${articuloActualizado.cod})`, cambios.length > 0 ? `cambió: ${cambios.join(', ')}` : null]),
       `Artículo: ${articuloActualizado.nombre}`,
     );
 
@@ -479,7 +501,7 @@ export class AlmacenService {
 
     await this.notificacionesService.crearNotificacionParaSuperadmin(
       'almacen',
-      'Nuevo grupo de artículos creado en Almacén',
+      recortarTitulo(['Grupo creado', grupoGuardado.nombre, `Sector ${sector.nro_sector} (${sector.tipo})`]),
       `Grupo: ${grupoGuardado.nombre}`,
     );
 
@@ -521,12 +543,17 @@ export class AlmacenService {
       }
     }
 
+    const cambios: string[] = [];
+    if (dto.nombre !== undefined && distinto(dto.nombre, g.nombre)) cambios.push('nombre');
+    if (dto.descripcion !== undefined && distinto(dto.descripcion, g.descripcion)) cambios.push('descripción');
+    if (dto.sector_id !== undefined && dto.sector_id !== g.sector.id) cambios.push('sector');
+
     Object.assign(g, dto);
     const grupoActualizado = await this.grupoRepo.save(g);
 
     await this.notificacionesService.crearNotificacionParaSuperadmin(
       'almacen',
-      'Grupo de artículos actualizado en Almacén',
+      recortarTitulo(['Grupo editado', grupoActualizado.nombre, cambios.length > 0 ? `cambió: ${cambios.join(', ')}` : null]),
       `Grupo: ${grupoActualizado.nombre}`,
     );
 
@@ -691,7 +718,7 @@ export class AlmacenService {
 
         await this.notificacionesService.crearNotificacionParaSuperadmin(
           'almacen',
-          'Nueva entrada de Almacén cargada',
+          recortarTitulo(['Entrada de Almacén', `${articulo.nombre} (cód. ${articulo.cod})`, `Tipo: ${dtoEntrada.tipo}`, dtoEntrada.proveedor ? `Proveedor: ${dtoEntrada.proveedor}` : null]),
           [
             `Artículo: ${articulo.nombre}`,
             `Tipo: ${dtoEntrada.tipo}`,
@@ -727,7 +754,7 @@ export class AlmacenService {
 
         await this.notificacionesService.crearNotificacionParaSuperadmin(
           'almacen',
-          'Nueva salida de Almacén cargada',
+          recortarTitulo(['Salida de Almacén', `${articulo.nombre} (cód. ${articulo.cod})`, `Tipo: ${dtoSalida.tipo}`, dtoSalida.motivo_salida ? `Motivo: ${dtoSalida.motivo_salida}` : null]),
           [
             `Artículo: ${articulo.nombre}`,
             `Tipo: ${dtoSalida.tipo}`,
