@@ -60,9 +60,10 @@ export class ReparacionService {
     if (!existente) {
       throw new NotFoundException(`Reparación con ID ${id} no encontrada`);
     }
+    const { id_vehiculo, ...resto } = dto;
     await this.reparacionRepository.update(id, {
-      ...dto,
-      vehiculo: { id_vehiculo: dto.id_vehiculo } as any,
+      ...resto,
+      vehiculo: { id_vehiculo } as any,
     });
     const actualizada = await this.obtenerUno(id);
 
