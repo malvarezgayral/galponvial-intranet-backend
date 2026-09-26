@@ -15,6 +15,7 @@ import { Servicio } from 'src/usuario/entities/servicio.entity';
 
 // Módulos externos
 import { UsuarioModule } from 'src/usuario/usuario.module';
+import { NotificacionesModule } from 'src/notificaciones/notificaciones.module';
 
 // Servicios
 import { VehiculosService } from './services/vehiculo.service';
@@ -44,6 +45,7 @@ import { ServicioController } from './controllers/servicio.controller';
       Servicio,
     ]),
     UsuarioModule,
+    NotificacionesModule,
   ],
   controllers: [
     VehiculosController,
