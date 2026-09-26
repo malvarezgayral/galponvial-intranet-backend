@@ -26,6 +26,7 @@ import { FallaIncidente } from 'src/usuario/enums/usuario.enum';
 import { ReporteIncidenteResponseDto } from '../dto/reporte-incidente-response.dto';
 import { UsuarioMinimalResponseDto } from 'src/usuario/dto/usuario-response.dto';
 import { UsuarioVehiculo } from 'src/usuario/entities/usuario-vehiculo.entity';
+import { NotificacionesService } from 'src/notificaciones/services/notificaciones.service';
 
 @Injectable()
 export class VehiculosService {
@@ -47,7 +48,27 @@ export class VehiculosService {
     @InjectRepository(UsuarioVehiculo)
     private readonly usuarioVehiculoRepository: Repository<UsuarioVehiculo>,
     private readonly statusUpdateService: StatusUpdateService,
+    private readonly notificacionesService: NotificacionesService,
   ) {}
+
+  private tituloIncidente(
+    vehiculo: { nombre: string; codigo?: string | null },
+    incidente: { tipo: string; falla: string },
+  ): string {
+    const TITULO_MAX_INCIDENTE = 150;
+    const identificadorVehiculo = vehiculo.codigo
+      ? `${vehiculo.nombre} (cód. ${vehiculo.codigo})`
+      : vehiculo.nombre;
+    const titulo = [
+      'Incidente reportado',
+      identificadorVehiculo,
+      `Tipo: ${incidente.tipo}`,
+      `Falla: ${incidente.falla}`,
+    ].join(' · ');
+    return titulo.length > TITULO_MAX_INCIDENTE
+      ? titulo.slice(0, TITULO_MAX_INCIDENTE - 1) + '…'
+      : titulo;
+  }
 
   private filterUsuarioMinimal(usuario: any): UsuarioMinimalResponseDto | null {
     if (!usuario) return null;
@@ -430,6 +451,12 @@ export class VehiculosService {
       where: { id: incidenteGuardado.id },
       relations: ['vehiculo', 'usuario', 'servicios'],
     });
+
+    await this.notificacionesService.crearNotificacionParaSuperadmin(
+      'incidentes',
+      this.tituloIncidente(vehiculo, incidente),
+      `Se reportó un incidente en ${vehiculo.nombre}: ${incidente.descripcion}`,
+    );
 
     return this.filterReporteIncidenteResponse(incidenteCompleto) as ReporteIncidenteResponseDto;
   }
