@@ -73,6 +73,25 @@ export class UsuarioService {
     private readonly notificacionesService: NotificacionesService,
   ) {}
 
+  private tituloRecordatorio(
+    accion: string,
+    usuario: { nombre: string; apellido: string; dni: number },
+    cambios: string[] = [],
+  ): string {
+    const TITULO_MAX_RECORDATORIO = 150;
+    const partes = [
+      `Recordatorio ${accion}`,
+      `${usuario.nombre} ${usuario.apellido} (DNI ${usuario.dni})`,
+    ];
+    if (cambios.length > 0) {
+      partes.push(`cambió: ${cambios.join(', ')}`);
+    }
+    const titulo = partes.join(' · ');
+    return titulo.length > TITULO_MAX_RECORDATORIO
+      ? titulo.slice(0, TITULO_MAX_RECORDATORIO - 1) + '…'
+      : titulo;
+  }
+
   // ===== MÉTODOS HELPER PARA FILTRADO DE DATOS SENSIBLES =====
 
   /**
@@ -897,7 +916,7 @@ export class UsuarioService {
 
     await this.notificacionesService.crearNotificacionParaSuperadmin(
       'recordatorio',
-      'Nuevo recordatorio cargado',
+      this.tituloRecordatorio('cargado', usuario),
       [
         `Usuario: ${usuario.nombre} ${usuario.apellido} (DNI ${usuario.dni})`,
         `Fecha: ${data.fecha}`,
@@ -938,6 +957,9 @@ export class UsuarioService {
       throw new Error('Recordatorio no encontrado');
     }
 
+    const fechaAnteriorRecordatorio = recordatorio.fecha;
+    const descripcionAnteriorRecordatorio = recordatorio.descripcion;
+
     if (data.fecha !== undefined) {
       recordatorio.fecha = new Date(data.fecha);
     }
@@ -949,9 +971,29 @@ export class UsuarioService {
     const recordatorioActualizado =
       await this.recordatorioRepository.save(recordatorio);
 
+    const cambiosRecordatorio: string[] = [];
+    if (
+      data.fecha !== undefined &&
+      new Date(fechaAnteriorRecordatorio).getTime() !==
+        new Date(data.fecha).getTime()
+    ) {
+      cambiosRecordatorio.push('fecha');
+    }
+    if (
+      data.descripcion !== undefined &&
+      String(descripcionAnteriorRecordatorio ?? '') !==
+        String(data.descripcion ?? '')
+    ) {
+      cambiosRecordatorio.push('descripción');
+    }
+
     await this.notificacionesService.crearNotificacionParaSuperadmin(
       'recordatorio',
-      'Recordatorio actualizado',
+      this.tituloRecordatorio(
+        'editado',
+        recordatorio.usuario,
+        cambiosRecordatorio,
+      ),
       [
         `Usuario: ${recordatorio.usuario.nombre} ${recordatorio.usuario.apellido} (DNI ${recordatorio.usuario.dni})`,
         `Fecha: ${recordatorioActualizado.fecha}`,
