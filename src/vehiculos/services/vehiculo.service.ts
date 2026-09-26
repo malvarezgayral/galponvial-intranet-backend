@@ -51,6 +51,25 @@ export class VehiculosService {
     private readonly notificacionesService: NotificacionesService,
   ) {}
 
+  private tituloCombustibleCarga(
+    vehiculo: { nombre: string; codigo?: string | null },
+    carga: { tipo_combustible: string; cant_combustible_despachado: number; chofer: string },
+  ): string {
+    const TITULO_MAX_COMBUSTIBLE = 150;
+    const identificadorVehiculo = vehiculo.codigo
+      ? `${vehiculo.nombre} (cód. ${vehiculo.codigo})`
+      : vehiculo.nombre;
+    const titulo = [
+      'Carga de combustible',
+      identificadorVehiculo,
+      `${carga.cant_combustible_despachado} L ${carga.tipo_combustible}`,
+      `Chofer: ${carga.chofer}`,
+    ].join(' · ');
+    return titulo.length > TITULO_MAX_COMBUSTIBLE
+      ? titulo.slice(0, TITULO_MAX_COMBUSTIBLE - 1) + '…'
+      : titulo;
+  }
+
   private tituloIncidente(
     vehiculo: { nombre: string; codigo?: string | null },
     incidente: { tipo: string; falla: string },
@@ -486,7 +505,15 @@ export class VehiculosService {
 
     await this.vehiculoRepository.save(vehiculo);
 
-    return await this.combustibleCargaRepository.save(carga);
+    const cargaGuardada = await this.combustibleCargaRepository.save(carga);
+
+    await this.notificacionesService.crearNotificacionParaSuperadmin(
+      'combustible',
+      this.tituloCombustibleCarga(vehiculo, cargaGuardada),
+      `Se cargó combustible para ${vehiculo.nombre} en ${carga.estacion_servicio}.`,
+    );
+
+    return cargaGuardada;
   }
 
   async assignVehicleToUser(
