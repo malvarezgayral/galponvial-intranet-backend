@@ -4,9 +4,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Proveedor } from './entities/proveedor.entity';
 import { ProveedorService } from './services/proveedor.service';
 import { ProveedorController } from './controllers/proveedor.controller';
+import { NotificacionesModule } from 'src/notificaciones/notificaciones.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Proveedor])],
+  imports: [TypeOrmModule.forFeature([Proveedor]), NotificacionesModule],
   controllers: [ProveedorController],
   providers: [ProveedorService],
   exports: [ProveedorService],
