@@ -11,6 +11,7 @@ import { OrdenCompraService } from './services/orden-compra.service';
 import { PresupuestoController } from './controllers/presupuesto.controller';
 import { SuministroController } from './controllers/suministro.controller';
 import { OrdenCompraController } from './controllers/orden-compra.controller';
+import { NotificacionesModule } from 'src/notificaciones/notificaciones.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { OrdenCompraController } from './controllers/orden-compra.controller';
       SuministroItem,
       OrdenCompra,
     ]),
+    NotificacionesModule,
   ],
   controllers: [
     PresupuestoController,
