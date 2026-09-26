@@ -18,7 +18,7 @@ export class PersonalService {
     private readonly notificacionesService: NotificacionesService,
   ) {}
 
-  // Aviso a superadmin sin datos personales. Si falla, no rompe el guardado.
+  // Aviso a superadmin. Si falla, no rompe el guardado.
   private async notificar(
     titulo: string,
     mensaje: string,
@@ -38,6 +38,14 @@ export class PersonalService {
     }
   }
 
+  private tituloPersonal(accion: string, partes: string[]): string {
+    const TITULO_MAX_PERSONAL = 150;
+    const titulo = [accion, ...partes].join(' · ');
+    return titulo.length > TITULO_MAX_PERSONAL
+      ? titulo.slice(0, TITULO_MAX_PERSONAL - 1) + '…'
+      : titulo;
+  }
+
   // ---------- Documentación personal ----------
   async crearDocumentacion(
     dto: CreateDocumentacionPersonalDto,
@@ -45,7 +53,9 @@ export class PersonalService {
     const nuevo = this.docRepo.create(dto);
     const guardado = await this.docRepo.save(nuevo);
     await this.notificar(
-      'Nueva documentación personal cargada',
+      this.tituloPersonal('Documentación personal cargada', [
+        `${guardado.nombre} ${guardado.apellido}`,
+      ]),
       'Se cargó un registro de Documentación Personal.',
       'documentacion',
       guardado.id,
@@ -87,8 +97,12 @@ export class PersonalService {
   ): Promise<RegistroAdministrativo> {
     const nuevo = this.regRepo.create(dto);
     const guardado = await this.regRepo.save(nuevo);
+    const partesRegistro = [`${guardado.nombre} ${guardado.apellido}`];
+    if (guardado.legajo) {
+      partesRegistro.push(`legajo ${guardado.legajo}`);
+    }
     await this.notificar(
-      'Nuevo registro administrativo cargado',
+      this.tituloPersonal('Registro administrativo cargado', partesRegistro),
       'Se cargó un Registro Administrativo.',
       'registro',
       guardado.id,
