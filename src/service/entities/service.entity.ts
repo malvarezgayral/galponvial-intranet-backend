@@ -1,13 +1,24 @@
 // src/service/entities/service.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Vehiculo } from '../../vehiculos/entities/vehiculo.entity';
 
 @Entity('service')
 export class Service {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ type: 'varchar', length: 150 })
-  vehiculo!: string;
+  @Column({ type: 'varchar', length: 150, nullable: true })
+  vehiculo!: string | null;
+
+  @ManyToOne(() => Vehiculo, (vehiculo) => vehiculo.services, { nullable: true })
+  @JoinColumn({ name: 'id_vehiculo' })
+  vehiculoRef!: Vehiculo | null;
 
   @Column({ type: 'date', nullable: true })
   fecha!: string | null;

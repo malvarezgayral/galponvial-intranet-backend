@@ -1,15 +1,15 @@
 // src/service/services/service.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Service } from '../entities/service.entity';
+import { Vehiculo } from '../../vehiculos/entities/vehiculo.entity';
 import { CreateServiceDto } from '../dto/create-service.dto';
 import { NotificacionesService } from 'src/notificaciones/services/notificaciones.service';
 
 const TITULO_MAX = 150;
 
-const CAMPOS_COMPARABLES: { clave: Exclude<keyof Service, 'id'>; etiqueta: string }[] = [
-  { clave: 'vehiculo', etiqueta: 'vehículo' },
+const CAMPOS_COMPARABLES: { clave: 'fecha' | 'aceiteMotor' | 'aceiteCaja' | 'aceiteDiferencial' | 'aceiteTransmision' | 'filtroTransmision' | 'filtroMotorAceite' | 'filtroAire' | 'filtroGasoil' | 'aceiteHidraulico' | 'filtroHidraulico' | 'correasAuxiliares' | 'aceiteTande' | 'regulacionValvulas' | 'cambioDamper' | 'proximoService' | 'cuentaHora' | 'stock' | 'observaciones'; etiqueta: string }[] = [
   { clave: 'fecha', etiqueta: 'fecha' },
   { clave: 'aceiteMotor', etiqueta: 'aceite motor' },
   { clave: 'aceiteCaja', etiqueta: 'aceite caja' },
@@ -36,15 +36,24 @@ export class ServiceService {
   constructor(
     @InjectRepository(Service)
     private readonly serviceRepository: Repository<Service>,
+    @InjectRepository(Vehiculo)
+    private readonly vehiculoRepository: Repository<Vehiculo>,
     private readonly notificacionesService: NotificacionesService,
   ) {}
+
+  private identificarVehiculo(s: Service): string {
+    if (s.vehiculoRef) {
+      return `${s.vehiculoRef.nombre} (cód. ${s.vehiculoRef.codigo})`;
+    }
+    return s.vehiculo ?? 'vehículo sin identificar';
+  }
 
   private armarTitulo(
     accion: 'cargado' | 'editado',
     s: Service,
     cambios: string[] = [],
   ): string {
-    const partes = [`Service ${accion}`, s.vehiculo];
+    const partes = [`Service ${accion}`, this.identificarVehiculo(s)];
     if (s.fecha) partes.push(String(s.fecha));
     if (accion === 'cargado' && s.proximoService) {
       partes.push(`próximo: ${s.proximoService}`);
@@ -60,7 +69,7 @@ export class ServiceService {
 
   private armarMensaje(s: Service): string {
     return [
-      `Vehículo: ${s.vehiculo}`,
+      `Vehículo: ${this.identificarVehiculo(s)}`,
       s.fecha ? `Fecha: ${s.fecha}` : null,
       s.aceiteMotor ? `Aceite Motor: ${s.aceiteMotor}` : null,
       s.aceiteCaja ? `Aceite Caja: ${s.aceiteCaja}` : null,
@@ -86,8 +95,18 @@ export class ServiceService {
   }
 
   async crear(dto: CreateServiceDto): Promise<Service> {
-    const nuevo = this.serviceRepository.create(dto);
+    if (!dto.idVehiculo) {
+      throw new BadRequestException('Debe seleccionar un vehículo (idVehiculo).');
+    }
+    const vehiculo = await this.vehiculoRepository.findOneBy({ id_vehiculo: dto.idVehiculo });
+    if (!vehiculo) {
+      throw new NotFoundException(`Vehículo con ID ${dto.idVehiculo} no encontrado`);
+    }
+
+    const { idVehiculo, ...resto } = dto;
+    const nuevo = this.serviceRepository.create({ ...resto, vehiculoRef: vehiculo });
     const guardado = await this.serviceRepository.save(nuevo);
+    guardado.vehiculoRef = vehiculo;
 
     await this.notificacionesService.crearNotificacionParaSuperadmin(
       'service',
@@ -99,35 +118,50 @@ export class ServiceService {
   }
 
   async obtenerTodos(): Promise<Service[]> {
-    return this.serviceRepository.find();
+    return this.serviceRepository.find({ relations: ['vehiculoRef'] });
   }
 
   async actualizar(id: number, dto: CreateServiceDto): Promise<Service> {
-    const existente = await this.serviceRepository.findOneBy({ id });
+    const existente = await this.serviceRepository.findOne({ where: { id }, relations: ['vehiculoRef'] });
     if (!existente) {
       throw new NotFoundException(`Service con ID ${id} no encontrado`);
     }
 
-    const nuevos = dto as unknown as Partial<Service>;
     const cambios: string[] = [];
     for (const { clave, etiqueta } of CAMPOS_COMPARABLES) {
-      const nuevo = nuevos[clave];
+      const nuevo = (dto as Record<string, unknown>)[clave];
       if (nuevo === undefined) continue;
-      if (String(nuevo ?? '') !== String(existente[clave] ?? '')) {
+      if (String(nuevo ?? '') !== String((existente as unknown as Record<string, unknown>)[clave] ?? '')) {
         cambios.push(etiqueta);
       }
     }
 
-    await this.serviceRepository.update(id, dto);
-    const actualizado = (await this.serviceRepository.findOneBy({ id })) as Service;
+    let vehiculoNuevo: Vehiculo | undefined;
+    if (dto.idVehiculo !== undefined) {
+      const encontrado = await this.vehiculoRepository.findOneBy({ id_vehiculo: dto.idVehiculo });
+      if (!encontrado) {
+        throw new NotFoundException(`Vehículo con ID ${dto.idVehiculo} no encontrado`);
+      }
+      vehiculoNuevo = encontrado;
+      if (existente.vehiculoRef?.id_vehiculo !== encontrado.id_vehiculo) {
+        cambios.push('vehículo');
+      }
+    }
+
+    const { idVehiculo, ...resto } = dto;
+    await this.serviceRepository.update(id, {
+      ...resto,
+      ...(vehiculoNuevo ? { vehiculoRef: vehiculoNuevo } : {}),
+    });
+    const actualizado = await this.serviceRepository.findOne({ where: { id }, relations: ['vehiculoRef'] });
 
     await this.notificacionesService.crearNotificacionParaSuperadmin(
       'service',
-      this.armarTitulo('editado', actualizado, cambios),
-      this.armarMensaje(actualizado),
+      this.armarTitulo('editado', actualizado as Service, cambios),
+      this.armarMensaje(actualizado as Service),
     );
 
-    return actualizado;
+    return actualizado as Service;
   }
 
   async eliminar(id: number): Promise<void> {

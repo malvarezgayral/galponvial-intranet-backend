@@ -1,11 +1,15 @@
 // src/service/dto/create-service.dto.ts
-import { IsString, IsOptional, IsNotEmpty } from 'class-validator';
+import { IsString, IsOptional, IsInt } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreateServiceDto {
   @IsString()
-  @IsNotEmpty()
-  vehiculo!: string;
+  @IsOptional()
+  vehiculo?: string;
+
+  @IsInt()
+  @IsOptional()
+  idVehiculo?: number;
 
   @Transform(({ value }) => (value === '' ? null : value))
   @IsString()

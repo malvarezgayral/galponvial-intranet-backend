@@ -13,6 +13,7 @@ import { VehiculoStatus, TipoVehiculo } from '../enums/vehiculo.enum';
 import { UsuarioVehiculo } from '../../usuario/entities/usuario-vehiculo.entity';
 import { Reparacion } from '../../reparacion/entities/reparacion.entity';
 import { Lubricante } from '../../lubricentro/entities/lubricante.entity';
+import { Service } from '../../service/entities/service.entity';
 
 @Entity('vehiculo')
 export class Vehiculo {
@@ -80,4 +81,7 @@ export class Vehiculo {
 
   @OneToMany(() => Lubricante, (lubricante) => lubricante.vehiculo)
   lubricantes: Lubricante[];
+
+  @OneToMany(() => Service, (service) => service.vehiculoRef)
+  services: Service[];
 }
