@@ -95,15 +95,15 @@ export class ServiceService {
   }
 
   async crear(dto: CreateServiceDto): Promise<Service> {
-    if (!dto.idVehiculo) {
-      throw new BadRequestException('Debe seleccionar un vehículo (idVehiculo).');
+    if (!dto.id_vehiculo) {
+      throw new BadRequestException('Debe seleccionar un vehículo (id_vehiculo).');
     }
-    const vehiculo = await this.vehiculoRepository.findOneBy({ id_vehiculo: dto.idVehiculo });
+    const vehiculo = await this.vehiculoRepository.findOneBy({ id_vehiculo: dto.id_vehiculo });
     if (!vehiculo) {
-      throw new NotFoundException(`Vehículo con ID ${dto.idVehiculo} no encontrado`);
+      throw new NotFoundException(`Vehículo con ID ${dto.id_vehiculo} no encontrado`);
     }
 
-    const { idVehiculo, ...resto } = dto;
+    const { id_vehiculo, ...resto } = dto;
     const nuevo = this.serviceRepository.create({ ...resto, vehiculoRef: vehiculo });
     const guardado = await this.serviceRepository.save(nuevo);
     guardado.vehiculoRef = vehiculo;
@@ -137,10 +137,10 @@ export class ServiceService {
     }
 
     let vehiculoNuevo: Vehiculo | undefined;
-    if (dto.idVehiculo !== undefined) {
-      const encontrado = await this.vehiculoRepository.findOneBy({ id_vehiculo: dto.idVehiculo });
+    if (dto.id_vehiculo !== undefined) {
+      const encontrado = await this.vehiculoRepository.findOneBy({ id_vehiculo: dto.id_vehiculo });
       if (!encontrado) {
-        throw new NotFoundException(`Vehículo con ID ${dto.idVehiculo} no encontrado`);
+        throw new NotFoundException(`Vehículo con ID ${dto.id_vehiculo} no encontrado`);
       }
       vehiculoNuevo = encontrado;
       if (existente.vehiculoRef?.id_vehiculo !== encontrado.id_vehiculo) {
@@ -148,7 +148,7 @@ export class ServiceService {
       }
     }
 
-    const { idVehiculo, ...resto } = dto;
+    const { id_vehiculo, ...resto } = dto;
     await this.serviceRepository.update(id, {
       ...resto,
       ...(vehiculoNuevo ? { vehiculoRef: vehiculoNuevo } : {}),

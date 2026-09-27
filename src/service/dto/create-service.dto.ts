@@ -9,7 +9,7 @@ export class CreateServiceDto {
 
   @IsInt()
   @IsOptional()
-  idVehiculo?: number;
+  id_vehiculo?: number;
 
   @Transform(({ value }) => (value === '' ? null : value))
   @IsString()
