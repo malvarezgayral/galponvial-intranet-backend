@@ -21,7 +21,10 @@ export class PresupuestoService {
   }
 
   async obtenerTodos(): Promise<Presupuesto[]> {
-    return this.presupuestoRepository.find({ relations: ['proveedor'] });
+    return this.presupuestoRepository.find({
+      relations: ['proveedor'],
+      order: { id: 'DESC' },
+    });
   }
 
   async obtenerUno(id: number): Promise<Presupuesto> {

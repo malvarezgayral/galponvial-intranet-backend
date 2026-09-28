@@ -123,7 +123,7 @@ export class AlmacenService {
     query
       .skip((page - 1) * pageSize)
       .take(pageSize)
-      .orderBy('articulo.cod', 'ASC');
+      .orderBy('articulo.cod', 'DESC');
 
     const [data, total] = await query.getManyAndCount();
 
@@ -247,11 +247,14 @@ export class AlmacenService {
 
     await this.notificacionesService.crearNotificacionParaSuperadmin(
       'almacen',
-      recortarTitulo(['Artículo creado', `${articuloGuardado.nombre} (cód. ${articuloGuardado.cod})`, `Grupo: ${grupo.nombre}`]),
-      [
-        `Artículo: ${articuloGuardado.nombre}`,
+      recortarTitulo([
+        'Artículo creado',
+        `${articuloGuardado.nombre} (cód. ${articuloGuardado.cod})`,
         `Grupo: ${grupo.nombre}`,
-      ].join(' | '),
+      ]),
+      [`Artículo: ${articuloGuardado.nombre}`, `Grupo: ${grupo.nombre}`].join(
+        ' | ',
+      ),
     );
 
     return articuloGuardado;
@@ -277,15 +280,36 @@ export class AlmacenService {
     }
 
     const cambios: string[] = [];
-    if (dto.nombre !== undefined && distinto(dto.nombre, art.nombre)) cambios.push('nombre');
-    if (dto.descripcion !== undefined && distinto(dto.descripcion, art.descripcion)) cambios.push('descripción');
-    if (dto.modelo !== undefined && distinto(dto.modelo, art.modelo)) cambios.push('modelo');
-    if (dto.img_url !== undefined && distinto(dto.img_url, art.img_url)) cambios.push('imagen');
-    if (dto.unidad_tipo !== undefined && distinto(dto.unidad_tipo, art.unidad_tipo)) cambios.push('tipo de unidad');
-    if (dto.stock !== undefined && distinto(dto.stock, art.stock)) cambios.push('stock');
-    if (dto.cod_proveedor !== undefined && distinto(dto.cod_proveedor, art.cod_proveedor)) cambios.push('cód. proveedor');
-    if (dto.grupo_id !== undefined && distinto(dto.grupo_id, art.grupo?.id)) cambios.push('grupo');
-    if (dto.unidad_medida_id !== undefined && distinto(dto.unidad_medida_id, art.unidadMedida?.id)) cambios.push('unidad de medida');
+    if (dto.nombre !== undefined && distinto(dto.nombre, art.nombre))
+      cambios.push('nombre');
+    if (
+      dto.descripcion !== undefined &&
+      distinto(dto.descripcion, art.descripcion)
+    )
+      cambios.push('descripción');
+    if (dto.modelo !== undefined && distinto(dto.modelo, art.modelo))
+      cambios.push('modelo');
+    if (dto.img_url !== undefined && distinto(dto.img_url, art.img_url))
+      cambios.push('imagen');
+    if (
+      dto.unidad_tipo !== undefined &&
+      distinto(dto.unidad_tipo, art.unidad_tipo)
+    )
+      cambios.push('tipo de unidad');
+    if (dto.stock !== undefined && distinto(dto.stock, art.stock))
+      cambios.push('stock');
+    if (
+      dto.cod_proveedor !== undefined &&
+      distinto(dto.cod_proveedor, art.cod_proveedor)
+    )
+      cambios.push('cód. proveedor');
+    if (dto.grupo_id !== undefined && distinto(dto.grupo_id, art.grupo?.id))
+      cambios.push('grupo');
+    if (
+      dto.unidad_medida_id !== undefined &&
+      distinto(dto.unidad_medida_id, art.unidadMedida?.id)
+    )
+      cambios.push('unidad de medida');
 
     // Actualizar propiedades simples
     if (dto.nombre !== undefined) art.nombre = dto.nombre;
@@ -338,7 +362,11 @@ export class AlmacenService {
 
     await this.notificacionesService.crearNotificacionParaSuperadmin(
       'almacen',
-      recortarTitulo(['Artículo editado', `${articuloActualizado.nombre} (cód. ${articuloActualizado.cod})`, cambios.length > 0 ? `cambió: ${cambios.join(', ')}` : null]),
+      recortarTitulo([
+        'Artículo editado',
+        `${articuloActualizado.nombre} (cód. ${articuloActualizado.cod})`,
+        cambios.length > 0 ? `cambió: ${cambios.join(', ')}` : null,
+      ]),
       `Artículo: ${articuloActualizado.nombre}`,
     );
 
@@ -395,6 +423,7 @@ export class AlmacenService {
     return await this.articuloRepo.find({
       where: { isDeleted: true },
       relations: ['grupo', 'unidadMedida'],
+      order: { cod: 'DESC' },
     });
   }
 
@@ -441,6 +470,7 @@ export class AlmacenService {
   async getAllGroups() {
     return await this.grupoRepo.find({
       relations: ['sector'],
+      order: { id: 'DESC' },
     });
   }
 
@@ -456,6 +486,7 @@ export class AlmacenService {
 
     const articulos = await this.articuloRepo.find({
       where: { grupo: { id }, isDeleted: false },
+      order: { cod: 'DESC' },
     });
 
     const articulosDto: UpdateArticuloDto[] = articulos.map((a) => ({
@@ -501,7 +532,11 @@ export class AlmacenService {
 
     await this.notificacionesService.crearNotificacionParaSuperadmin(
       'almacen',
-      recortarTitulo(['Grupo creado', grupoGuardado.nombre, `Sector ${sector.nro_sector} (${sector.tipo})`]),
+      recortarTitulo([
+        'Grupo creado',
+        grupoGuardado.nombre,
+        `Sector ${sector.nro_sector} (${sector.tipo})`,
+      ]),
       `Grupo: ${grupoGuardado.nombre}`,
     );
 
@@ -544,16 +579,26 @@ export class AlmacenService {
     }
 
     const cambios: string[] = [];
-    if (dto.nombre !== undefined && distinto(dto.nombre, g.nombre)) cambios.push('nombre');
-    if (dto.descripcion !== undefined && distinto(dto.descripcion, g.descripcion)) cambios.push('descripción');
-    if (dto.sector_id !== undefined && dto.sector_id !== g.sector.id) cambios.push('sector');
+    if (dto.nombre !== undefined && distinto(dto.nombre, g.nombre))
+      cambios.push('nombre');
+    if (
+      dto.descripcion !== undefined &&
+      distinto(dto.descripcion, g.descripcion)
+    )
+      cambios.push('descripción');
+    if (dto.sector_id !== undefined && dto.sector_id !== g.sector.id)
+      cambios.push('sector');
 
     Object.assign(g, dto);
     const grupoActualizado = await this.grupoRepo.save(g);
 
     await this.notificacionesService.crearNotificacionParaSuperadmin(
       'almacen',
-      recortarTitulo(['Grupo editado', grupoActualizado.nombre, cambios.length > 0 ? `cambió: ${cambios.join(', ')}` : null]),
+      recortarTitulo([
+        'Grupo editado',
+        grupoActualizado.nombre,
+        cambios.length > 0 ? `cambió: ${cambios.join(', ')}` : null,
+      ]),
       `Grupo: ${grupoActualizado.nombre}`,
     );
 
@@ -600,6 +645,7 @@ export class AlmacenService {
     const movimientos = await this.movimientoRepo.find({
       where: { articulo: { cod: codArticulo } },
       relations: ['articulo'],
+      order: { id: 'DESC' },
     });
 
     const result: MovimientoDTO[] = [];
@@ -718,7 +764,12 @@ export class AlmacenService {
 
         await this.notificacionesService.crearNotificacionParaSuperadmin(
           'almacen',
-          recortarTitulo(['Entrada de Almacén', `${articulo.nombre} (cód. ${articulo.cod})`, `Tipo: ${dtoEntrada.tipo}`, dtoEntrada.proveedor ? `Proveedor: ${dtoEntrada.proveedor}` : null]),
+          recortarTitulo([
+            'Entrada de Almacén',
+            `${articulo.nombre} (cód. ${articulo.cod})`,
+            `Tipo: ${dtoEntrada.tipo}`,
+            dtoEntrada.proveedor ? `Proveedor: ${dtoEntrada.proveedor}` : null,
+          ]),
           [
             `Artículo: ${articulo.nombre}`,
             `Tipo: ${dtoEntrada.tipo}`,
@@ -754,13 +805,24 @@ export class AlmacenService {
 
         await this.notificacionesService.crearNotificacionParaSuperadmin(
           'almacen',
-          recortarTitulo(['Salida de Almacén', `${articulo.nombre} (cód. ${articulo.cod})`, `Tipo: ${dtoSalida.tipo}`, dtoSalida.motivo_salida ? `Motivo: ${dtoSalida.motivo_salida}` : null]),
+          recortarTitulo([
+            'Salida de Almacén',
+            `${articulo.nombre} (cód. ${articulo.cod})`,
+            `Tipo: ${dtoSalida.tipo}`,
+            dtoSalida.motivo_salida
+              ? `Motivo: ${dtoSalida.motivo_salida}`
+              : null,
+          ]),
           [
             `Artículo: ${articulo.nombre}`,
             `Tipo: ${dtoSalida.tipo}`,
             dtoSalida.detalle ? `Detalle: ${dtoSalida.detalle}` : null,
-            dtoSalida.motivo_salida ? `Motivo: ${dtoSalida.motivo_salida}` : null,
-            dtoSalida.detalle_motivo ? `Detalle motivo: ${dtoSalida.detalle_motivo}` : null,
+            dtoSalida.motivo_salida
+              ? `Motivo: ${dtoSalida.motivo_salida}`
+              : null,
+            dtoSalida.detalle_motivo
+              ? `Detalle motivo: ${dtoSalida.detalle_motivo}`
+              : null,
           ]
             .filter(Boolean)
             .join(' | '),

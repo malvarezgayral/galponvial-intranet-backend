@@ -26,6 +26,7 @@ export class SuministroService {
   async obtenerTodos(): Promise<Suministro[]> {
     return this.suministroRepository.find({
       relations: ['proveedor', 'presupuesto', 'items'],
+      order: { id: 'DESC' },
     });
   }
 

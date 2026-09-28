@@ -13,7 +13,7 @@ export class CombustibleService {
   async findAll(): Promise<CombustibleCarga[]> {
     return await this.combustibleRepository.find({
       relations: ['vehiculo'],
-      order: { fecha_carga: 'DESC' },
+      order: { id_carga: 'DESC' },
     });
   }
 }

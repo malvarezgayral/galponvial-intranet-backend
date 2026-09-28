@@ -753,7 +753,7 @@ export class UsuarioService {
   }
 
   // Roles
-   async addRol(
+  async addRol(
     dto: AssignRolDto,
     dni: number,
     currentUserRoles?: ValidRoles[],
@@ -844,6 +844,7 @@ export class UsuarioService {
     return this.usuarioVehiculoRepository.find({
       where: { id_usuario },
       relations: ['vehiculo'],
+      order: { id_usuario_vehiculo: 'DESC' },
     });
   }
 
@@ -852,6 +853,7 @@ export class UsuarioService {
   async obtenerReportes(): Promise<ReporteIncidenteResponseDto[]> {
     const reportes = await this.reporteIncidenteRepository.find({
       relations: ['usuario', 'vehiculo', 'servicios'],
+      order: { id: 'DESC' },
     });
     return this.filterReportesIncidenteResponse(reportes);
   }
@@ -862,6 +864,7 @@ export class UsuarioService {
     const reportes = await this.reporteIncidenteRepository.find({
       where: { id_usuario },
       relations: ['vehiculo', 'servicios'],
+      order: { id: 'DESC' },
     });
     return this.filterReportesIncidenteResponse(reportes);
   }
@@ -871,6 +874,7 @@ export class UsuarioService {
   async obtenerServicios(): Promise<ServicioResponseDto[]> {
     const servicios = await this.servicioRepository.find({
       relations: ['incidente', 'incidente.vehiculo', 'incidente.usuario'],
+      order: { id: 'DESC' },
     });
     return this.filterServiciosResponse(servicios);
   }
@@ -881,6 +885,7 @@ export class UsuarioService {
     const servicios = await this.servicioRepository.find({
       where: { incidente_id },
       relations: ['incidente', 'incidente.vehiculo', 'incidente.usuario'],
+      order: { id: 'DESC' },
     });
     return this.filterServiciosResponse(servicios);
   }

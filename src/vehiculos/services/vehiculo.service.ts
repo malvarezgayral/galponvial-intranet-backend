@@ -53,7 +53,11 @@ export class VehiculosService {
 
   private tituloCombustibleCarga(
     vehiculo: { nombre: string; codigo?: string | null },
-    carga: { tipo_combustible: string; cant_combustible_despachado: number; chofer: string },
+    carga: {
+      tipo_combustible: string;
+      cant_combustible_despachado: number;
+      chofer: string;
+    },
   ): string {
     const TITULO_MAX_COMBUSTIBLE = 150;
     const identificadorVehiculo = vehiculo.codigo
@@ -153,7 +157,8 @@ export class VehiculosService {
         infoData.sector = sector;
       }
 
-      const infoAdicionalCreated = this.infoAdicionalRepository.create(infoData);
+      const infoAdicionalCreated =
+        this.infoAdicionalRepository.create(infoData);
       await this.infoAdicionalRepository.save(infoAdicionalCreated);
 
       const vehiculoCompleto = await this.vehiculoRepository.findOne({
@@ -228,7 +233,9 @@ export class VehiculosService {
       });
 
       if (!vehiculoActualizado) {
-        throw new NotFoundException('Error al recuperar el vehículo actualizado');
+        throw new NotFoundException(
+          'Error al recuperar el vehículo actualizado',
+        );
       }
 
       return vehiculoActualizado;
@@ -249,7 +256,9 @@ export class VehiculosService {
     });
 
     if (!vehiculo) {
-      throw new NotFoundException(`Vehículo con ID ${idVehiculo} no encontrado`);
+      throw new NotFoundException(
+        `Vehículo con ID ${idVehiculo} no encontrado`,
+      );
     }
 
     vehiculo.status = nuevoStatus;
@@ -260,7 +269,7 @@ export class VehiculosService {
     return await this.vehiculoRepository.find({
       where: { eliminado: false },
       relations: ['infoAdicional', 'infoAdicional.sector'],
-      order: { id_vehiculo: 'ASC' },
+      order: { id_vehiculo: 'DESC' },
     });
   }
 
@@ -270,7 +279,9 @@ export class VehiculosService {
     });
 
     if (!vehiculo) {
-      throw new NotFoundException(`Vehículo con ID ${idVehiculo} no encontrado`);
+      throw new NotFoundException(
+        `Vehículo con ID ${idVehiculo} no encontrado`,
+      );
     }
 
     return vehiculo;
@@ -285,7 +296,9 @@ export class VehiculosService {
     });
 
     if (!vehiculo) {
-      throw new NotFoundException(`Vehículo con ID ${idVehiculo} no encontrado`);
+      throw new NotFoundException(
+        `Vehículo con ID ${idVehiculo} no encontrado`,
+      );
     }
 
     const nuevoStatus = isActive
@@ -303,7 +316,10 @@ export class VehiculosService {
     vehiculo.status = nuevoStatus;
     const vehiculoActualizado = await this.vehiculoRepository.save(vehiculo);
 
-    await this.statusUpdateService.crearStatusUpdate(vehiculoActualizado, statusViejo);
+    await this.statusUpdateService.crearStatusUpdate(
+      vehiculoActualizado,
+      statusViejo,
+    );
 
     return vehiculoActualizado;
   }
@@ -328,7 +344,10 @@ export class VehiculosService {
 
     const vehiculoActualizado = await this.vehiculoRepository.save(vehiculo);
 
-    await this.statusUpdateService.crearStatusUpdate(vehiculoActualizado, statusViejo);
+    await this.statusUpdateService.crearStatusUpdate(
+      vehiculoActualizado,
+      statusViejo,
+    );
 
     return vehiculoActualizado;
   }
@@ -343,7 +362,9 @@ export class VehiculosService {
     });
 
     if (!vehiculo) {
-      throw new NotFoundException(`Vehículo con ID ${idVehiculo} no encontrado`);
+      throw new NotFoundException(
+        `Vehículo con ID ${idVehiculo} no encontrado`,
+      );
     }
 
     if (dto.eliminado === vehiculo.eliminado) {
@@ -374,7 +395,7 @@ export class VehiculosService {
       relations: ['vehiculo'],
       skip: (page - 1) * pageSize,
       take: pageSize,
-      order: { fecha_desde: 'DESC' },
+      order: { id_status: 'DESC' },
     });
 
     return { data, total, page, pageSize };
@@ -397,7 +418,7 @@ export class VehiculosService {
       relations: ['usuario', 'vehiculo', 'servicios'],
       skip: (page - 1) * pageSize,
       take: pageSize,
-      order: { fecha: 'DESC' },
+      order: { id: 'DESC' },
     });
 
     return {
@@ -427,7 +448,7 @@ export class VehiculosService {
       relations: ['vehiculo'],
       skip: (page - 1) * pageSize,
       take: pageSize,
-      order: { fecha_carga: 'DESC' },
+      order: { id_carga: 'DESC' },
     });
 
     return { data, total, page, pageSize };
@@ -451,7 +472,10 @@ export class VehiculosService {
 
     if (data.falla === FallaIncidente.CRITICA) {
       const statusViejo: VehiculoStatus = vehiculo.status;
-      await this.updateStatus(vehiculo.id_vehiculo, VehiculoStatus.FUERA_DE_SERVICIO);
+      await this.updateStatus(
+        vehiculo.id_vehiculo,
+        VehiculoStatus.FUERA_DE_SERVICIO,
+      );
       await this.statusUpdateService.crearStatusUpdate(vehiculo, statusViejo);
     }
 
@@ -464,7 +488,8 @@ export class VehiculosService {
     incidente.usuario = usuarioReportante;
     incidente.id_usuario = usuarioReportante.dni;
 
-    const incidenteGuardado = await this.reporteIncidenteRepository.save(incidente);
+    const incidenteGuardado =
+      await this.reporteIncidenteRepository.save(incidente);
 
     const incidenteCompleto = await this.reporteIncidenteRepository.findOne({
       where: { id: incidenteGuardado.id },
@@ -477,7 +502,9 @@ export class VehiculosService {
       `Se reportó un incidente en ${vehiculo.nombre}: ${incidente.descripcion}`,
     );
 
-    return this.filterReporteIncidenteResponse(incidenteCompleto) as ReporteIncidenteResponseDto;
+    return this.filterReporteIncidenteResponse(
+      incidenteCompleto,
+    ) as ReporteIncidenteResponseDto;
   }
 
   async agregarCombustibleCarga(
@@ -537,7 +564,9 @@ export class VehiculosService {
     });
 
     if (!vehiculo) {
-      throw new NotFoundException(`Vehículo con ID ${idVehiculo} no encontrado`);
+      throw new NotFoundException(
+        `Vehículo con ID ${idVehiculo} no encontrado`,
+      );
     }
 
     if (
