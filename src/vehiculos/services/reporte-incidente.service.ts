@@ -96,7 +96,7 @@ export class ReporteIncidenteService {
     const reportes = await this.reporteIncidenteRepository.find({
       where,
       relations: ['vehiculo', 'usuario'],
-      order: { fecha: 'DESC' },
+      order: { id: 'DESC' },
     });
     return this.filterReportesIncidenteResponse(reportes);
   }

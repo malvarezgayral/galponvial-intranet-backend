@@ -1,5 +1,9 @@
 // src/service/services/service.service.ts
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Service } from '../entities/service.entity';
@@ -9,7 +13,29 @@ import { NotificacionesService } from 'src/notificaciones/services/notificacione
 
 const TITULO_MAX = 150;
 
-const CAMPOS_COMPARABLES: { clave: 'fecha' | 'aceiteMotor' | 'aceiteCaja' | 'aceiteDiferencial' | 'aceiteTransmision' | 'filtroTransmision' | 'filtroMotorAceite' | 'filtroAire' | 'filtroGasoil' | 'aceiteHidraulico' | 'filtroHidraulico' | 'correasAuxiliares' | 'aceiteTande' | 'regulacionValvulas' | 'cambioDamper' | 'proximoService' | 'cuentaHora' | 'stock' | 'observaciones'; etiqueta: string }[] = [
+const CAMPOS_COMPARABLES: {
+  clave:
+    | 'fecha'
+    | 'aceiteMotor'
+    | 'aceiteCaja'
+    | 'aceiteDiferencial'
+    | 'aceiteTransmision'
+    | 'filtroTransmision'
+    | 'filtroMotorAceite'
+    | 'filtroAire'
+    | 'filtroGasoil'
+    | 'aceiteHidraulico'
+    | 'filtroHidraulico'
+    | 'correasAuxiliares'
+    | 'aceiteTande'
+    | 'regulacionValvulas'
+    | 'cambioDamper'
+    | 'proximoService'
+    | 'cuentaHora'
+    | 'stock'
+    | 'observaciones';
+  etiqueta: string;
+}[] = [
   { clave: 'fecha', etiqueta: 'fecha' },
   { clave: 'aceiteMotor', etiqueta: 'aceite motor' },
   { clave: 'aceiteCaja', etiqueta: 'aceite caja' },
@@ -76,14 +102,18 @@ export class ServiceService {
       s.aceiteDiferencial ? `Aceite Diferencial: ${s.aceiteDiferencial}` : null,
       s.aceiteTransmision ? `Aceite Transmisión: ${s.aceiteTransmision}` : null,
       s.filtroTransmision ? `Filtro Transmisión: ${s.filtroTransmision}` : null,
-      s.filtroMotorAceite ? `Filtro Motor Aceite: ${s.filtroMotorAceite}` : null,
+      s.filtroMotorAceite
+        ? `Filtro Motor Aceite: ${s.filtroMotorAceite}`
+        : null,
       s.filtroAire ? `Filtro Aire: ${s.filtroAire}` : null,
       s.filtroGasoil ? `Filtro Gasoil: ${s.filtroGasoil}` : null,
       s.aceiteHidraulico ? `Aceite Hidráulico: ${s.aceiteHidraulico}` : null,
       s.filtroHidraulico ? `Filtro Hidráulico: ${s.filtroHidraulico}` : null,
       s.correasAuxiliares ? `Correas Auxiliares: ${s.correasAuxiliares}` : null,
       s.aceiteTande ? `Aceite Tande: ${s.aceiteTande}` : null,
-      s.regulacionValvulas ? `Regulación Válvulas: ${s.regulacionValvulas}` : null,
+      s.regulacionValvulas
+        ? `Regulación Válvulas: ${s.regulacionValvulas}`
+        : null,
       s.cambioDamper ? `Cambio Damper: ${s.cambioDamper}` : null,
       s.proximoService ? `Próximo Service: ${s.proximoService}` : null,
       s.cuentaHora ? `Cuenta Hora: ${s.cuentaHora}` : null,
@@ -96,15 +126,24 @@ export class ServiceService {
 
   async crear(dto: CreateServiceDto): Promise<Service> {
     if (!dto.id_vehiculo) {
-      throw new BadRequestException('Debe seleccionar un vehículo (id_vehiculo).');
+      throw new BadRequestException(
+        'Debe seleccionar un vehículo (id_vehiculo).',
+      );
     }
-    const vehiculo = await this.vehiculoRepository.findOneBy({ id_vehiculo: dto.id_vehiculo });
+    const vehiculo = await this.vehiculoRepository.findOneBy({
+      id_vehiculo: dto.id_vehiculo,
+    });
     if (!vehiculo) {
-      throw new NotFoundException(`Vehículo con ID ${dto.id_vehiculo} no encontrado`);
+      throw new NotFoundException(
+        `Vehículo con ID ${dto.id_vehiculo} no encontrado`,
+      );
     }
 
     const { id_vehiculo, ...resto } = dto;
-    const nuevo = this.serviceRepository.create({ ...resto, vehiculoRef: vehiculo });
+    const nuevo = this.serviceRepository.create({
+      ...resto,
+      vehiculoRef: vehiculo,
+    });
     const guardado = await this.serviceRepository.save(nuevo);
     guardado.vehiculoRef = vehiculo;
 
@@ -118,11 +157,17 @@ export class ServiceService {
   }
 
   async obtenerTodos(): Promise<Service[]> {
-    return this.serviceRepository.find({ relations: ['vehiculoRef'] });
+    return this.serviceRepository.find({
+      relations: ['vehiculoRef'],
+      order: { id: 'DESC' },
+    });
   }
 
   async actualizar(id: number, dto: CreateServiceDto): Promise<Service> {
-    const existente = await this.serviceRepository.findOne({ where: { id }, relations: ['vehiculoRef'] });
+    const existente = await this.serviceRepository.findOne({
+      where: { id },
+      relations: ['vehiculoRef'],
+    });
     if (!existente) {
       throw new NotFoundException(`Service con ID ${id} no encontrado`);
     }
@@ -131,16 +176,23 @@ export class ServiceService {
     for (const { clave, etiqueta } of CAMPOS_COMPARABLES) {
       const nuevo = (dto as Record<string, unknown>)[clave];
       if (nuevo === undefined) continue;
-      if (String(nuevo ?? '') !== String((existente as unknown as Record<string, unknown>)[clave] ?? '')) {
+      if (
+        String(nuevo ?? '') !==
+        String((existente as unknown as Record<string, unknown>)[clave] ?? '')
+      ) {
         cambios.push(etiqueta);
       }
     }
 
     let vehiculoNuevo: Vehiculo | undefined;
     if (dto.id_vehiculo !== undefined) {
-      const encontrado = await this.vehiculoRepository.findOneBy({ id_vehiculo: dto.id_vehiculo });
+      const encontrado = await this.vehiculoRepository.findOneBy({
+        id_vehiculo: dto.id_vehiculo,
+      });
       if (!encontrado) {
-        throw new NotFoundException(`Vehículo con ID ${dto.id_vehiculo} no encontrado`);
+        throw new NotFoundException(
+          `Vehículo con ID ${dto.id_vehiculo} no encontrado`,
+        );
       }
       vehiculoNuevo = encontrado;
       if (existente.vehiculoRef?.id_vehiculo !== encontrado.id_vehiculo) {
@@ -153,7 +205,10 @@ export class ServiceService {
       ...resto,
       ...(vehiculoNuevo ? { vehiculoRef: vehiculoNuevo } : {}),
     });
-    const actualizado = await this.serviceRepository.findOne({ where: { id }, relations: ['vehiculoRef'] });
+    const actualizado = await this.serviceRepository.findOne({
+      where: { id },
+      relations: ['vehiculoRef'],
+    });
 
     await this.notificacionesService.crearNotificacionParaSuperadmin(
       'service',

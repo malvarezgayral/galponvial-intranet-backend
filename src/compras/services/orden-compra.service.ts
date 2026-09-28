@@ -53,6 +53,7 @@ export class OrdenCompraService {
   async obtenerTodos(): Promise<OrdenCompra[]> {
     return this.ordenCompraRepository.find({
       relations: ['suministro', 'proveedor'],
+      order: { id: 'DESC' },
     });
   }
 
@@ -77,7 +78,10 @@ export class OrdenCompraService {
     }
     const { id_suministro, id_proveedor, ...resto } = dto;
 
-    const CAMPOS_COMPARABLES_ORDEN_COMPRA: { clave: string; etiqueta: string }[] = [
+    const CAMPOS_COMPARABLES_ORDEN_COMPRA: {
+      clave: string;
+      etiqueta: string;
+    }[] = [
       { clave: 'numeroOrden', etiqueta: 'número de orden' },
       { clave: 'tipoFactura', etiqueta: 'tipo de factura' },
       { clave: 'numeroFactura', etiqueta: 'número de factura' },
@@ -89,7 +93,10 @@ export class OrdenCompraService {
     const cambiosOrdenCompra: string[] = [];
     for (const { clave, etiqueta } of CAMPOS_COMPARABLES_ORDEN_COMPRA) {
       const nuevo = (resto as any)[clave];
-      if (nuevo !== undefined && String(nuevo ?? '') !== String((existente as any)[clave] ?? '')) {
+      if (
+        nuevo !== undefined &&
+        String(nuevo ?? '') !== String((existente as any)[clave] ?? '')
+      ) {
         cambiosOrdenCompra.push(etiqueta);
       }
     }

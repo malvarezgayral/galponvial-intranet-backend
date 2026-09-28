@@ -16,7 +16,11 @@ export class LubricanteService {
 
   private tituloLubricante(
     accion: string,
-    lubricante: { vehiculo: { nombre: string; codigo?: string | null }; tipo: string; cantidad: number },
+    lubricante: {
+      vehiculo: { nombre: string; codigo?: string | null };
+      tipo: string;
+      cantidad: number;
+    },
     cambios: string[] = [],
   ): string {
     const TITULO_MAX_LUBRICANTE = 150;
@@ -53,7 +57,10 @@ export class LubricanteService {
   }
 
   async obtenerTodos(): Promise<Lubricante[]> {
-    return this.lubricanteRepository.find({ relations: ['vehiculo'] });
+    return this.lubricanteRepository.find({
+      relations: ['vehiculo'],
+      order: { id: 'DESC' },
+    });
   }
 
   async obtenerUno(id: number): Promise<Lubricante> {
@@ -67,30 +74,34 @@ export class LubricanteService {
     return lubricante;
   }
 
-  async actualizar(
-    id: number,
-    dto: CreateLubricanteDto,
-  ): Promise<Lubricante> {
+  async actualizar(id: number, dto: CreateLubricanteDto): Promise<Lubricante> {
     const existente = await this.lubricanteRepository.findOneBy({ id });
     if (!existente) {
       throw new NotFoundException(`Lubricante con ID ${id} no encontrado`);
     }
 
-    const CAMPOS_COMPARABLES_LUBRICANTE: { clave: string; etiqueta: string }[] = [
-      { clave: 'fecha', etiqueta: 'fecha' },
-      { clave: 'ordenRetiro', etiqueta: 'orden de retiro' },
-      { clave: 'cantidad', etiqueta: 'cantidad' },
-      { clave: 'tipo', etiqueta: 'tipo' },
-      { clave: 'observaciones', etiqueta: 'observaciones' },
-    ];
+    const CAMPOS_COMPARABLES_LUBRICANTE: { clave: string; etiqueta: string }[] =
+      [
+        { clave: 'fecha', etiqueta: 'fecha' },
+        { clave: 'ordenRetiro', etiqueta: 'orden de retiro' },
+        { clave: 'cantidad', etiqueta: 'cantidad' },
+        { clave: 'tipo', etiqueta: 'tipo' },
+        { clave: 'observaciones', etiqueta: 'observaciones' },
+      ];
     const cambiosLubricante: string[] = [];
     for (const { clave, etiqueta } of CAMPOS_COMPARABLES_LUBRICANTE) {
       const nuevo = (dto as any)[clave];
-      if (nuevo !== undefined && String(nuevo ?? '') !== String((existente as any)[clave] ?? '')) {
+      if (
+        nuevo !== undefined &&
+        String(nuevo ?? '') !== String((existente as any)[clave] ?? '')
+      ) {
         cambiosLubricante.push(etiqueta);
       }
     }
-    if (dto.id_vehiculo !== undefined && dto.id_vehiculo !== (existente as any).id_vehiculo) {
+    if (
+      dto.id_vehiculo !== undefined &&
+      dto.id_vehiculo !== (existente as any).id_vehiculo
+    ) {
       cambiosLubricante.push('vehículo');
     }
 

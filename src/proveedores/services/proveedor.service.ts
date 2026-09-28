@@ -45,7 +45,7 @@ export class ProveedorService {
   }
 
   async obtenerTodos(): Promise<Proveedor[]> {
-    return this.proveedorRepository.find();
+    return this.proveedorRepository.find({ order: { id: 'DESC' } });
   }
 
   async obtenerUno(id: number): Promise<Proveedor> {
@@ -62,18 +62,22 @@ export class ProveedorService {
       throw new NotFoundException(`Proveedor con ID ${id} no encontrado`);
     }
 
-    const CAMPOS_COMPARABLES_PROVEEDOR: { clave: string; etiqueta: string }[] = [
-      { clave: 'nombre', etiqueta: 'nombre' },
-      { clave: 'telefono', etiqueta: 'teléfono' },
-      { clave: 'direccion', etiqueta: 'dirección' },
-      { clave: 'horarios', etiqueta: 'horarios' },
-      { clave: 'ciudad', etiqueta: 'ciudad' },
-      { clave: 'rubro', etiqueta: 'rubro' },
-    ];
+    const CAMPOS_COMPARABLES_PROVEEDOR: { clave: string; etiqueta: string }[] =
+      [
+        { clave: 'nombre', etiqueta: 'nombre' },
+        { clave: 'telefono', etiqueta: 'teléfono' },
+        { clave: 'direccion', etiqueta: 'dirección' },
+        { clave: 'horarios', etiqueta: 'horarios' },
+        { clave: 'ciudad', etiqueta: 'ciudad' },
+        { clave: 'rubro', etiqueta: 'rubro' },
+      ];
     const cambiosProveedor: string[] = [];
     for (const { clave, etiqueta } of CAMPOS_COMPARABLES_PROVEEDOR) {
       const nuevo = (dto as any)[clave];
-      if (nuevo !== undefined && String(nuevo ?? '') !== String((existente as any)[clave] ?? '')) {
+      if (
+        nuevo !== undefined &&
+        String(nuevo ?? '') !== String((existente as any)[clave] ?? '')
+      ) {
         cambiosProveedor.push(etiqueta);
       }
     }

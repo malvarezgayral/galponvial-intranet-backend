@@ -188,7 +188,7 @@ export class ServicioService {
   async findAll(): Promise<ServicioResponseDto[]> {
     const servicios = await this.servicioRepository.find({
       relations: ['incidente', 'incidente.vehiculo', 'incidente.usuario'],
-      order: { fecha_inicio: 'DESC' },
+      order: { id: 'DESC' },
     });
     return this.filterServiciosResponse(servicios);
   }
@@ -212,7 +212,7 @@ export class ServicioService {
     const servicios = await this.servicioRepository.find({
       where: { incidente_id: idIncidente },
       relations: ['incidente', 'incidente.vehiculo', 'incidente.usuario'],
-      order: { fecha_inicio: 'DESC' },
+      order: { id: 'DESC' },
     });
     return this.filterServiciosResponse(servicios);
   }
@@ -227,7 +227,7 @@ export class ServicioService {
         },
       },
       relations: ['incidente', 'incidente.vehiculo', 'incidente.usuario'],
-      order: { fecha_inicio: 'DESC' },
+      order: { id: 'DESC' },
     });
     return this.filterServiciosResponse(servicios);
   }

@@ -9,7 +9,12 @@ import { NotificacionesService } from 'src/notificaciones/services/notificacione
 const TITULO_MAX = 150;
 
 const CAMPOS_COMPARABLES: {
-  clave: 'descripcion' | 'taller' | 'fecha_entrada' | 'fecha_salida' | 'observaciones';
+  clave:
+    | 'descripcion'
+    | 'taller'
+    | 'fecha_entrada'
+    | 'fecha_salida'
+    | 'observaciones';
   etiqueta: string;
 }[] = [
   { clave: 'descripcion', etiqueta: 'descripción' },
@@ -76,7 +81,10 @@ export class ReparacionService {
   }
 
   async obtenerTodos(): Promise<Reparacion[]> {
-    return this.reparacionRepository.find({ relations: ['vehiculo'] });
+    return this.reparacionRepository.find({
+      relations: ['vehiculo'],
+      order: { id: 'DESC' },
+    });
   }
 
   async obtenerUno(id: number): Promise<Reparacion> {
