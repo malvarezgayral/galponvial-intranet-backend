@@ -1,5 +1,5 @@
 // src/notificaciones/controllers/notificaciones.controller.ts
-import { Controller, Get, Patch, Param, Query, ParseIntPipe, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Patch, Delete, Param, Query, ParseIntPipe, ForbiddenException } from '@nestjs/common';
 import { NotificacionesService } from '../services/notificaciones.service';
 import { Auth } from '../../usuario/decorators/auth.decorator';
 import { ValidRoles } from '../../usuario/enums/usuario.enum';
@@ -42,5 +42,11 @@ export class NotificacionesController {
   marcarComoLeida(@Param('id', ParseIntPipe) id: number, @GetUser() user: Usuario) {
     const esSuperadmin = user.roles.some((r) => r.rol === ValidRoles.superadmin);
     return this.notificacionesService.marcarComoLeida(id, esSuperadmin);
+  }
+
+  @Delete(':id')
+  @Auth(ValidRoles.superadmin)
+  eliminar(@Param('id', ParseIntPipe) id: number) {
+    return this.notificacionesService.eliminar(id);
   }
 }

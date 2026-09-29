@@ -95,4 +95,13 @@ export class NotificacionesService {
     notificacion.leida = true;
     return this.notificacionRepository.save(notificacion);
   }
+
+  async eliminar(id: number): Promise<{ eliminada: boolean }> {
+    const notificacion = await this.notificacionRepository.findOneBy({ id });
+    if (!notificacion) {
+      throw new NotFoundException(`Notificación con ID ${id} no encontrada`);
+    }
+    await this.notificacionRepository.delete({ id });
+    return { eliminada: true };
+  }
 }
