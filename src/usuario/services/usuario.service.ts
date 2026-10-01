@@ -919,7 +919,12 @@ export class UsuarioService {
 
   async agregarRecordatorio(
     dni: number,
-    data: { fecha: Date; descripcion: string },
+    data: {
+      fecha: Date;
+      descripcion: string;
+      destinoDni?: number | null;
+      paraTodos?: boolean;
+    },
   ): Promise<RecordatorioResponseDto> {
     const usuario = await this.usuarioRepository.findOne({
       where: { dni },
@@ -929,10 +934,30 @@ export class UsuarioService {
       throw new Error(`Usuario con DNI ${dni} no encontrado`);
     }
 
+    const paraTodos = data.paraTodos === true;
+    const destinoDni =
+      data.destinoDni !== undefined && data.destinoDni !== null
+        ? Number(data.destinoDni)
+        : null;
+
+    if (paraTodos && destinoDni !== null) {
+      throw new BadRequestException(
+        'Elegí un destino puntual o "Todos", no ambos',
+      );
+    }
+    if (destinoDni !== null) {
+      const destinos = await this.obtenerDestinosRecordatorio();
+      if (!destinos.some((d) => Number(d.dni) === destinoDni)) {
+        throw new BadRequestException('El destino elegido no es válido');
+      }
+    }
+
     const recordatorio = this.recordatorioRepository.create({
       fecha: data.fecha,
       descripcion: data.descripcion,
       usuario,
+      destinoDni,
+      paraTodos,
     });
 
     const recordatorioGuardado =

@@ -416,10 +416,21 @@ export class UsuarioController {
   @HttpCode(HttpStatus.CREATED)
   @Auth(ValidRoles.admin, ValidRoles.superadmin)
   agregarRecordatorio(
-    @Param('dni', ParseIntPipe) dni: number,
-    @Body() data: { fecha: Date; descripcion: string },
+    @Param('dni', ParseIntPipe) _dni: number,
+    @Body()
+    data: {
+      fecha: Date;
+      descripcion: string;
+      destinoDni?: number | null;
+      paraTodos?: boolean;
+    },
+    @GetUser() currentUser: Usuario,
   ): Promise<RecordatorioResponseDto> {
-    return this.usuarioService.agregarRecordatorio(dni, data);
+    // El creador sale del token, no de la dirección
+    return this.usuarioService.agregarRecordatorio(
+      currentUser.dni as number,
+      data,
+    );
   }
 
   @ApiOperation({ summary: 'Obtener recordatorios de un usuario' })
