@@ -984,13 +984,33 @@ export class UsuarioService {
     ) as RecordatorioResponseDto;
   }
 
+  private filtroVisibilidadRecordatorios(
+    dni: number,
+    vista: { esSuperadmin: boolean; esAdmin: boolean },
+  ) {
+    // Superadmin: ve todos, siempre
+    if (vista.esSuperadmin) return {};
+    // Admin: los que creó, los dirigidos a él y los de "Todos"
+    if (vista.esAdmin) {
+      return [
+        { usuario: { dni } },
+        { destinoDni: dni },
+        { paraTodos: true },
+      ];
+    }
+    // Resto: solo los que creó
+    return { usuario: { dni } };
+  }
+
   async getRecordatoriosByUsuario(
     dni: number,
+    vista: { esSuperadmin: boolean; esAdmin: boolean } = {
+      esSuperadmin: false,
+      esAdmin: false,
+    },
   ): Promise<RecordatorioResponseDto[]> {
     const recordatorios = await this.recordatorioRepository.find({
-      where: {
-        usuario: { dni },
-      },
+      where: this.filtroVisibilidadRecordatorios(dni, vista),
       relations: ['usuario'],
       order: {
         fecha: 'ASC',
@@ -1065,6 +1085,10 @@ export class UsuarioService {
     dni: number,
     page: number = 1,
     pageSize: number = 10,
+    vista: { esSuperadmin: boolean; esAdmin: boolean } = {
+      esSuperadmin: false,
+      esAdmin: false,
+    },
   ): Promise<{
     data: RecordatorioResponseDto[];
     total: number;
@@ -1075,7 +1099,7 @@ export class UsuarioService {
     await this.obtenerUsuarioPorDni(dni);
 
     const [data, total] = await this.recordatorioRepository.findAndCount({
-      where: { usuario: { dni } },
+      where: this.filtroVisibilidadRecordatorios(dni, vista),
       relations: ['usuario'],
       skip: (page - 1) * pageSize,
       take: pageSize,
