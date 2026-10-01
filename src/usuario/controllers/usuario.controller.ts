@@ -142,6 +142,15 @@ export class UsuarioController {
     return this.usuarioService.obtenerUsuarios(page, pageSize);
   }
 
+  @ApiOperation({
+    summary: 'Destinos posibles para un recordatorio (admin y superadmin activos)',
+  })
+  @Get('destinos-recordatorio')
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  obtenerDestinosRecordatorio() {
+    return this.usuarioService.obtenerDestinosRecordatorio();
+  }
+
   @ApiOperation({ summary: 'Obtener usuario por DNI' })
   @ApiParam({
     name: 'dni',

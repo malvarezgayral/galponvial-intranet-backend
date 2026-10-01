@@ -343,6 +343,31 @@ export class UsuarioService {
     return this.filterUsuariosResponse(usuarios);
   }
 
+  async obtenerDestinosRecordatorio(): Promise<
+    { dni: number; nombre: string; apellido: string; rol: string }[]
+  > {
+    const usuarios = await this.usuarioRepository
+      .createQueryBuilder('usuario')
+      .innerJoinAndSelect('usuario.usuarioRoles', 'usuarioRol')
+      .innerJoinAndSelect('usuarioRol.rol', 'rol')
+      .where('rol.rol IN (:...roles)', {
+        roles: [ValidRoles.admin, ValidRoles.superadmin],
+      })
+      .andWhere('usuario.isActive = :activo', { activo: true })
+      .orderBy('usuario.apellido', 'ASC')
+      .addOrderBy('usuario.nombre', 'ASC')
+      .getMany();
+
+    return usuarios.map((u) => ({
+      dni: u.dni as number,
+      nombre: u.nombre,
+      apellido: u.apellido,
+      rol: u.usuarioRoles.some((ur) => ur.rol.rol === ValidRoles.superadmin)
+        ? ValidRoles.superadmin
+        : ValidRoles.admin,
+    }));
+  }
+
   async obtenerUsuarioPorDni(dni: number): Promise<UsuarioResponseDto | null> {
     const usuario = await this.usuarioRepository.findOne({
       where: { dni },
