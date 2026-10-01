@@ -5,6 +5,7 @@ import {
   BadRequestException,
   Inject,
   forwardRef,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
@@ -1022,6 +1023,7 @@ export class UsuarioService {
   async updateRecordatorio(
     recordatorioId: number,
     data: { fecha?: Date; descripcion?: string },
+    actor?: { dni: number; esSuperadmin: boolean },
   ): Promise<RecordatorioResponseDto> {
     const recordatorio = await this.recordatorioRepository.findOne({
       where: { id: recordatorioId },
@@ -1030,6 +1032,17 @@ export class UsuarioService {
 
     if (!recordatorio) {
       throw new Error('Recordatorio no encontrado');
+    }
+
+    // Solo quien lo creó o el superadmin pueden editarlo
+    if (
+      actor &&
+      !actor.esSuperadmin &&
+      Number(recordatorio.usuario?.dni) !== Number(actor.dni)
+    ) {
+      throw new ForbiddenException(
+        'No podés editar un recordatorio creado por otro usuario',
+      );
     }
 
     const fechaAnteriorRecordatorio = recordatorio.fecha;

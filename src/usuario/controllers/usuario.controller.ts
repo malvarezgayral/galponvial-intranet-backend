@@ -488,8 +488,14 @@ export class UsuarioController {
   async updateRecordatorio(
     @Param('recordatorioId', ParseIntPipe) recordatorioId: number,
     @Body() dto: { fecha?: Date; descripcion?: string },
+    @GetUser() currentUser: Usuario,
   ): Promise<RecordatorioResponseDto> {
-    return this.usuarioService.updateRecordatorio(recordatorioId, dto);
+    return this.usuarioService.updateRecordatorio(recordatorioId, dto, {
+      dni: currentUser.dni as number,
+      esSuperadmin: currentUser.roles.some(
+        (r) => r.rol === ValidRoles.superadmin,
+      ),
+    });
   }
 
   @ApiOperation({ summary: 'Obtener recordatorios paginados de un usuario' })
