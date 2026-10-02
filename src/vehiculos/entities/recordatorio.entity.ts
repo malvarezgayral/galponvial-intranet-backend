@@ -21,4 +21,12 @@ export class Recordatorio {
   @ManyToOne(() => Usuario, (usuario) => usuario.recordatorios)
   @JoinColumn({ name: 'dni_usuario' })
   usuario: Usuario;
+
+  // Destino del recordatorio: un admin/superadmin puntual (destino_dni)
+  // o todos (para_todos). Ambos vacíos = sin destino (recordatorios viejos).
+  @Column({ name: 'destino_dni', type: 'bigint', nullable: true })
+  destinoDni: number | null;
+
+  @Column({ name: 'para_todos', type: 'boolean', default: false })
+  paraTodos: boolean;
 }

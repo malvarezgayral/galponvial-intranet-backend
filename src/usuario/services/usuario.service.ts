@@ -5,6 +5,7 @@ import {
   BadRequestException,
   Inject,
   forwardRef,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
@@ -341,6 +342,31 @@ export class UsuarioService {
       .whereInIds(dnis)
       .getMany();
     return this.filterUsuariosResponse(usuarios);
+  }
+
+  async obtenerDestinosRecordatorio(): Promise<
+    { dni: number; nombre: string; apellido: string; rol: string }[]
+  > {
+    const usuarios = await this.usuarioRepository
+      .createQueryBuilder('usuario')
+      .innerJoinAndSelect('usuario.usuarioRoles', 'usuarioRol')
+      .innerJoinAndSelect('usuarioRol.rol', 'rol')
+      .where('rol.rol IN (:...roles)', {
+        roles: [ValidRoles.admin, ValidRoles.superadmin],
+      })
+      .andWhere('usuario.isActive = :activo', { activo: true })
+      .orderBy('usuario.apellido', 'ASC')
+      .addOrderBy('usuario.nombre', 'ASC')
+      .getMany();
+
+    return usuarios.map((u) => ({
+      dni: u.dni as number,
+      nombre: u.nombre,
+      apellido: u.apellido,
+      rol: u.usuarioRoles.some((ur) => ur.rol.rol === ValidRoles.superadmin)
+        ? ValidRoles.superadmin
+        : ValidRoles.admin,
+    }));
   }
 
   async obtenerUsuarioPorDni(dni: number): Promise<UsuarioResponseDto | null> {
@@ -894,7 +920,12 @@ export class UsuarioService {
 
   async agregarRecordatorio(
     dni: number,
-    data: { fecha: Date; descripcion: string },
+    data: {
+      fecha: Date;
+      descripcion: string;
+      destinoDni?: number | null;
+      paraTodos?: boolean;
+    },
   ): Promise<RecordatorioResponseDto> {
     const usuario = await this.usuarioRepository.findOne({
       where: { dni },
@@ -904,10 +935,30 @@ export class UsuarioService {
       throw new Error(`Usuario con DNI ${dni} no encontrado`);
     }
 
+    const paraTodos = data.paraTodos === true;
+    const destinoDni =
+      data.destinoDni !== undefined && data.destinoDni !== null
+        ? Number(data.destinoDni)
+        : null;
+
+    if (paraTodos && destinoDni !== null) {
+      throw new BadRequestException(
+        'Elegí un destino puntual o "Todos", no ambos',
+      );
+    }
+    if (destinoDni !== null) {
+      const destinos = await this.obtenerDestinosRecordatorio();
+      if (!destinos.some((d) => Number(d.dni) === destinoDni)) {
+        throw new BadRequestException('El destino elegido no es válido');
+      }
+    }
+
     const recordatorio = this.recordatorioRepository.create({
       fecha: data.fecha,
       descripcion: data.descripcion,
       usuario,
+      destinoDni,
+      paraTodos,
     });
 
     const recordatorioGuardado =
@@ -934,13 +985,33 @@ export class UsuarioService {
     ) as RecordatorioResponseDto;
   }
 
+  private filtroVisibilidadRecordatorios(
+    dni: number,
+    vista: { esSuperadmin: boolean; esAdmin: boolean },
+  ) {
+    // Superadmin: ve todos, siempre
+    if (vista.esSuperadmin) return {};
+    // Admin: los que creó, los dirigidos a él y los de "Todos"
+    if (vista.esAdmin) {
+      return [
+        { usuario: { dni } },
+        { destinoDni: dni },
+        { paraTodos: true },
+      ];
+    }
+    // Resto: solo los que creó
+    return { usuario: { dni } };
+  }
+
   async getRecordatoriosByUsuario(
     dni: number,
+    vista: { esSuperadmin: boolean; esAdmin: boolean } = {
+      esSuperadmin: false,
+      esAdmin: false,
+    },
   ): Promise<RecordatorioResponseDto[]> {
     const recordatorios = await this.recordatorioRepository.find({
-      where: {
-        usuario: { dni },
-      },
+      where: this.filtroVisibilidadRecordatorios(dni, vista),
       relations: ['usuario'],
       order: {
         fecha: 'ASC',
@@ -952,6 +1023,7 @@ export class UsuarioService {
   async updateRecordatorio(
     recordatorioId: number,
     data: { fecha?: Date; descripcion?: string },
+    actor?: { dni: number; esSuperadmin: boolean },
   ): Promise<RecordatorioResponseDto> {
     const recordatorio = await this.recordatorioRepository.findOne({
       where: { id: recordatorioId },
@@ -960,6 +1032,17 @@ export class UsuarioService {
 
     if (!recordatorio) {
       throw new Error('Recordatorio no encontrado');
+    }
+
+    // Solo quien lo creó o el superadmin pueden editarlo
+    if (
+      actor &&
+      !actor.esSuperadmin &&
+      Number(recordatorio.usuario?.dni) !== Number(actor.dni)
+    ) {
+      throw new ForbiddenException(
+        'No podés editar un recordatorio creado por otro usuario',
+      );
     }
 
     const fechaAnteriorRecordatorio = recordatorio.fecha;
@@ -1015,6 +1098,10 @@ export class UsuarioService {
     dni: number,
     page: number = 1,
     pageSize: number = 10,
+    vista: { esSuperadmin: boolean; esAdmin: boolean } = {
+      esSuperadmin: false,
+      esAdmin: false,
+    },
   ): Promise<{
     data: RecordatorioResponseDto[];
     total: number;
@@ -1025,7 +1112,7 @@ export class UsuarioService {
     await this.obtenerUsuarioPorDni(dni);
 
     const [data, total] = await this.recordatorioRepository.findAndCount({
-      where: { usuario: { dni } },
+      where: this.filtroVisibilidadRecordatorios(dni, vista),
       relations: ['usuario'],
       skip: (page - 1) * pageSize,
       take: pageSize,
