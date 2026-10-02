@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notificacion } from '../entities/notificacion.entity';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
-import { ValidRoles } from 'src/usuario/enums/usuario.enum';
+import { ValidRoles, Permisos } from 'src/usuario/enums/usuario.enum';
 
 @Injectable()
 export class NotificacionesService {
@@ -48,8 +48,57 @@ export class NotificacionesService {
     return [await this.notificacionRepository.save(nueva)];
   }
 
+  // Tipos de notificacion que puede ver un usuario segun sus roles y permisos
+  tiposPermitidos(
+    roles: { rol: string; permisos?: string[] | null }[],
+  ): Set<string> {
+    const permitidos = new Set<string>();
+    const rolesUsuario = roles ?? [];
+
+    if (rolesUsuario.some((r) => r.rol === ValidRoles.superadmin)) {
+      [
+        'service', 'reparacion', 'compras', 'incidentes', 'personal',
+        'recordatorio', 'combustible', 'proveedores', 'lubricentro',
+        'privada', 'almacen',
+      ].forEach((t) => permitidos.add(t));
+      return permitidos;
+    }
+
+    const perms: string[] = rolesUsuario.flatMap((r) => r.permisos ?? []);
+    const tiene = (...p: Permisos[]) => p.some((x) => perms.includes(x));
+    const acceso = tiene(Permisos.ALL_READ, Permisos.ALL_WRITE);
+
+    if (acceso) {
+      [
+        'service', 'lubricentro', 'combustible', 'almacen',
+        'reparacion', 'compras', 'incidentes', 'proveedores',
+      ].forEach((t) => permitidos.add(t));
+    }
+    if (tiene(Permisos.SERVICE_READ, Permisos.SERVICE_WRITE)) {
+      permitidos.add('service');
+    }
+    if (tiene(Permisos.LUBRICENTRO_READ, Permisos.LUBRICENTRO_WRITE)) {
+      permitidos.add('lubricentro');
+    }
+    if (tiene(Permisos.COMBUSTIBLE_WRITE)) {
+      permitidos.add('combustible');
+    }
+    if (
+      tiene(
+        Permisos.ALMACEN_TALLER_READ,
+        Permisos.ALMACEN_TALLER_WRITE,
+        Permisos.ALMACEN_COMUN_READ,
+        Permisos.ALMACEN_COMUN_WRITE,
+      )
+    ) {
+      permitidos.add('almacen');
+    }
+    // Recordatorios, personal y privada: solo superadmin (provisorio)
+    return permitidos;
+  }
+
   async contarNoLeidasPorTipo(
-    incluirPersonal: boolean,
+    permitidos: Set<string>,
   ): Promise<Record<string, number>> {
     const filas = await this.notificacionRepository
       .createQueryBuilder('n')
@@ -61,8 +110,8 @@ export class NotificacionesService {
 
     const resultado: Record<string, number> = {};
     for (const f of filas) {
-      // Personal es confidencial: solo se informa al superadmin
-      if (f.tipo === 'personal' && !incluirPersonal) continue;
+      // Solo se informan los tipos a los que el usuario tiene acceso
+      if (!permitidos.has(f.tipo)) continue;
       resultado[f.tipo] = Number(f.total);
     }
     return resultado;
@@ -83,13 +132,13 @@ export class NotificacionesService {
     return { actualizadas: r.affected ?? 0 };
   }
 
-  async marcarComoLeida(id: number, esSuperadmin = true): Promise<Notificacion> {
+  async marcarComoLeida(id: number, permitidos?: Set<string>): Promise<Notificacion> {
     const notificacion = await this.notificacionRepository.findOneBy({ id });
     if (!notificacion) {
       throw new NotFoundException(`Notificación con ID ${id} no encontrada`);
     }
-    // Personal es confidencial: a un no superadmin se le responde como si no existiera
-    if (notificacion.tipo === 'personal' && !esSuperadmin) {
+    // Si no tiene acceso a ese tipo, se responde como si no existiera
+    if (permitidos && !permitidos.has(notificacion.tipo)) {
       throw new NotFoundException(`Notificación con ID ${id} no encontrada`);
     }
     notificacion.leida = true;

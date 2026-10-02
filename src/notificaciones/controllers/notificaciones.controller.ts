@@ -13,15 +13,15 @@ export class NotificacionesController {
   @Get('no-leidas')
   @Auth(ValidRoles.admin, ValidRoles.superadmin)
   contarNoLeidas(@GetUser() user: Usuario) {
-    const esSuperadmin = user.roles.some((r) => r.rol === ValidRoles.superadmin);
-    return this.notificacionesService.contarNoLeidasPorTipo(esSuperadmin);
+    return this.notificacionesService.contarNoLeidasPorTipo(
+      this.notificacionesService.tiposPermitidos(user.roles),
+    );
   }
 
   @Get()
   @Auth(ValidRoles.admin, ValidRoles.superadmin)
   obtenerPorTipo(@Query('tipo') tipo: string, @GetUser() user: Usuario) {
-    // Personal es confidencial: solo el superadmin
-    if (tipo === 'personal' && !user.roles.some((r) => r.rol === ValidRoles.superadmin)) {
+    if (!this.notificacionesService.tiposPermitidos(user.roles).has(tipo)) {
       throw new ForbiddenException('No autorizado');
     }
     return this.notificacionesService.obtenerPorTipo(tipo);
@@ -30,8 +30,7 @@ export class NotificacionesController {
   @Patch('tipo/:tipo/leidas')
   @Auth(ValidRoles.admin, ValidRoles.superadmin)
   marcarTipoComoLeido(@Param('tipo') tipo: string, @GetUser() user: Usuario) {
-    // Personal es confidencial: solo el superadmin
-    if (tipo === 'personal' && !user.roles.some((r) => r.rol === ValidRoles.superadmin)) {
+    if (!this.notificacionesService.tiposPermitidos(user.roles).has(tipo)) {
       throw new ForbiddenException('No autorizado');
     }
     return this.notificacionesService.marcarTipoComoLeido(tipo);
@@ -40,8 +39,10 @@ export class NotificacionesController {
   @Patch(':id/leida')
   @Auth(ValidRoles.admin, ValidRoles.superadmin)
   marcarComoLeida(@Param('id', ParseIntPipe) id: number, @GetUser() user: Usuario) {
-    const esSuperadmin = user.roles.some((r) => r.rol === ValidRoles.superadmin);
-    return this.notificacionesService.marcarComoLeida(id, esSuperadmin);
+    return this.notificacionesService.marcarComoLeida(
+      id,
+      this.notificacionesService.tiposPermitidos(user.roles),
+    );
   }
 
   @Delete(':id')
