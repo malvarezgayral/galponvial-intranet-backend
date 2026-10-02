@@ -93,7 +93,10 @@ export class NotificacionesService {
     ) {
       permitidos.add('almacen');
     }
-    // Recordatorios y privada visibles para admin (como antes); personal solo superadmin
+    if (tiene(Permisos.PERSONAL_READ, Permisos.PERSONAL_WRITE)) {
+      permitidos.add('personal');
+    }
+    // Recordatorios y privada visibles para admin (como antes); personal solo con permiso propio
     permitidos.add('recordatorio');
     permitidos.add('privada');
     return permitidos;

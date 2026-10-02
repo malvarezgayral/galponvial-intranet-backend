@@ -26,7 +26,7 @@ export class PersonalController {
 
   // ---------- Documentación personal ----------
   @Post('documentacion')
-  @ScopedAuth(ValidRoles.admin)
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
   @ScopedPermissions(Permisos.PERSONAL_WRITE)
   crearDocumentacion(@Body() dto: CreateDocumentacionPersonalDto) {
     return this.personalService.crearDocumentacion(dto);
@@ -47,7 +47,7 @@ export class PersonalController {
   }
 
   @Put('documentacion/:id')
-  @ScopedAuth(ValidRoles.admin)
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
   @ScopedPermissions(Permisos.PERSONAL_WRITE)
   actualizarDocumentacion(
     @Param('id', ParseIntPipe) id: number,
@@ -64,7 +64,7 @@ export class PersonalController {
 
   // ---------- Registro administrativo ----------
   @Post('registro')
-  @ScopedAuth(ValidRoles.admin)
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
   @ScopedPermissions(Permisos.PERSONAL_WRITE)
   crearRegistro(@Body() dto: CreateRegistroAdministrativoDto) {
     return this.personalService.crearRegistro(dto);
@@ -85,7 +85,7 @@ export class PersonalController {
   }
 
   @Put('registro/:id')
-  @ScopedAuth(ValidRoles.admin)
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
   @ScopedPermissions(Permisos.PERSONAL_WRITE)
   actualizarRegistro(
     @Param('id', ParseIntPipe) id: number,
