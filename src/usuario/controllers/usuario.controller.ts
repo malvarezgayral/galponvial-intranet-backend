@@ -142,6 +142,15 @@ export class UsuarioController {
     return this.usuarioService.obtenerUsuarios(page, pageSize);
   }
 
+  @ApiOperation({
+    summary: 'Destinos posibles para un recordatorio (admin y superadmin activos)',
+  })
+  @Get('destinos-recordatorio')
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  obtenerDestinosRecordatorio() {
+    return this.usuarioService.obtenerDestinosRecordatorio();
+  }
+
   @ApiOperation({ summary: 'Obtener usuario por DNI' })
   @ApiParam({
     name: 'dni',
@@ -407,10 +416,21 @@ export class UsuarioController {
   @HttpCode(HttpStatus.CREATED)
   @Auth(ValidRoles.admin, ValidRoles.superadmin)
   agregarRecordatorio(
-    @Param('dni', ParseIntPipe) dni: number,
-    @Body() data: { fecha: Date; descripcion: string },
+    @Param('dni', ParseIntPipe) _dni: number,
+    @Body()
+    data: {
+      fecha: Date;
+      descripcion: string;
+      destinoDni?: number | null;
+      paraTodos?: boolean;
+    },
+    @GetUser() currentUser: Usuario,
   ): Promise<RecordatorioResponseDto> {
-    return this.usuarioService.agregarRecordatorio(dni, data);
+    // El creador sale del token, no de la dirección
+    return this.usuarioService.agregarRecordatorio(
+      currentUser.dni as number,
+      data,
+    );
   }
 
   @ApiOperation({ summary: 'Obtener recordatorios de un usuario' })
@@ -428,9 +448,19 @@ export class UsuarioController {
   @HttpCode(HttpStatus.OK)
   @Auth()
   async getRecordatorios(
-    @Param('dni', ParseIntPipe) dni: number,
+    @Param('dni', ParseIntPipe) _dni: number,
+    @GetUser() currentUser: Usuario,
   ): Promise<RecordatorioResponseDto[]> {
-    return this.usuarioService.getRecordatoriosByUsuario(dni);
+    // La visibilidad sale del token, no del DNI de la dirección
+    return this.usuarioService.getRecordatoriosByUsuario(
+      currentUser.dni as number,
+      {
+        esSuperadmin: currentUser.roles.some(
+          (r) => r.rol === ValidRoles.superadmin,
+        ),
+        esAdmin: currentUser.roles.some((r) => r.rol === ValidRoles.admin),
+      },
+    );
   }
 
   @ApiOperation({ summary: 'Actualizar un recordatorio' })
@@ -458,8 +488,14 @@ export class UsuarioController {
   async updateRecordatorio(
     @Param('recordatorioId', ParseIntPipe) recordatorioId: number,
     @Body() dto: { fecha?: Date; descripcion?: string },
+    @GetUser() currentUser: Usuario,
   ): Promise<RecordatorioResponseDto> {
-    return this.usuarioService.updateRecordatorio(recordatorioId, dto);
+    return this.usuarioService.updateRecordatorio(recordatorioId, dto, {
+      dni: currentUser.dni as number,
+      esSuperadmin: currentUser.roles.some(
+        (r) => r.rol === ValidRoles.superadmin,
+      ),
+    });
   }
 
   @ApiOperation({ summary: 'Obtener recordatorios paginados de un usuario' })
@@ -476,9 +512,10 @@ export class UsuarioController {
   @HttpCode(HttpStatus.OK)
   @Auth()
   async getRecordatoriosPaginado(
-    @Param('dni', ParseIntPipe) dni: number,
+    @Param('dni', ParseIntPipe) _dni: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
+    @GetUser() currentUser: Usuario,
   ): Promise<
     ObjectServiceResponse<{
       data: RecordatorioResponseDto[];
@@ -488,9 +525,15 @@ export class UsuarioController {
     }>
   > {
     const result = await this.usuarioService.getRecordatoriosPaginado(
-      dni,
+      currentUser.dni as number,
       page,
       pageSize,
+      {
+        esSuperadmin: currentUser.roles.some(
+          (r) => r.rol === ValidRoles.superadmin,
+        ),
+        esAdmin: currentUser.roles.some((r) => r.rol === ValidRoles.admin),
+      },
     );
     return {
       success: true,

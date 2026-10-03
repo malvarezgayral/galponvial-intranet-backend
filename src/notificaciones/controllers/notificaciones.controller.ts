@@ -5,16 +5,27 @@ import { Auth } from '../../usuario/decorators/auth.decorator';
 import { ValidRoles } from '../../usuario/enums/usuario.enum';
 import { GetUser } from '../../usuario/decorators/get-user.decorator';
 import { Usuario } from '../../usuario/entities/usuario.entity';
+import { VistaAvisos } from '../services/notificaciones.service';
 
 @Controller('notificaciones')
 export class NotificacionesController {
   constructor(private readonly notificacionesService: NotificacionesService) {}
+
+  private vista(user: Usuario): VistaAvisos {
+    return {
+      dni: Number(user.dni),
+      esSuperadmin: (user.roles ?? []).some(
+        (r) => r.rol === ValidRoles.superadmin,
+      ),
+    };
+  }
 
   @Get('no-leidas')
   @Auth(ValidRoles.admin, ValidRoles.superadmin)
   contarNoLeidas(@GetUser() user: Usuario) {
     return this.notificacionesService.contarNoLeidasPorTipo(
       this.notificacionesService.tiposPermitidos(user.roles),
+      this.vista(user),
     );
   }
 
@@ -24,7 +35,7 @@ export class NotificacionesController {
     if (!this.notificacionesService.tiposPermitidos(user.roles).has(tipo)) {
       throw new ForbiddenException('No autorizado');
     }
-    return this.notificacionesService.obtenerPorTipo(tipo);
+    return this.notificacionesService.obtenerPorTipo(tipo, this.vista(user));
   }
 
   @Patch('tipo/:tipo/leidas')
@@ -33,7 +44,7 @@ export class NotificacionesController {
     if (!this.notificacionesService.tiposPermitidos(user.roles).has(tipo)) {
       throw new ForbiddenException('No autorizado');
     }
-    return this.notificacionesService.marcarTipoComoLeido(tipo);
+    return this.notificacionesService.marcarTipoComoLeido(tipo, this.vista(user));
   }
 
   @Patch(':id/leida')
@@ -42,6 +53,7 @@ export class NotificacionesController {
     return this.notificacionesService.marcarComoLeida(
       id,
       this.notificacionesService.tiposPermitidos(user.roles),
+      this.vista(user),
     );
   }
 

@@ -1,10 +1,13 @@
 // src/notificaciones/services/notificaciones.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Notificacion } from '../entities/notificacion.entity';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
+import { Recordatorio } from 'src/vehiculos/entities/recordatorio.entity';
 import { ValidRoles, Permisos } from 'src/usuario/enums/usuario.enum';
+
+export type VistaAvisos = { dni: number; esSuperadmin: boolean };
 
 @Injectable()
 export class NotificacionesService {
@@ -13,7 +16,18 @@ export class NotificacionesService {
     private readonly notificacionRepository: Repository<Notificacion>,
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
+    @InjectRepository(Recordatorio)
+    private readonly recordatorioRepository: Repository<Recordatorio>,
   ) {}
+
+  // Ids de recordatorios que puede ver un admin: los que creo, los dirigidos a el y los de "todos"
+  private async idsRecordatoriosVisibles(dni: number): Promise<number[]> {
+    const filas = await this.recordatorioRepository.find({
+      select: { id: true },
+      where: [{ usuario: { dni } }, { destinoDni: dni }, { paraTodos: true }],
+    });
+    return filas.map((r) => r.id);
+  }
 
   async crearNotificacionParaSuperadmin(
     tipo: string,
@@ -104,12 +118,21 @@ export class NotificacionesService {
 
   async contarNoLeidasPorTipo(
     permitidos: Set<string>,
+    vista?: VistaAvisos,
   ): Promise<Record<string, number>> {
-    const filas = await this.notificacionRepository
+    const qb = this.notificacionRepository
       .createQueryBuilder('n')
       .select('n.tipo', 'tipo')
       .addSelect('COUNT(*)', 'total')
-      .where('n.leida = :leida', { leida: false })
+      .where('n.leida = :leida', { leida: false });
+    if (vista && !vista.esSuperadmin) {
+      const ids = await this.idsRecordatoriosVisibles(vista.dni);
+      qb.andWhere(
+        "(n.tipo <> 'recordatorio' OR (n.referenciaTipo = 'recordatorio' AND n.referenciaId IN (:...ids)))",
+        { ids: ids.length > 0 ? ids : [0] },
+      );
+    }
+    const filas = await qb
       .groupBy('n.tipo')
       .getRawMany<{ tipo: string; total: string }>();
 
@@ -122,14 +145,37 @@ export class NotificacionesService {
     return resultado;
   }
 
-  async obtenerPorTipo(tipo: string): Promise<Notificacion[]> {
+  async obtenerPorTipo(
+    tipo: string,
+    vista?: VistaAvisos,
+  ): Promise<Notificacion[]> {
+    if (tipo === 'recordatorio' && vista && !vista.esSuperadmin) {
+      const ids = await this.idsRecordatoriosVisibles(vista.dni);
+      if (ids.length === 0) return [];
+      return this.notificacionRepository.find({
+        where: { tipo, referenciaTipo: 'recordatorio', referenciaId: In(ids) },
+        order: { fecha: 'DESC' },
+      });
+    }
     return this.notificacionRepository.find({
       where: { tipo },
       order: { fecha: 'DESC' },
     });
   }
 
-  async marcarTipoComoLeido(tipo: string): Promise<{ actualizadas: number }> {
+  async marcarTipoComoLeido(
+    tipo: string,
+    vista?: VistaAvisos,
+  ): Promise<{ actualizadas: number }> {
+    if (tipo === 'recordatorio' && vista && !vista.esSuperadmin) {
+      const ids = await this.idsRecordatoriosVisibles(vista.dni);
+      if (ids.length === 0) return { actualizadas: 0 };
+      const rv = await this.notificacionRepository.update(
+        { tipo, leida: false, referenciaTipo: 'recordatorio', referenciaId: In(ids) },
+        { leida: true },
+      );
+      return { actualizadas: rv.affected ?? 0 };
+    }
     const r = await this.notificacionRepository.update(
       { tipo, leida: false },
       { leida: true },
@@ -137,7 +183,11 @@ export class NotificacionesService {
     return { actualizadas: r.affected ?? 0 };
   }
 
-  async marcarComoLeida(id: number, permitidos?: Set<string>): Promise<Notificacion> {
+  async marcarComoLeida(
+    id: number,
+    permitidos?: Set<string>,
+    vista?: VistaAvisos,
+  ): Promise<Notificacion> {
     const notificacion = await this.notificacionRepository.findOneBy({ id });
     if (!notificacion) {
       throw new NotFoundException(`Notificación con ID ${id} no encontrada`);
@@ -145,6 +195,17 @@ export class NotificacionesService {
     // Si no tiene acceso a ese tipo, se responde como si no existiera
     if (permitidos && !permitidos.has(notificacion.tipo)) {
       throw new NotFoundException(`Notificación con ID ${id} no encontrada`);
+    }
+    // Aviso de recordatorio: un admin solo toca los de recordatorios que puede ver
+    if (notificacion.tipo === 'recordatorio' && vista && !vista.esSuperadmin) {
+      const ids = await this.idsRecordatoriosVisibles(vista.dni);
+      const visible =
+        notificacion.referenciaTipo === 'recordatorio' &&
+        notificacion.referenciaId !== null &&
+        ids.includes(Number(notificacion.referenciaId));
+      if (!visible) {
+        throw new NotFoundException(`Notificación con ID ${id} no encontrada`);
+      }
     }
     notificacion.leida = true;
     return this.notificacionRepository.save(notificacion);
