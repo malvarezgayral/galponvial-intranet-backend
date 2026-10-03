@@ -19,6 +19,8 @@ import {
   ScopedReadPermissions,
 } from 'src/usuario/decorators/scoped-permissions.decorator';
 import { ValidRoles, Permisos } from 'src/usuario/enums/usuario.enum';
+import { GetUser } from 'src/usuario/decorators/get-user.decorator';
+import { Usuario } from 'src/usuario/entities/usuario.entity';
 
 @Controller('personal')
 export class PersonalController {
@@ -28,8 +30,11 @@ export class PersonalController {
   @Post('documentacion')
   @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
   @ScopedPermissions(Permisos.PERSONAL_WRITE)
-  crearDocumentacion(@Body() dto: CreateDocumentacionPersonalDto) {
-    return this.personalService.crearDocumentacion(dto);
+  crearDocumentacion(
+    @Body() dto: CreateDocumentacionPersonalDto,
+    @GetUser() user: Usuario,
+  ) {
+    return this.personalService.crearDocumentacion(dto, user);
   }
 
   @Get('documentacion')
@@ -52,8 +57,9 @@ export class PersonalController {
   actualizarDocumentacion(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CreateDocumentacionPersonalDto,
+    @GetUser() user: Usuario,
   ) {
-    return this.personalService.actualizarDocumentacion(id, dto);
+    return this.personalService.actualizarDocumentacion(id, dto, user);
   }
 
   @Delete('documentacion/:id')
@@ -66,8 +72,11 @@ export class PersonalController {
   @Post('registro')
   @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
   @ScopedPermissions(Permisos.PERSONAL_WRITE)
-  crearRegistro(@Body() dto: CreateRegistroAdministrativoDto) {
-    return this.personalService.crearRegistro(dto);
+  crearRegistro(
+    @Body() dto: CreateRegistroAdministrativoDto,
+    @GetUser() user: Usuario,
+  ) {
+    return this.personalService.crearRegistro(dto, user);
   }
 
   @Get('registro')
@@ -90,8 +99,9 @@ export class PersonalController {
   actualizarRegistro(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CreateRegistroAdministrativoDto,
+    @GetUser() user: Usuario,
   ) {
-    return this.personalService.actualizarRegistro(id, dto);
+    return this.personalService.actualizarRegistro(id, dto, user);
   }
 
   @Delete('registro/:id')
