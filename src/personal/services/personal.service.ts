@@ -8,6 +8,10 @@ import { CreateDocumentacionPersonalDto } from '../dto/create-documentacion-pers
 import { CreateRegistroAdministrativoDto } from '../dto/create-registro-administrativo.dto';
 import { NotificacionesService } from 'src/notificaciones/services/notificaciones.service';
 
+type ActorPersonal =
+  | { nombre: string; apellido: string; dni: number | string }
+  | undefined;
+
 @Injectable()
 export class PersonalService {
   constructor(
@@ -46,17 +50,30 @@ export class PersonalService {
       : titulo;
   }
 
+  // Texto "quien y cuando" para el mensaje del aviso
+  private quienYCuando(verbo: string, actor: ActorPersonal): string {
+    const cuando = new Date().toLocaleString('es-AR', {
+      timeZone: 'America/Argentina/Buenos_Aires',
+    });
+    const quien = actor
+      ? `${actor.nombre} ${actor.apellido} (DNI ${actor.dni})`
+      : 'un usuario no identificado';
+    return `${verbo} por ${quien} el ${cuando}`;
+  }
+
   // ---------- Documentación personal ----------
   async crearDocumentacion(
     dto: CreateDocumentacionPersonalDto,
+    actor?: ActorPersonal,
   ): Promise<DocumentacionPersonal> {
     const nuevo = this.docRepo.create(dto);
     const guardado = await this.docRepo.save(nuevo);
     await this.notificar(
-      this.tituloPersonal('Documentación personal cargada', [
-        `${guardado.nombre} ${guardado.apellido}`,
+      this.tituloPersonal('Personal', [
+        'Documentación cargada',
+        `${guardado.apellido}, ${guardado.nombre}`,
       ]),
-      'Se cargó un registro de Documentación Personal.',
+      this.quienYCuando('Cargada', actor),
       'documentacion',
       guardado.id,
     );
@@ -80,10 +97,21 @@ export class PersonalService {
   async actualizarDocumentacion(
     id: number,
     dto: CreateDocumentacionPersonalDto,
+    actor?: ActorPersonal,
   ): Promise<DocumentacionPersonal> {
     await this.obtenerDocumentacion(id);
     await this.docRepo.update(id, dto);
-    return this.obtenerDocumentacion(id);
+    const actualizado = await this.obtenerDocumentacion(id);
+    await this.notificar(
+      this.tituloPersonal('Personal', [
+        'Documentación modificada',
+        `${actualizado.apellido}, ${actualizado.nombre}`,
+      ]),
+      this.quienYCuando('Modificada', actor),
+      'documentacion',
+      actualizado.id,
+    );
+    return actualizado;
   }
 
   async eliminarDocumentacion(id: number): Promise<void> {
@@ -94,16 +122,16 @@ export class PersonalService {
   // ---------- Registro administrativo ----------
   async crearRegistro(
     dto: CreateRegistroAdministrativoDto,
+    actor?: ActorPersonal,
   ): Promise<RegistroAdministrativo> {
     const nuevo = this.regRepo.create(dto);
     const guardado = await this.regRepo.save(nuevo);
-    const partesRegistro = [`${guardado.nombre} ${guardado.apellido}`];
-    if (guardado.legajo) {
-      partesRegistro.push(`legajo ${guardado.legajo}`);
-    }
+    const persona = guardado.legajo
+      ? `${guardado.apellido}, ${guardado.nombre} (legajo ${guardado.legajo})`
+      : `${guardado.apellido}, ${guardado.nombre}`;
     await this.notificar(
-      this.tituloPersonal('Registro administrativo cargado', partesRegistro),
-      'Se cargó un Registro Administrativo.',
+      this.tituloPersonal('Personal', ['Registro administrativo cargado', persona]),
+      this.quienYCuando('Cargado', actor),
       'registro',
       guardado.id,
     );
@@ -127,10 +155,21 @@ export class PersonalService {
   async actualizarRegistro(
     id: number,
     dto: CreateRegistroAdministrativoDto,
+    actor?: ActorPersonal,
   ): Promise<RegistroAdministrativo> {
     await this.obtenerRegistro(id);
     await this.regRepo.update(id, dto);
-    return this.obtenerRegistro(id);
+    const actualizado = await this.obtenerRegistro(id);
+    const persona = actualizado.legajo
+      ? `${actualizado.apellido}, ${actualizado.nombre} (legajo ${actualizado.legajo})`
+      : `${actualizado.apellido}, ${actualizado.nombre}`;
+    await this.notificar(
+      this.tituloPersonal('Personal', ['Registro administrativo modificado', persona]),
+      this.quienYCuando('Modificado', actor),
+      'registro',
+      actualizado.id,
+    );
+    return actualizado;
   }
 
   async eliminarRegistro(id: number): Promise<void> {
