@@ -351,9 +351,11 @@ export class UsuarioService {
       .createQueryBuilder('usuario')
       .innerJoinAndSelect('usuario.usuarioRoles', 'usuarioRol')
       .innerJoinAndSelect('usuarioRol.rol', 'rol')
-      .where('rol.rol IN (:...roles)', {
-        roles: [ValidRoles.admin, ValidRoles.superadmin],
-      })
+      .where('rol.rol = :rolAdmin', { rolAdmin: ValidRoles.admin })
+      .andWhere(
+        `NOT EXISTS (SELECT 1 FROM usuario_rol ur2 INNER JOIN rol r2 ON r2.id = ur2.rol_id WHERE ur2.dni = usuario.dni AND r2.rol = :rolSuper)`,
+        { rolSuper: ValidRoles.superadmin },
+      )
       .andWhere('usuario.isActive = :activo', { activo: true })
       .orderBy('usuario.apellido', 'ASC')
       .addOrderBy('usuario.nombre', 'ASC')
@@ -363,9 +365,7 @@ export class UsuarioService {
       dni: u.dni as number,
       nombre: u.nombre,
       apellido: u.apellido,
-      rol: u.usuarioRoles.some((ur) => ur.rol.rol === ValidRoles.superadmin)
-        ? ValidRoles.superadmin
-        : ValidRoles.admin,
+      rol: ValidRoles.admin as string,
     }));
   }
 
@@ -946,11 +946,14 @@ export class UsuarioService {
         'Elegí un destino puntual o "Todos", no ambos',
       );
     }
+    let destinoTexto = paraTodos ? 'Todos los admin' : 'Sin destino';
     if (destinoDni !== null) {
       const destinos = await this.obtenerDestinosRecordatorio();
-      if (!destinos.some((d) => Number(d.dni) === destinoDni)) {
+      const destino = destinos.find((d) => Number(d.dni) === destinoDni);
+      if (!destino) {
         throw new BadRequestException('El destino elegido no es válido');
       }
+      destinoTexto = `${destino.nombre} ${destino.apellido} (DNI ${destino.dni})`;
     }
 
     const recordatorio = this.recordatorioRepository.create({
@@ -975,9 +978,12 @@ export class UsuarioService {
       this.tituloRecordatorio('cargado', usuario),
       [
         `Usuario: ${usuario.nombre} ${usuario.apellido} (DNI ${usuario.dni})`,
+        `Destino: ${destinoTexto}`,
         `Fecha: ${data.fecha}`,
         `Descripción: ${data.descripcion}`,
       ].join(' | '),
+      'recordatorio',
+      recordatorioGuardado.id,
     );
 
     return this.filterRecordatorioResponse(
@@ -1075,6 +1081,21 @@ export class UsuarioService {
       cambiosRecordatorio.push('descripción');
     }
 
+    let destinoTexto = recordatorioActualizado.paraTodos
+      ? 'Todos los admin'
+      : 'Sin destino';
+    if (
+      recordatorioActualizado.destinoDni !== null &&
+      recordatorioActualizado.destinoDni !== undefined
+    ) {
+      const dest = await this.usuarioRepository.findOne({
+        where: { dni: Number(recordatorioActualizado.destinoDni) },
+      });
+      destinoTexto = dest
+        ? `${dest.nombre} ${dest.apellido} (DNI ${dest.dni})`
+        : `DNI ${recordatorioActualizado.destinoDni}`;
+    }
+
     await this.notificacionesService.crearNotificacionParaSuperadmin(
       'recordatorio',
       this.tituloRecordatorio(
@@ -1084,9 +1105,12 @@ export class UsuarioService {
       ),
       [
         `Usuario: ${recordatorio.usuario.nombre} ${recordatorio.usuario.apellido} (DNI ${recordatorio.usuario.dni})`,
+        `Destino: ${destinoTexto}`,
         `Fecha: ${recordatorioActualizado.fecha}`,
         `Descripción: ${recordatorioActualizado.descripcion}`,
       ].join(' | '),
+      'recordatorio',
+      recordatorioActualizado.id,
     );
 
     return this.filterRecordatorioResponse(

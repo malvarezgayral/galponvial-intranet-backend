@@ -22,7 +22,7 @@ export class Recordatorio {
   @JoinColumn({ name: 'dni_usuario' })
   usuario: Usuario;
 
-  // Destino del recordatorio: un admin/superadmin puntual (destino_dni)
+  // Destino del recordatorio: un admin puntual (destino_dni)
   // o todos (para_todos). Ambos vacíos = sin destino (recordatorios viejos).
   @Column({ name: 'destino_dni', type: 'bigint', nullable: true })
   destinoDni: number | null;
