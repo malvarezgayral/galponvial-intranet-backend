@@ -3,6 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Notificacion } from '../entities/notificacion.entity';
+import { NotificacionLectura } from '../entities/notificacion-lectura.entity';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import { Recordatorio } from 'src/vehiculos/entities/recordatorio.entity';
 import { ValidRoles, Permisos } from 'src/usuario/enums/usuario.enum';
@@ -14,6 +15,8 @@ export class NotificacionesService {
   constructor(
     @InjectRepository(Notificacion)
     private readonly notificacionRepository: Repository<Notificacion>,
+    @InjectRepository(NotificacionLectura)
+    private readonly lecturaRepository: Repository<NotificacionLectura>,
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
     @InjectRepository(Recordatorio)
@@ -124,7 +127,15 @@ export class NotificacionesService {
       .createQueryBuilder('n')
       .select('n.tipo', 'tipo')
       .addSelect('COUNT(*)', 'total')
-      .where('n.leida = :leida', { leida: false });
+      .where('1 = 1');
+    if (vista) {
+      qb.andWhere(
+        'NOT EXISTS (SELECT 1 FROM notificacion_lectura l WHERE l.notificacion_id = n.id AND l.dni = :dniLector)',
+        { dniLector: vista.dni },
+      );
+    } else {
+      qb.andWhere('n.leida = :leida', { leida: false });
+    }
     if (vista && !vista.esSuperadmin) {
       const ids = await this.idsRecordatoriosVisibles(vista.dni);
       qb.andWhere(
@@ -149,32 +160,62 @@ export class NotificacionesService {
     tipo: string,
     vista?: VistaAvisos,
   ): Promise<Notificacion[]> {
+    let filas: Notificacion[];
     if (tipo === 'recordatorio' && vista && !vista.esSuperadmin) {
       const ids = await this.idsRecordatoriosVisibles(vista.dni);
       if (ids.length === 0) return [];
-      return this.notificacionRepository.find({
+      filas = await this.notificacionRepository.find({
         where: { tipo, referenciaTipo: 'recordatorio', referenciaId: In(ids) },
         order: { fecha: 'DESC' },
       });
+    } else {
+      filas = await this.notificacionRepository.find({
+        where: { tipo },
+        order: { fecha: 'DESC' },
+      });
     }
-    return this.notificacionRepository.find({
-      where: { tipo },
-      order: { fecha: 'DESC' },
+    if (!vista) return filas;
+    // "leida" se calcula por persona: solo cuenta si ESTA persona lo leyo
+    const leidas = await this.idsLeidosPor(
+      vista.dni,
+      filas.map((f) => f.id),
+    );
+    return filas.map((f) => ({ ...f, leida: leidas.has(f.id) }) as Notificacion);
+  }
+
+  // Ids (de la lista dada) que esta persona ya leyo
+  private async idsLeidosPor(dni: number, ids: number[]): Promise<Set<number>> {
+    if (ids.length === 0) return new Set<number>();
+    const filas = await this.lecturaRepository.find({
+      where: { dni, notificacionId: In(ids) },
     });
+    return new Set(filas.map((l) => Number(l.notificacionId)));
+  }
+
+  // Marca como leidos (solo para esta persona) los avisos dados
+  private async marcarLeidosPor(dni: number, ids: number[]): Promise<number> {
+    if (ids.length === 0) return 0;
+    const ya = await this.idsLeidosPor(dni, ids);
+    const nuevos = ids.filter((i) => !ya.has(i));
+    if (nuevos.length === 0) return 0;
+    await this.lecturaRepository
+      .createQueryBuilder()
+      .insert()
+      .values(nuevos.map((notificacionId) => ({ notificacionId, dni })))
+      .orIgnore()
+      .execute();
+    return nuevos.length;
   }
 
   async marcarTipoComoLeido(
     tipo: string,
     vista?: VistaAvisos,
   ): Promise<{ actualizadas: number }> {
-    if (tipo === 'recordatorio' && vista && !vista.esSuperadmin) {
-      const ids = await this.idsRecordatoriosVisibles(vista.dni);
-      if (ids.length === 0) return { actualizadas: 0 };
-      const rv = await this.notificacionRepository.update(
-        { tipo, leida: false, referenciaTipo: 'recordatorio', referenciaId: In(ids) },
-        { leida: true },
-      );
-      return { actualizadas: rv.affected ?? 0 };
+    if (vista) {
+      const visibles = await this.obtenerPorTipo(tipo, vista);
+      const sinLeer = visibles.filter((n) => !n.leida).map((n) => n.id);
+      const cant = await this.marcarLeidosPor(vista.dni, sinLeer);
+      return { actualizadas: cant };
     }
     const r = await this.notificacionRepository.update(
       { tipo, leida: false },
@@ -206,6 +247,10 @@ export class NotificacionesService {
       if (!visible) {
         throw new NotFoundException(`Notificación con ID ${id} no encontrada`);
       }
+    }
+    if (vista) {
+      await this.marcarLeidosPor(vista.dni, [notificacion.id]);
+      return { ...notificacion, leida: true } as Notificacion;
     }
     notificacion.leida = true;
     return this.notificacionRepository.save(notificacion);
