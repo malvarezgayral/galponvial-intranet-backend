@@ -4,9 +4,10 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository, IsNull, Not } from 'typeorm';
 import { Vehiculo } from '../entities/vehiculo.entity';
 import { InfoAdicional } from '../entities/info-adicional.entity';
 import { Sector } from '../entities/sector.entity';
@@ -123,8 +124,33 @@ export class VehiculosService {
     };
   }
 
+  /**
+   * Verifica que la patente no esté usada por otro vehículo.
+   * En la edición se excluye al propio vehículo.
+   */
+  private async validarPatenteUnica(
+    patente: string,
+    idVehiculoExcluir?: number,
+  ): Promise<void> {
+    const existente = await this.infoAdicionalRepository.findOne({
+      where: {
+        patente,
+        ...(idVehiculoExcluir !== undefined && {
+          vehiculo: { id_vehiculo: Not(idVehiculoExcluir) },
+        }),
+      },
+    });
+    if (existente) {
+      throw new ConflictException(
+        `Ya existe un vehículo con la patente ${patente}`,
+      );
+    }
+  }
+
   async create(createVehiculoDto: CreateVehiculoDto): Promise<Vehiculo> {
     const { infoAdicional, ...vehiculoData } = createVehiculoDto;
+
+    await this.validarPatenteUnica(infoAdicional.patente);
 
     let sector: Sector | undefined;
     if (infoAdicional.id_sector_pertenencia) {
@@ -145,8 +171,14 @@ export class VehiculosService {
       const vehiculoGuardado = await this.vehiculoRepository.save(vehiculo);
 
       const infoData: Partial<CreateInfoAdicionalDataDto> = {
-        numero_serie: infoAdicional.numero_serie,
+        numero_motor: infoAdicional.numero_motor,
+        numero_chasis: infoAdicional.numero_chasis,
+        tipo_combustible: infoAdicional.tipo_combustible,
+        patente: infoAdicional.patente,
         licencia_conductor: infoAdicional.licencia_conductor,
+        licencia_categoria: infoAdicional.licencia_categoria,
+        licencia_clase: infoAdicional.licencia_clase,
+        licencia_vencimiento: infoAdicional.licencia_vencimiento,
         color: infoAdicional.color,
         seguro_empresa: infoAdicional.seguro_empresa,
         poliza: infoAdicional.poliza,
@@ -205,6 +237,10 @@ export class VehiculosService {
           `Sector con ID ${infoData.id_sector_pertenencia} no encontrado`,
         );
       }
+    }
+
+    if (infoData?.patente) {
+      await this.validarPatenteUnica(infoData.patente, id);
     }
 
     try {
