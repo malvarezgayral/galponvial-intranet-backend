@@ -229,6 +229,18 @@ export class UsuarioService {
   }
 
   /**
+   * Devuelve la fecha como texto YYYY-MM-DD HH:mm:ss con la hora local del servidor
+   * (la columna es timestamp sin zona; evita que el JSON la pase a UTC)
+   */
+  private fechaLocalTexto(fecha: Date | string | null | undefined): string {
+    if (fecha === null || fecha === undefined) return '';
+    const d = fecha instanceof Date ? fecha : new Date(fecha);
+    if (isNaN(d.getTime())) return '';
+    const p = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  }
+
+  /**
    * Filtra Recordatorio para devolver sin datos sensibles
    */
   private filterRecordatorioResponse(
@@ -237,7 +249,7 @@ export class UsuarioService {
     if (!recordatorio) return null;
     return {
       id: recordatorio.id,
-      fecha: recordatorio.fecha,
+      fecha: this.fechaLocalTexto(recordatorio.fecha),
       descripcion: recordatorio.descripcion,
       usuario: recordatorio.usuario
         ? (this.filterUsuarioMinimal(
@@ -1106,7 +1118,7 @@ export class UsuarioService {
       [
         `Usuario: ${recordatorio.usuario.nombre} ${recordatorio.usuario.apellido} (DNI ${recordatorio.usuario.dni})`,
         `Destino: ${destinoTexto}`,
-        `Fecha: ${recordatorioActualizado.fecha}`,
+        `Fecha: ${this.fechaLocalTexto(recordatorioActualizado.fecha)}`,
         `Descripción: ${recordatorioActualizado.descripcion}`,
       ].join(' | '),
       'recordatorio',

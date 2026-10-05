@@ -12,9 +12,10 @@ export class RecordatorioResponseDto {
   id: number;
 
   @ApiProperty({
-    description: 'Fecha del recordatorio',
+    description: 'Fecha del recordatorio (YYYY-MM-DD HH:mm:ss, hora local)',
+    example: '2028-08-08 18:00:00',
   })
-  fecha: Date;
+  fecha: string;
 
   @ApiProperty({
     description: 'Descripción del recordatorio',
