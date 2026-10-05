@@ -14,11 +14,33 @@ export class InfoAdicional {
   @PrimaryGeneratedColumn()
   id_info_adicional: number;
 
-  @Column('bigint')
-  numero_serie: number;
+  // Ya no se carga desde el formulario; se conserva para los datos viejos
+  @Column('bigint', { nullable: true })
+  numero_serie: number | null;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  numero_motor: string | null;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  numero_chasis: string | null;
+
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  tipo_combustible: string | null;
+
+  @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
+  patente: string | null;
 
   @Column()
   licencia_conductor: string;
+
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  licencia_categoria: string | null;
+
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  licencia_clase: string | null;
+
+  @Column({ type: 'date', nullable: true })
+  licencia_vencimiento: string | null;
 
   @Column('varchar', { length: 15 })
   color: string;
