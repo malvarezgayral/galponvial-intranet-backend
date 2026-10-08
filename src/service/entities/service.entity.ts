@@ -47,6 +47,9 @@ export class Service {
   @Column({ name: 'filtro_gasoil', type: 'varchar', length: 10, nullable: true })
   filtroGasoil!: string;
 
+  @Column({ name: 'filtro_nafta', type: 'varchar', length: 10, nullable: true })
+  filtroNafta!: string;
+
   @Column({ name: 'aceite_hidraulico', type: 'varchar', length: 10, nullable: true })
   aceiteHidraulico!: string;
 
@@ -70,6 +73,9 @@ export class Service {
 
   @Column({ name: 'cuenta_hora', type: 'varchar', length: 50, nullable: true })
   cuentaHora!: string;
+
+  @Column({ name: 'cuenta_km', type: 'varchar', length: 50, nullable: true })
+  cuentaKm!: string;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
   stock!: string;

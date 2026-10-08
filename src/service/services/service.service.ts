@@ -24,6 +24,7 @@ const CAMPOS_COMPARABLES: {
     | 'filtroMotorAceite'
     | 'filtroAire'
     | 'filtroGasoil'
+    | 'filtroNafta'
     | 'aceiteHidraulico'
     | 'filtroHidraulico'
     | 'correasAuxiliares'
@@ -32,6 +33,7 @@ const CAMPOS_COMPARABLES: {
     | 'cambioDamper'
     | 'proximoService'
     | 'cuentaHora'
+    | 'cuentaKm'
     | 'stock'
     | 'observaciones';
   etiqueta: string;
@@ -45,6 +47,7 @@ const CAMPOS_COMPARABLES: {
   { clave: 'filtroMotorAceite', etiqueta: 'filtro motor aceite' },
   { clave: 'filtroAire', etiqueta: 'filtro aire' },
   { clave: 'filtroGasoil', etiqueta: 'filtro gasoil' },
+  { clave: 'filtroNafta', etiqueta: 'filtro nafta' },
   { clave: 'aceiteHidraulico', etiqueta: 'aceite hidráulico' },
   { clave: 'filtroHidraulico', etiqueta: 'filtro hidráulico' },
   { clave: 'correasAuxiliares', etiqueta: 'correas auxiliares' },
@@ -53,6 +56,7 @@ const CAMPOS_COMPARABLES: {
   { clave: 'cambioDamper', etiqueta: 'cambio damper' },
   { clave: 'proximoService', etiqueta: 'próximo service' },
   { clave: 'cuentaHora', etiqueta: 'cuenta hora' },
+  { clave: 'cuentaKm', etiqueta: 'cuenta km' },
   { clave: 'stock', etiqueta: 'stock' },
   { clave: 'observaciones', etiqueta: 'observaciones' },
 ];
@@ -107,6 +111,7 @@ export class ServiceService {
         : null,
       s.filtroAire ? `Filtro Aire: ${s.filtroAire}` : null,
       s.filtroGasoil ? `Filtro Gasoil: ${s.filtroGasoil}` : null,
+      s.filtroNafta ? `Filtro Nafta: ${s.filtroNafta}` : null,
       s.aceiteHidraulico ? `Aceite Hidráulico: ${s.aceiteHidraulico}` : null,
       s.filtroHidraulico ? `Filtro Hidráulico: ${s.filtroHidraulico}` : null,
       s.correasAuxiliares ? `Correas Auxiliares: ${s.correasAuxiliares}` : null,
@@ -117,6 +122,7 @@ export class ServiceService {
       s.cambioDamper ? `Cambio Damper: ${s.cambioDamper}` : null,
       s.proximoService ? `Próximo Service: ${s.proximoService}` : null,
       s.cuentaHora ? `Cuenta Hora: ${s.cuentaHora}` : null,
+      s.cuentaKm ? `Cuenta KM: ${s.cuentaKm}` : null,
       s.stock ? `Stock: ${s.stock}` : null,
       s.observaciones ? `Observaciones: ${s.observaciones}` : null,
     ]

@@ -50,6 +50,10 @@ export class CreateServiceDto {
 
   @IsString()
   @IsOptional()
+  filtroNafta?: string;
+
+  @IsString()
+  @IsOptional()
   aceiteHidraulico?: string;
 
   @IsString()
@@ -80,6 +84,10 @@ export class CreateServiceDto {
   @IsString()
   @IsOptional()
   cuentaHora?: string;
+
+  @IsString()
+  @IsOptional()
+  cuentaKm?: string;
 
   @IsString()
   @IsOptional()
