@@ -105,9 +105,10 @@ export class LubricanteService {
       cambiosLubricante.push('vehículo');
     }
 
+    const { id_vehiculo, ...resto } = dto;
     await this.lubricanteRepository.update(id, {
-      ...dto,
-      vehiculo: { id_vehiculo: dto.id_vehiculo } as any,
+      ...resto,
+      vehiculo: { id_vehiculo } as any,
     });
     const actualizado = await this.obtenerUno(id);
     await this.notificacionesService.crearNotificacionParaSuperadmin(
