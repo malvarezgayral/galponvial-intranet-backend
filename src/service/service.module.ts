@@ -6,9 +6,14 @@ import { Vehiculo } from '../vehiculos/entities/vehiculo.entity';
 import { ServiceService } from './services/service.service';
 import { ServiceController } from './controllers/service.controller';
 import { NotificacionesModule } from 'src/notificaciones/notificaciones.module';
+import { UsuarioModule } from 'src/usuario/usuario.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Service, Vehiculo]), NotificacionesModule],
+  imports: [
+    TypeOrmModule.forFeature([Service, Vehiculo]),
+    NotificacionesModule,
+    UsuarioModule,
+  ],
   controllers: [ServiceController],
   providers: [ServiceService],
   exports: [ServiceService],

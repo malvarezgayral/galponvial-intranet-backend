@@ -10,6 +10,9 @@ import { Service } from '../entities/service.entity';
 import { Vehiculo } from '../../vehiculos/entities/vehiculo.entity';
 import { CreateServiceDto } from '../dto/create-service.dto';
 import { NotificacionesService } from 'src/notificaciones/services/notificaciones.service';
+import { UsuarioService } from 'src/usuario/services/usuario.service';
+import { Usuario } from 'src/usuario/entities/usuario.entity';
+import { ValidRoles } from 'src/usuario/enums/usuario.enum';
 
 const TITULO_MAX = 150;
 
@@ -69,6 +72,7 @@ export class ServiceService {
     @InjectRepository(Vehiculo)
     private readonly vehiculoRepository: Repository<Vehiculo>,
     private readonly notificacionesService: NotificacionesService,
+    private readonly usuarioService: UsuarioService,
   ) {}
 
   private identificarVehiculo(s: Service): string {
@@ -130,7 +134,48 @@ export class ServiceService {
       .join(' | ');
   }
 
-  async crear(dto: CreateServiceDto): Promise<Service> {
+  private async crearRecordatoriosProximoService(
+    s: Service,
+    user?: Usuario,
+  ): Promise<void> {
+    if (!user || !s.proximoService) return;
+    try {
+      const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s.proximoService));
+      if (!m) return;
+      const anio = Number(m[1]);
+      const mes = Number(m[2]);
+      const dia = Number(m[3]);
+      const fechaTxt = `${m[3]}/${m[2]}/${m[1]}`;
+      const esSuperadmin = (user.roles ?? []).some(
+        (r) => r?.rol === ValidRoles.superadmin,
+      );
+      const destinoDni = esSuperadmin ? null : Number(user.dni);
+      const vehiculo = this.identificarVehiculo(s);
+      const avisos = [
+        {
+          fecha: new Date(anio, mes - 1, dia - 7, 9, 0, 0),
+          descripcion: `Service en 7 días (${fechaTxt}): ${vehiculo}`,
+        },
+        {
+          fecha: new Date(anio, mes - 1, dia, 9, 0, 0),
+          descripcion: `Service hoy (${fechaTxt}): ${vehiculo}`,
+        },
+      ];
+      const ahora = Date.now();
+      for (const aviso of avisos) {
+        if (aviso.fecha.getTime() <= ahora) continue;
+        await this.usuarioService.agregarRecordatorio(Number(user.dni), {
+          fecha: aviso.fecha,
+          descripcion: aviso.descripcion,
+          destinoDni,
+        });
+      }
+    } catch (error) {
+      console.error('No se pudieron crear los recordatorios del service:', error);
+    }
+  }
+
+  async crear(dto: CreateServiceDto, user?: Usuario): Promise<Service> {
     if (!dto.id_vehiculo) {
       throw new BadRequestException(
         'Debe seleccionar un vehículo (id_vehiculo).',
@@ -159,6 +204,8 @@ export class ServiceService {
       this.armarMensaje(guardado),
     );
 
+    await this.crearRecordatoriosProximoService(guardado, user);
+
     return guardado;
   }
 
@@ -169,7 +216,11 @@ export class ServiceService {
     });
   }
 
-  async actualizar(id: number, dto: CreateServiceDto): Promise<Service> {
+  async actualizar(
+    id: number,
+    dto: CreateServiceDto,
+    user?: Usuario,
+  ): Promise<Service> {
     const existente = await this.serviceRepository.findOne({
       where: { id },
       relations: ['vehiculoRef'],
@@ -206,6 +257,9 @@ export class ServiceService {
       }
     }
 
+    const proximoAnterior = existente.proximoService
+      ? String(existente.proximoService).slice(0, 10)
+      : null;
     const { id_vehiculo, ...resto } = dto;
     await this.serviceRepository.update(id, {
       ...resto,
@@ -221,6 +275,16 @@ export class ServiceService {
       this.armarTitulo('editado', actualizado as Service, cambios),
       this.armarMensaje(actualizado as Service),
     );
+
+    if (
+      dto.proximoService &&
+      String(dto.proximoService).slice(0, 10) !== proximoAnterior
+    ) {
+      await this.crearRecordatoriosProximoService(
+        actualizado as Service,
+        user,
+      );
+    }
 
     return actualizado as Service;
   }

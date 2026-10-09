@@ -15,6 +15,8 @@ import { Auth } from 'src/usuario/decorators/auth.decorator';
 import { ScopedAuth } from 'src/usuario/decorators/scoped-auth.decorator';
 import { ScopedPermissions } from 'src/usuario/decorators/scoped-permissions.decorator';
 import { Permisos, ValidRoles } from 'src/usuario/enums/usuario.enum';
+import { GetUser } from 'src/usuario/decorators/get-user.decorator';
+import { Usuario } from 'src/usuario/entities/usuario.entity';
 
 @Controller('service')
 export class ServiceController {
@@ -23,8 +25,8 @@ export class ServiceController {
   @Post()
   @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
   @ScopedPermissions(Permisos.SERVICE_WRITE)
-  crear(@Body() dto: CreateServiceDto) {
-    return this.serviceService.crear(dto);
+  crear(@Body() dto: CreateServiceDto, @GetUser() user: Usuario) {
+    return this.serviceService.crear(dto, user);
   }
 
   @Get()
@@ -39,8 +41,9 @@ export class ServiceController {
   actualizar(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CreateServiceDto,
+    @GetUser() user: Usuario,
   ) {
-    return this.serviceService.actualizar(id, dto);
+    return this.serviceService.actualizar(id, dto, user);
   }
 
   @Delete(':id')
