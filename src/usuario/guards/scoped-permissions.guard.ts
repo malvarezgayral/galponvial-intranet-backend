@@ -13,7 +13,7 @@ import {
   SCOPED_READ_PERMISSIONS_KEY,
 } from '../decorators/scoped-permissions.decorator';
 import { Usuario } from '../entities/usuario.entity';
-import { Permisos } from '../enums/usuario.enum';
+import { Permisos, ValidRoles } from '../enums/usuario.enum';
 
 interface RequestWithUser extends Request {
   user: Usuario;
@@ -25,6 +25,10 @@ const PERMISOS_CON_COMODIN_ALL_WRITE: Permisos[] = [
   Permisos.COMBUSTIBLE_WRITE,
   Permisos.SERVICE_WRITE,
 ];
+
+// Permisos de escritura que el super admin tiene siempre, sin que su rol
+// los traiga cargados. Solo Personal.
+const PERMISOS_ABIERTOS_A_SUPERADMIN: Permisos[] = [Permisos.PERSONAL_WRITE];
 
 @Injectable()
 export class ScopedPermissionsGuard implements CanActivate {
@@ -67,10 +71,14 @@ export class ScopedPermissionsGuard implements CanActivate {
 
     if (requiredPermissions && requiredPermissions.length > 0) {
       const hasAllWrite = userPermissions.includes(Permisos.ALL_WRITE);
+      const esSuperAdmin = userRoles.some(
+        (r) => r.rol === ValidRoles.superadmin,
+      );
       const hasWritePermission = requiredPermissions.some(
         (permission) =>
           userPermissions.includes(permission) ||
-          (hasAllWrite && PERMISOS_CON_COMODIN_ALL_WRITE.includes(permission)),
+          (hasAllWrite && PERMISOS_CON_COMODIN_ALL_WRITE.includes(permission)) ||
+          (esSuperAdmin && PERMISOS_ABIERTOS_A_SUPERADMIN.includes(permission)),
       );
 
       if (!hasWritePermission) {
