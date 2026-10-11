@@ -303,6 +303,16 @@ export class AlmacenService {
       distinto(dto.cod_proveedor, art.cod_proveedor)
     )
       cambios.push('cód. proveedor');
+    if (
+      dto.numero_parte !== undefined &&
+      distinto(dto.numero_parte, art.numero_parte)
+    )
+      cambios.push('número de parte');
+    if (
+      dto.codigo_barras !== undefined &&
+      distinto(dto.codigo_barras, art.codigo_barras)
+    )
+      cambios.push('código de barras');
     if (dto.grupo_id !== undefined && distinto(dto.grupo_id, art.grupo?.id))
       cambios.push('grupo');
     if (
@@ -319,6 +329,9 @@ export class AlmacenService {
     if (dto.unidad_tipo !== undefined) art.unidad_tipo = dto.unidad_tipo;
     if (dto.stock !== undefined) art.stock = dto.stock;
     if (dto.cod_proveedor !== undefined) art.cod_proveedor = dto.cod_proveedor;
+    if (dto.numero_parte !== undefined) art.numero_parte = dto.numero_parte;
+    if (dto.codigo_barras !== undefined)
+      art.codigo_barras = dto.codigo_barras;
 
     // Actualizar relación: Grupo
     if (dto.grupo_id !== undefined) {
@@ -405,6 +418,8 @@ export class AlmacenService {
     return {
       cod: articulo.cod,
       cod_proveedor: articulo.cod_proveedor,
+      numero_parte: articulo.numero_parte,
+      codigo_barras: articulo.codigo_barras,
       nombre: articulo.nombre,
       modelo: articulo.modelo,
       descripcion: articulo.descripcion,

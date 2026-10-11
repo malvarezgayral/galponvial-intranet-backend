@@ -7,6 +7,12 @@ export class GetArticuloDto {
   @ApiProperty({ example: 'PROV123' })
   cod_proveedor: string;
 
+  @ApiProperty({ example: 'NP-4521', required: false })
+  numero_parte?: string;
+
+  @ApiProperty({ example: '7791234567890', required: false })
+  codigo_barras?: string;
+
   @ApiProperty({ example: 'Aceite sintético' })
   nombre: string;
 

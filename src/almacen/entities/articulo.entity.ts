@@ -20,6 +20,12 @@ export class Articulo {
   @Column()
   cod_proveedor: string;
 
+  @Column({ type: 'varchar', nullable: true })
+  numero_parte?: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  codigo_barras?: string;
+
   @Column()
   nombre: string;
 
