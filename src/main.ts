@@ -2,9 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { getImagenesDir } from './common/imagenes/imagenes.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const globalPrefix = process.env.API_GLOBAL_PREFIX ?? '' ;
 
   // Configuración de CORS para desarrollo
@@ -22,6 +24,15 @@ async function bootstrap() {
   );
 
   app.setGlobalPrefix(globalPrefix);
+
+  // Fotos de Almacén guardadas en el servidor (setGlobalPrefix no aplica a estáticos)
+  app.useStaticAssets(getImagenesDir(), {
+    prefix: `/${globalPrefix ? globalPrefix + '/' : ''}uploads/`,
+    index: false,
+    setHeaders: (res) => {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+    },
+  });
 
   const config = new DocumentBuilder()
     .setTitle('API Galpón Vial')

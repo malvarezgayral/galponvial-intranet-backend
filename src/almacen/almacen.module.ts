@@ -13,6 +13,7 @@ import { UsuarioModule } from 'src/usuario/usuario.module';
 import { NotificacionesModule } from 'src/notificaciones/notificaciones.module';
 import { CloudinaryProvider } from 'src/common/cloudinary/cloudinary.provider';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
+import { ImagenesService } from '../common/imagenes/imagenes.service';
 
 @Module({
   imports: [
@@ -29,7 +30,12 @@ import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
     NotificacionesModule,
   ],
   controllers: [AlmacenController],
-  providers: [AlmacenService, CloudinaryProvider, CloudinaryService],
+  providers: [
+    AlmacenService,
+    CloudinaryProvider,
+    CloudinaryService,
+    ImagenesService,
+  ],
   exports: [AlmacenService],
 })
 export class AlmacenModule {}
