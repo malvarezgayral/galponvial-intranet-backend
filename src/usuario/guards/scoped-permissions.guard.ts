@@ -27,8 +27,11 @@ const PERMISOS_CON_COMODIN_ALL_WRITE: Permisos[] = [
 ];
 
 // Permisos de escritura que el super admin tiene siempre, sin que su rol
-// los traiga cargados. Solo Personal.
-const PERMISOS_ABIERTOS_A_SUPERADMIN: Permisos[] = [Permisos.PERSONAL_WRITE];
+// los traiga cargados. Personal y Lubricentro.
+const PERMISOS_ABIERTOS_A_SUPERADMIN: Permisos[] = [
+  Permisos.PERSONAL_WRITE,
+  Permisos.LUBRICENTRO_WRITE,
+];
 
 @Injectable()
 export class ScopedPermissionsGuard implements CanActivate {
