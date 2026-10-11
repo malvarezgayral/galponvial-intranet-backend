@@ -59,8 +59,11 @@ import { Usuario } from '../usuario/entities/usuario.entity';
 import { SectorGalponDto } from './dto/sector-galpon.dto';
 import { GrupoArticulo } from './entities/grupo-articulo.entity';
 import { FileInterceptor } from '@nestjs/platform-express/multer';
-import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 import { FileUpload } from 'src/common/interfaces/file.interface';
+import {
+  ImagenesService,
+  MAX_IMAGEN_BYTES,
+} from '../common/imagenes/imagenes.service';
 
 @ApiTags('Almacén')
 @ApiExtraModels(CreateEntradaDto, CreateSalidaDto)
@@ -69,7 +72,7 @@ import { FileUpload } from 'src/common/interfaces/file.interface';
 export class AlmacenController {
   constructor(
     private readonly almacenService: AlmacenService,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly imagenesService: ImagenesService,
   ) {}
 
   // ---------------------- ARTÍCULOS ----------------------
@@ -178,7 +181,9 @@ export class AlmacenController {
   @ApiBody({ type: CreateArticuloDto })
   @ApiResponse({ status: 201, description: 'Artículo creado correctamente' })
   @Post('articulos')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: MAX_IMAGEN_BYTES } }),
+  )
   @AlmacenAuth(ValidRoles.admin, ValidRoles.superadmin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
@@ -195,12 +200,13 @@ export class AlmacenController {
     console.log('FILE recibido:', file);
     if (file) {
       try {
-        console.log('Entrando a Cloudinary...');
-        const imageResult = await this.cloudinaryService.uploadImage(file);
-        dto.img_url = imageResult.secure_url;
+        dto.img_url = await this.imagenesService.guardarImagen(file);
       } catch (error) {
-        console.error('Error Cloudinary:', error);
-        throw new BadRequestException('Error al subir la imagen');
+        console.error('Error al guardar la imagen:', error);
+        if (error instanceof BadRequestException) throw error;
+        throw new BadRequestException(
+          'No se pudo guardar la imagen en el servidor',
+        );
       }
     }
 
@@ -226,7 +232,9 @@ export class AlmacenController {
   @ApiResponse({ status: 200, description: 'Artículo actualizado' })
   @ApiResponse({ status: 404, description: 'Artículo no encontrado' })
   @Put('articulos/:cod')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: MAX_IMAGEN_BYTES } }),
+  )
   @AlmacenAuth(ValidRoles.admin, ValidRoles.superadmin)
   @AlmacenPermissions(
     Permisos.ALMACEN_TALLER_WRITE,
@@ -246,12 +254,14 @@ export class AlmacenController {
 
     if (file) {
       try {
-        const imageResult = await this.cloudinaryService.uploadImage(file);
-        console.log('3. Imagen subida a Cloudinary:', imageResult.secure_url);
-        dto.img_url = imageResult.secure_url;
+        dto.img_url = await this.imagenesService.guardarImagen(file);
+        console.log('3. Imagen guardada en el servidor:', dto.img_url);
       } catch (error) {
-        console.error('Error Cloudinary:', error);
-        throw new BadRequestException('Error al subir la imagen');
+        console.error('Error al guardar la imagen:', error);
+        if (error instanceof BadRequestException) throw error;
+        throw new BadRequestException(
+          'No se pudo guardar la imagen en el servidor',
+        );
       }
     }
 
