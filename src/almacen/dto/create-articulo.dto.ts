@@ -18,6 +18,22 @@ export class CreateArticuloDto {
   @IsString()
   cod_proveedor?: string;
 
+  @ApiPropertyOptional({
+    description: 'Número de parte (carga manual)',
+    example: 'NP-4521',
+  })
+  @IsOptional()
+  @IsString()
+  numero_parte?: string;
+
+  @ApiPropertyOptional({
+    description: 'Código de barras (lector)',
+    example: '7791234567890',
+  })
+  @IsOptional()
+  @IsString()
+  codigo_barras?: string;
+
   @ApiProperty({
     example: 'Filtro de aceite',
   })
