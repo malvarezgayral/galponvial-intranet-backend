@@ -80,5 +80,5 @@ export class InfoAdicionalDto {
   @ApiProperty({ example: 4 })
   @IsNumber()
   @IsNotEmpty()
-  id_sector_pertenencia: number;
+  id_jurisdiccion: number;
 }

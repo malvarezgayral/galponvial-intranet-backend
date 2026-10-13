@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 // Entidades
 import { Vehiculo } from './entities/vehiculo.entity';
 import { InfoAdicional } from './entities/info-adicional.entity';
-import { Sector } from './entities/sector.entity';
+import { Jurisdiccion } from './entities/jurisdiccion.entity';
 import { CombustibleCarga } from './entities/combustible-carga.entity';
 import { Recordatorio } from './entities/recordatorio.entity';
 import { StatusUpdate } from './entities/status-update.entity';
@@ -35,7 +35,7 @@ import { ServicioController } from './controllers/servicio.controller';
     TypeOrmModule.forFeature([
       Vehiculo,
       InfoAdicional,
-      Sector,
+      Jurisdiccion,
       CombustibleCarga,
       Recordatorio,
       StatusUpdate,

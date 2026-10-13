@@ -55,7 +55,7 @@ export class Vehiculo {
   tipo_vehiculo: TipoVehiculo;
 
   @Column('varchar', { length: 100, nullable: true })
-  delegacion: string;
+  dependencia: string;
 
   @Column({ type: 'boolean', default: false })
   eliminado: boolean;

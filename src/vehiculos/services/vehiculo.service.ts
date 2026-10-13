@@ -10,7 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, Not } from 'typeorm';
 import { Vehiculo } from '../entities/vehiculo.entity';
 import { InfoAdicional } from '../entities/info-adicional.entity';
-import { Sector } from '../entities/sector.entity';
+import { Jurisdiccion } from '../entities/jurisdiccion.entity';
 import { CreateVehiculoDto } from '../dto/create-vehiculo.dto';
 import { UpdateVehiculoDto } from '../dto/update-vehiculo.dto';
 import { VehiculoStatus } from '../enums/vehiculo.enum';
@@ -36,8 +36,8 @@ export class VehiculosService {
     private readonly vehiculoRepository: Repository<Vehiculo>,
     @InjectRepository(InfoAdicional)
     private readonly infoAdicionalRepository: Repository<InfoAdicional>,
-    @InjectRepository(Sector)
-    private readonly sectorRepository: Repository<Sector>,
+    @InjectRepository(Jurisdiccion)
+    private readonly jurisdiccionRepository: Repository<Jurisdiccion>,
     @InjectRepository(StatusUpdate)
     private readonly statusUpdateRepository: Repository<StatusUpdate>,
     @InjectRepository(CombustibleCarga)
@@ -152,18 +152,18 @@ export class VehiculosService {
 
     await this.validarPatenteUnica(infoAdicional.patente);
 
-    let sector: Sector | undefined;
-    if (infoAdicional.id_sector_pertenencia) {
-      const foundSector = await this.sectorRepository.findOne({
-        where: { id_sector: infoAdicional.id_sector_pertenencia },
+    let jurisdiccion: Jurisdiccion | undefined;
+    if (infoAdicional.id_jurisdiccion) {
+      const foundJurisdiccion = await this.jurisdiccionRepository.findOne({
+        where: { id_jurisdiccion: infoAdicional.id_jurisdiccion },
       });
 
-      if (!foundSector) {
+      if (!foundJurisdiccion) {
         throw new NotFoundException(
-          `Sector con ID ${infoAdicional.id_sector_pertenencia} no encontrado`,
+          `Jurisdicción con ID ${infoAdicional.id_jurisdiccion} no encontrado`,
         );
       }
-      sector = foundSector;
+      jurisdiccion = foundJurisdiccion;
     }
 
     try {
@@ -185,8 +185,8 @@ export class VehiculosService {
         vehiculo: vehiculoGuardado,
       };
 
-      if (sector) {
-        infoData.sector = sector;
+      if (jurisdiccion) {
+        infoData.jurisdiccion = jurisdiccion;
       }
 
       const infoAdicionalCreated =
@@ -195,7 +195,7 @@ export class VehiculosService {
 
       const vehiculoCompleto = await this.vehiculoRepository.findOne({
         where: { id_vehiculo: vehiculoGuardado.id_vehiculo },
-        relations: ['infoAdicional', 'infoAdicional.sector'],
+        relations: ['infoAdicional', 'infoAdicional.jurisdiccion'],
       });
 
       if (!vehiculoCompleto) {
@@ -227,14 +227,14 @@ export class VehiculosService {
     const { infoAdicional: infoData, ...vehiculoData } = updateVehiculoDto;
     const statusViejo: VehiculoStatus = vehiculo.status;
 
-    if (infoData?.id_sector_pertenencia) {
-      const sector = await this.sectorRepository.findOne({
-        where: { id_sector: infoData.id_sector_pertenencia },
+    if (infoData?.id_jurisdiccion) {
+      const jurisdiccion = await this.jurisdiccionRepository.findOne({
+        where: { id_jurisdiccion: infoData.id_jurisdiccion },
       });
 
-      if (!sector) {
+      if (!jurisdiccion) {
         throw new NotFoundException(
-          `Sector con ID ${infoData.id_sector_pertenencia} no encontrado`,
+          `Jurisdicción con ID ${infoData.id_jurisdiccion} no encontrado`,
         );
       }
     }
@@ -265,7 +265,7 @@ export class VehiculosService {
 
       const vehiculoActualizado = await this.vehiculoRepository.findOne({
         where: { id_vehiculo: id },
-        relations: ['infoAdicional', 'infoAdicional.sector'],
+        relations: ['infoAdicional', 'infoAdicional.jurisdiccion'],
       });
 
       if (!vehiculoActualizado) {
@@ -304,7 +304,7 @@ export class VehiculosService {
   async findAll(): Promise<Vehiculo[]> {
     return await this.vehiculoRepository.find({
       where: { eliminado: false },
-      relations: ['infoAdicional', 'infoAdicional.sector'],
+      relations: ['infoAdicional', 'infoAdicional.jurisdiccion'],
       order: { id_vehiculo: 'DESC' },
     });
   }
@@ -394,7 +394,7 @@ export class VehiculosService {
   ): Promise<Vehiculo> {
     const vehiculo = await this.vehiculoRepository.findOne({
       where: { id_vehiculo: idVehiculo },
-      relations: ['infoAdicional', 'infoAdicional.sector'],
+      relations: ['infoAdicional', 'infoAdicional.jurisdiccion'],
     });
 
     if (!vehiculo) {
@@ -681,8 +681,8 @@ export class VehiculosService {
     return await this.usuarioVehiculoRepository.save(relacion);
   }
 
-  async getAllSectores(): Promise<string[]> {
-    const sectores = await this.sectorRepository.find();
-    return sectores.map((sector) => sector.nombre);
+  async getAllJurisdicciones(): Promise<string[]> {
+    const jurisdicciones = await this.jurisdiccionRepository.find();
+    return jurisdicciones.map((jurisdiccion) => jurisdiccion.nombre);
   }
 }

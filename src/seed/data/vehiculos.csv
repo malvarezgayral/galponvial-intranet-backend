@@ -1,4 +1,4 @@
-id_vehiculo,codigo,nombre,marca,modelo,anio,status,uso_combustible,uso_km,tipo_vehiculo,delegacion
+id_vehiculo,codigo,nombre,marca,modelo,anio,status,uso_combustible,uso_km,tipo_vehiculo,dependencia
 1,1,sin info,FIAT,STRADA,2020,disponible,0.0,0.0,TRASLADO,Centro
 2,2,sin info,IVECO,DAILY,2021,disponible,0.0,0.0,PLAYO,Norte
 3,3,sin info,NEW HOLLAND,0,2021,disponible,0.0,0.0,RETRO A ORUGAS,Sur

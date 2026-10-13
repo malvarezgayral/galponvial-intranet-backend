@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { CsvReaderService } from './csv-reader.service';
 
 // Entidades - Vehiculos
-import { Sector } from '../vehiculos/entities/sector.entity';
+import { Jurisdiccion } from '../vehiculos/entities/jurisdiccion.entity';
 import { Vehiculo } from '../vehiculos/entities/vehiculo.entity';
 import { InfoAdicional } from '../vehiculos/entities/info-adicional.entity';
 import { CombustibleCarga } from '../vehiculos/entities/combustible-carga.entity';
@@ -37,8 +37,8 @@ export class SeedService {
 
   constructor(
     private csvReaderService: CsvReaderService,
-    @InjectRepository(Sector)
-    private sectorRepository: Repository<Sector>,
+    @InjectRepository(Jurisdiccion)
+    private jurisdiccionRepository: Repository<Jurisdiccion>,
     @InjectRepository(SectorGalpon)
     private sectorGalponRepository: Repository<SectorGalpon>,
     @InjectRepository(UnidadMedidaCuant)
@@ -88,7 +88,7 @@ export class SeedService {
 
     try {
       // Orden de inserción respetando foreign keys
-      results['sector'] = await this.seedSectores();
+      results['jurisdiccion'] = await this.seedJurisdicciones();
       results['sector_galpon'] = await this.seedSectoresGalpon();
       results['unidad_medida_cuant'] = await this.seedUnidadesMedida();
       results['grupo_articulo'] = await this.seedGruposArticulo();
@@ -165,11 +165,11 @@ export class SeedService {
     }
   }
 
-  private async seedSectores(): Promise<number> {
-    this.logger.log('Cargando sectores...');
+  private async seedJurisdicciones(): Promise<number> {
+    this.logger.log('Cargando jurisdicciones...');
     const data = await this.csvReaderService.readCsv('sectores');
-    await this.sectorRepository.save(data);
-    this.logger.log(`✓ ${data.length} sectores cargados`);
+    await this.jurisdiccionRepository.save(data);
+    this.logger.log(`✓ ${data.length} jurisdicciones cargadas`);
     return data.length;
   }
 
@@ -245,7 +245,7 @@ export class SeedService {
     const mappedData = data.map((item) => ({
       ...item,
       vehiculo: { id_vehiculo: Number(item.id_vehiculo) },
-      sector: { id_sector: Number(item.id_sector_pertenencia) },
+      jurisdiccion: { id_jurisdiccion: Number(item.id_jurisdiccion) },
     }));
     await this.infoAdicionalRepository.save(mappedData);
     this.logger.log(

@@ -7,7 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Vehiculo } from './vehiculo.entity';
-import { Sector } from './sector.entity';
+import { Jurisdiccion } from './jurisdiccion.entity';
 
 @Entity('info_adicional')
 export class InfoAdicional {
@@ -51,9 +51,9 @@ export class InfoAdicional {
   @Column()
   poliza: string;
 
-  @ManyToOne(() => Sector)
-  @JoinColumn({ name: 'id_sector_pertenencia' })
-  sector: Sector;
+  @ManyToOne(() => Jurisdiccion)
+  @JoinColumn({ name: 'id_jurisdiccion' })
+  jurisdiccion: Jurisdiccion;
 
   @OneToOne(() => Vehiculo, (vehiculo) => vehiculo.infoAdicional)
   @JoinColumn({ name: 'id_vehiculo' })

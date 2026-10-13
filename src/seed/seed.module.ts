@@ -5,7 +5,7 @@ import { SeedController } from './seed.controller';
 import { CsvReaderService } from './csv-reader.service';
 
 // Entidades - Vehiculos
-import { Sector } from '../vehiculos/entities/sector.entity';
+import { Jurisdiccion } from '../vehiculos/entities/jurisdiccion.entity';
 import { Vehiculo } from '../vehiculos/entities/vehiculo.entity';
 import { InfoAdicional } from '../vehiculos/entities/info-adicional.entity';
 import { CombustibleCarga } from '../vehiculos/entities/combustible-carga.entity';
@@ -35,7 +35,7 @@ import { UsuarioModule } from 'src/usuario/usuario.module';
   imports: [
     TypeOrmModule.forFeature([
       // Vehiculos
-      Sector,
+      Jurisdiccion,
       Vehiculo,
       InfoAdicional,
       CombustibleCarga,

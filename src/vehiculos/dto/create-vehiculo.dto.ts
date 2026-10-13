@@ -74,7 +74,7 @@ export class CreateVehiculoDto {
   @IsString()
   @MaxLength(100)
   @IsOptional()
-  delegacion?: string;
+  dependencia?: string;
 
   @ApiProperty({
     type: () => InfoAdicionalDto,

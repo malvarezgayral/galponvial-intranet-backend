@@ -1,9 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity('sector')
-export class Sector {
+@Entity('jurisdiccion')
+export class Jurisdiccion {
   @PrimaryGeneratedColumn()
-  id_sector: number;
+  id_jurisdiccion: number;
 
   @Column('varchar', { length: 20 })
   nombre: string;

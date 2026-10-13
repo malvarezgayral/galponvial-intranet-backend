@@ -1,4 +1,4 @@
-id_info_adicional,numero_serie,licencia_conductor,color,seguro_empresa,poliza,id_sector_pertenencia,id_vehiculo
+id_info_adicional,numero_serie,licencia_conductor,color,seguro_empresa,poliza,id_jurisdiccion,id_vehiculo
 1,000000000000000,B1,Blanco,A Designar,PENDIENTE,1,1
 2,000000000000000,B1,Blanco,A Designar,PENDIENTE,1,2
 3,000000000000000,E1,Blanco,A Designar,PENDIENTE,1,3

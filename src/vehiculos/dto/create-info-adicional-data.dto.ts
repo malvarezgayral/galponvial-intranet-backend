@@ -1,6 +1,6 @@
 import { IsNumber, IsString, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Sector } from '../entities/sector.entity';
+import { Jurisdiccion } from '../entities/jurisdiccion.entity';
 import { Vehiculo } from '../entities/vehiculo.entity';
 
 export class CreateInfoAdicionalDataDto {
@@ -81,8 +81,8 @@ export class CreateInfoAdicionalDataDto {
   vehiculo: Vehiculo;
 
   @ApiPropertyOptional({
-    description: 'Sector al que pertenece el vehículo',
+    description: 'Jurisdicción a la que pertenece el vehículo',
   })
   @IsOptional()
-  sector?: Sector;
+  jurisdiccion?: Jurisdiccion;
 }

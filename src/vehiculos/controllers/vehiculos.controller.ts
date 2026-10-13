@@ -79,8 +79,8 @@ export class VehiculosController {
   async getEnumsEstructura(): Promise<
     ObjectServiceResponse<Record<string, string[]>>
   > {
-    // Obtener sectores de la base de datos
-    const sectores = await this.vehiculosService.getAllSectores();
+    // Obtener jurisdicciones de la base de datos
+    const jurisdicciones = await this.vehiculosService.getAllJurisdicciones();
 
     const enumsEstructura: Record<string, string[]> = {
       VehiculoStatus: Object.values(VehiculoStatus),
@@ -89,7 +89,7 @@ export class VehiculosController {
       StatusIncidente: Object.values(StatusIncidente),
       TipoServicio: Object.values(TipoServicio),
       FallaIncidente: Object.values(FallaIncidente),
-      Sector: sectores,
+      Jurisdiccion: jurisdicciones,
     };
 
     return {
