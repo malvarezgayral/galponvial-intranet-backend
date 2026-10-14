@@ -70,7 +70,7 @@ describe('ServicioService', () => {
       };
 
       const mockIncidente = { id: 1, id_vehiculo: 100 };
-      const mockVehiculo = { id_vehiculo: 100, status: VehiculoStatus.DISPONIBLE };
+      const mockVehiculo = { id_vehiculo: 100, status: VehiculoStatus.ACTIVO };
       const mockServicioGuardado = { id: 50, ...dto };
 
       // CONFIGURACIÓN DE MOCKS (STUBS)
@@ -92,8 +92,8 @@ describe('ServicioService', () => {
       // 2. Verificamos que marcó el incidente en tratamiento
       expect(incidenteService.marcarEnTratamiento).toHaveBeenCalledWith(1);
       
-      // 3. Verificamos que cambió el status del vehículo a EN_TALLER (Side Effect importante)
-      expect(vehiculosService.updateStatus).toHaveBeenCalledWith(100, VehiculoStatus.EN_TALLER);
+      // 3. Verificamos que cambió el status del vehículo a EN_REPARACION (Side Effect importante)
+      expect(vehiculosService.updateStatus).toHaveBeenCalledWith(100, VehiculoStatus.EN_REPARACION);
       
       // 4. Verificamos que se guardó el servicio
       expect(mockServicioRepository.save).toHaveBeenCalled();

@@ -427,8 +427,8 @@ export class VehiculosController {
       properties: {
         nuevoStatus: {
           type: 'string',
-          enum: ['disponible', 'en_taller', 'fuera_de_servicio', 'en_uso'],
-          example: 'en_taller',
+          enum: ['activo', 'inactivo', 'en_reparacion'],
+          example: 'en_reparacion',
         },
       },
       required: ['nuevoStatus'],

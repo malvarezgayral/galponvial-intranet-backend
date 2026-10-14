@@ -54,7 +54,7 @@ export class CreateVehiculoDto {
 
   @ApiPropertyOptional({
     enum: VehiculoStatus,
-    example: VehiculoStatus.DISPONIBLE,
+    example: VehiculoStatus.ACTIVO,
   })
   @IsEnum(VehiculoStatus)
   @IsOptional()

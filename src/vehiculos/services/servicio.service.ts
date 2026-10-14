@@ -131,13 +131,13 @@ export class ServicioService {
         );
       }
 
-      // Cambiar status del vehículo a EN_TALLER
+      // Cambiar status del vehículo a EN_REPARACION
       const statusViejo: VehiculoStatus = vehiculo.status;
 
-      if (statusViejo !== VehiculoStatus.EN_TALLER) {
+      if (statusViejo !== VehiculoStatus.EN_REPARACION) {
         await this.vehiculosService.updateStatus(
           vehiculo.id_vehiculo,
-          VehiculoStatus.EN_TALLER,
+          VehiculoStatus.EN_REPARACION,
         );
 
         // Crear registro de status update

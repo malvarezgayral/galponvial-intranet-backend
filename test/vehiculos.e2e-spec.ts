@@ -107,7 +107,7 @@ describe('Vehiculos Module (e2e)', () => {
         patente: 'AA123BB',
         anio: 2023,
         km_actual: 10000,
-        status: 'disponible',
+        status: 'activo',
         infoAdicional: {
             id_sector_pertenencia: Number(sectorId),
             numero_motor: 'MOT-TEST',
@@ -165,7 +165,7 @@ describe('Vehiculos Module (e2e)', () => {
       });
 
       expect(vehiculoFinal).toBeDefined();
-      expect(vehiculoFinal!.status).toBe(VehiculoStatus.EN_TALLER);
+      expect(vehiculoFinal!.status).toBe(VehiculoStatus.EN_REPARACION);
     });
   });
 
@@ -182,7 +182,7 @@ describe('Vehiculos Module (e2e)', () => {
           patente: 'NC123AA',
           anio: 2022,
           km_actual: 1000,
-          status: 'disponible',
+          status: 'activo',
           infoAdicional: {
             id_sector_pertenencia: Number(sectorId),
             numero_motor: 'MOT-TEST',
@@ -219,7 +219,7 @@ describe('Vehiculos Module (e2e)', () => {
       });
 
       expect(vehiculo).toBeDefined();
-      expect(vehiculo!.status).toBe(VehiculoStatus.DISPONIBLE);
+      expect(vehiculo!.status).toBe(VehiculoStatus.ACTIVO);
     });
 
     it('No debería permitir crear un incidente para un vehículo inexistente', async () => {
@@ -250,7 +250,7 @@ describe('Vehiculos Module (e2e)', () => {
           patente: 'TEST999',
           anio: 2022,
           km_actual: 500,
-          status: 'disponible',
+          status: 'activo',
           infoAdicional: {
             id_sector_pertenencia: Number(sectorId),
             numero_motor: 'MOT-TEST',
@@ -310,7 +310,7 @@ describe('Vehiculos Module (e2e)', () => {
           patente: 'FUEL123',
           anio: 2021,
           km_actual: 20000,
-          status: 'disponible',
+          status: 'activo',
           infoAdicional: {
             id_sector_pertenencia: Number(sectorId),
             numero_motor: 'MOT-TEST',
@@ -366,7 +366,7 @@ describe('Vehiculos Module (e2e)', () => {
           patente: 'STAT123',
           anio: 2020,
           km_actual: 80000,
-          status: 'disponible',
+          status: 'activo',
          infoAdicional: {
             id_sector_pertenencia: Number(sectorId),
             numero_motor: 'MOT-TEST',
@@ -388,7 +388,7 @@ describe('Vehiculos Module (e2e)', () => {
 
       await request(app.getHttpServer())
         .put(`/vehiculos/${vehiculoId}/status`)
-        .send({ nuevoStatus: VehiculoStatus.EN_USO })
+        .send({ nuevoStatus: VehiculoStatus.ACTIVO })
         .expect(200);
 
       const statusUpdateRepo = dataSource.getRepository(StatusUpdate);
@@ -398,7 +398,7 @@ describe('Vehiculos Module (e2e)', () => {
         });
 
         expect(updates.length).toBeGreaterThan(0);
-        expect(updates[0].tipo).toBe(VehiculoStatus.DISPONIBLE);
+        expect(updates[0].tipo).toBe(VehiculoStatus.ACTIVO);
     });
   });
 });

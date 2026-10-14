@@ -38,7 +38,7 @@ export class Vehiculo {
   @Column({
     type: 'enum',
     enum: VehiculoStatus,
-    default: VehiculoStatus.DISPONIBLE,
+    default: VehiculoStatus.ACTIVO,
   })
   status: VehiculoStatus;
 

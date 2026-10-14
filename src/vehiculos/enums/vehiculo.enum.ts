@@ -1,8 +1,7 @@
 export enum VehiculoStatus {
-  DISPONIBLE = 'disponible',
-  EN_TALLER = 'en_taller',
-  FUERA_DE_SERVICIO = 'fuera_de_servicio',
-  EN_USO = 'en_uso',
+  ACTIVO = 'activo',
+  INACTIVO = 'inactivo',
+  EN_REPARACION = 'en_reparacion',
 }
 
 export enum TipoVehiculo {

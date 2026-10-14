@@ -338,8 +338,8 @@ export class VehiculosService {
     }
 
     const nuevoStatus = isActive
-      ? VehiculoStatus.DISPONIBLE
-      : VehiculoStatus.FUERA_DE_SERVICIO;
+      ? VehiculoStatus.ACTIVO
+      : VehiculoStatus.INACTIVO;
 
     if (vehiculo.status === nuevoStatus) {
       const accion = isActive ? 'dado de alta' : 'dado de baja';
@@ -510,7 +510,7 @@ export class VehiculosService {
       const statusViejo: VehiculoStatus = vehiculo.status;
       await this.updateStatus(
         vehiculo.id_vehiculo,
-        VehiculoStatus.FUERA_DE_SERVICIO,
+        VehiculoStatus.INACTIVO,
       );
       await this.statusUpdateService.crearStatusUpdate(vehiculo, statusViejo);
     }
@@ -606,8 +606,8 @@ export class VehiculosService {
     }
 
     if (
-      vehiculo.status === VehiculoStatus.EN_TALLER ||
-      vehiculo.status === VehiculoStatus.FUERA_DE_SERVICIO
+      vehiculo.status === VehiculoStatus.EN_REPARACION ||
+      vehiculo.status === VehiculoStatus.INACTIVO
     ) {
       throw new BadRequestException(
         `El vehículo no puede ser asignado porque está en estado: ${vehiculo.status}`,
