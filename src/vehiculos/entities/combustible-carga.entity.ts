@@ -25,8 +25,8 @@ export class CombustibleCarga {
   @Column({ type: 'varchar', length: 50, nullable: true })
   Galpón_Vial?: string;
 
-  @Column('float')
-  km_actual!: number;
+  @Column('float', { nullable: true })
+  km_actual?: number;
 
   @Column('float')
   cant_combustible_despachado!: number;

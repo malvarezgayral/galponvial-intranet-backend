@@ -46,9 +46,10 @@ export class CreateCombustibleCargaDto {
     description: 'Kilometraje actual del vehículo',
     example: 125000,
   })
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  km_actual!: number;
+  km_actual?: number;
 
   @ApiProperty({
     description: 'Cantidad de combustible despachado (en litros)',

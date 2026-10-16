@@ -564,7 +564,9 @@ export class VehiculosService {
     carga.vehiculo = vehiculo;
 
     vehiculo.uso_combustible += data.cant_combustible_despachado;
-    vehiculo.uso_km = data.km_actual;
+    if (data.km_actual != null && data.km_actual > 0) {
+      vehiculo.uso_km = data.km_actual;
+    }
 
     await this.vehiculoRepository.save(vehiculo);
 
