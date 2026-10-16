@@ -38,9 +38,9 @@ export class CreateCombustibleCargaDto {
     description: 'Ubicación en el Galpón Vial',
     example: 'Depósito',
   })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  Galpón_Vial!: string;
+  Galpón_Vial?: string;
 
   @ApiProperty({
     description: 'Kilometraje actual del vehículo',
