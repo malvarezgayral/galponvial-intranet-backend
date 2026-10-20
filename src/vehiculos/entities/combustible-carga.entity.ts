@@ -37,14 +37,14 @@ export class CombustibleCarga {
   @Column({ type: 'varchar', length: 150 })
   estacion_servicio!: string;
 
-  @Column('float')
-  litros_entrada!: number;
+  @Column('float', { nullable: true })
+  litros_entrada?: number;
 
-  @Column('float')
-  litros_salida!: number;
+  @Column('float', { nullable: true })
+  litros_salida?: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  estado_parcial!: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  estado_parcial?: string;
 
   @ManyToOne(() => Vehiculo, (vehiculo) => vehiculo.cargas)
   @JoinColumn({ name: 'id_vehiculo' })
