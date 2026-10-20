@@ -75,27 +75,29 @@ export class CreateCombustibleCargaDto {
   @IsNotEmpty()
   estacion_servicio!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Litros de entrada al tanque',
     example: 50.0,
   })
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  litros_entrada!: number;
+  litros_entrada?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Litros de salida del tanque',
     example: 45.5,
   })
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  litros_salida!: number;
+  litros_salida?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Estado parcial del vehículo o la carga',
     example: 'Normal',
   })
   @IsString()
-  @IsNotEmpty()
-  estado_parcial!: string;
+  @IsOptional()
+  estado_parcial?: string;
 }
