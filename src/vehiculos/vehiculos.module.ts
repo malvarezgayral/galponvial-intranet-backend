@@ -6,6 +6,7 @@ import { Vehiculo } from './entities/vehiculo.entity';
 import { InfoAdicional } from './entities/info-adicional.entity';
 import { Jurisdiccion } from './entities/jurisdiccion.entity';
 import { CombustibleCarga } from './entities/combustible-carga.entity';
+import { CombustibleCarro } from './entities/combustible-carro.entity';
 import { Recordatorio } from './entities/recordatorio.entity';
 import { StatusUpdate } from './entities/status-update.entity';
 import { ReporteIncidente } from 'src/usuario/entities/reporte-incidente.entity';
@@ -20,6 +21,7 @@ import { NotificacionesModule } from 'src/notificaciones/notificaciones.module';
 // Servicios
 import { VehiculosService } from './services/vehiculo.service';
 import { CombustibleService } from './services/combustible.service';
+import { CombustibleCarroService } from './services/combustible-carro.service';
 import { StatusUpdateService } from './services/status-update.service';
 import { ReporteIncidenteService } from './services/reporte-incidente.service';
 import { ServicioService } from './services/servicio.service';
@@ -27,6 +29,7 @@ import { ServicioService } from './services/servicio.service';
 // Controladores
 import { VehiculosController } from './controllers/vehiculos.controller';
 import { CombustibleController } from './controllers/combustible.controller';
+import { CombustibleCarroController } from './controllers/combustible-carro.controller';
 import { ReporteIncidenteController } from './controllers/reporte-incidente.controller';
 import { ServicioController } from './controllers/servicio.controller';
 
@@ -37,6 +40,7 @@ import { ServicioController } from './controllers/servicio.controller';
       InfoAdicional,
       Jurisdiccion,
       CombustibleCarga,
+      CombustibleCarro,
       Recordatorio,
       StatusUpdate,
       ReporteIncidente,
@@ -50,12 +54,14 @@ import { ServicioController } from './controllers/servicio.controller';
   controllers: [
     VehiculosController,
     CombustibleController,
+    CombustibleCarroController,
     ReporteIncidenteController,
     ServicioController,
   ],
   providers: [
     VehiculosService,
     CombustibleService,
+    CombustibleCarroService,
     StatusUpdateService,
     ReporteIncidenteService,
     ServicioService,
