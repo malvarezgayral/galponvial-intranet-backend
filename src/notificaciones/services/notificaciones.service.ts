@@ -113,6 +113,14 @@ export class NotificacionesService {
     if (tiene(Permisos.PERSONAL_READ, Permisos.PERSONAL_WRITE)) {
       permitidos.add('personal');
     }
+    // El permiso usa el nombre del modulo del front (incidente, singular);
+    // el tipo de notificacion es 'incidentes' (plural). No unificar.
+    if (tiene(Permisos.REPARACION_WRITE)) {
+      permitidos.add('reparacion');
+    }
+    if (tiene(Permisos.INCIDENTE_WRITE)) {
+      permitidos.add('incidentes');
+    }
     // Recordatorios y privada visibles para admin (como antes); personal solo con permiso propio
     permitidos.add('recordatorio');
     permitidos.add('privada');

@@ -11,7 +11,9 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { ReporteIncidenteService } from '../services/reporte-incidente.service';
 import { FiltrosIncidenteDto } from '../dto/filtros.dto';
 import { Auth } from 'src/usuario/decorators/auth.decorator';
-import { ValidRoles } from 'src/usuario/enums/usuario.enum';
+import { Permisos, ValidRoles } from 'src/usuario/enums/usuario.enum';
+import { ScopedAuth } from 'src/usuario/decorators/scoped-auth.decorator';
+import { ScopedPermissions } from 'src/usuario/decorators/scoped-permissions.decorator';
 import { ReporteIncidenteResponseDto } from '../dto/reporte-incidente-response.dto';
 import { UpdateEstadoIncidenteDto } from '../dto/update-estado-incidente.dto';
 import { ObjectServiceResponse } from 'src/usuario/interfaces/object-service-response.interface';
@@ -59,7 +61,8 @@ export class ReporteIncidenteController {
     description: 'Incidente actualizado exitosamente',
   })
   @Patch(':id/estado')
-  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.INCIDENTE_WRITE)
   actualizarEstado(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateEstadoDto: UpdateEstadoIncidenteDto,

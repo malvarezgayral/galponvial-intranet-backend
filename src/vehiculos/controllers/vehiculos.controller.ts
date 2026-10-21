@@ -273,7 +273,8 @@ export class VehiculosController {
   })
   @Post(':id/incidentes')
   @HttpCode(HttpStatus.CREATED)
-  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.INCIDENTE_WRITE)
   agregarIncidente(
     @Param('id') dni: number,
     @Body() createReporteIncidenteDto: CreateReporteIncidenteDto,
