@@ -12,14 +12,17 @@ import {
 import { ReparacionService } from '../services/reparacion.service';
 import { CreateReparacionDto } from '../dto/create-reparacion.dto';
 import { Auth } from 'src/usuario/decorators/auth.decorator';
-import { ValidRoles } from 'src/usuario/enums/usuario.enum';
+import { Permisos, ValidRoles } from 'src/usuario/enums/usuario.enum';
+import { ScopedAuth } from 'src/usuario/decorators/scoped-auth.decorator';
+import { ScopedPermissions } from 'src/usuario/decorators/scoped-permissions.decorator';
 
 @Controller('reparaciones')
 export class ReparacionController {
   constructor(private readonly reparacionService: ReparacionService) {}
 
   @Post()
-  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.REPARACION_WRITE)
   crear(@Body() dto: CreateReparacionDto) {
     return this.reparacionService.crear(dto);
   }
@@ -37,7 +40,8 @@ export class ReparacionController {
   }
 
   @Put(':id')
-  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.REPARACION_WRITE)
   actualizar(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CreateReparacionDto,

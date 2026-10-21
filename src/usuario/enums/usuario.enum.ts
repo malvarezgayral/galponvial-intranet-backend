@@ -18,6 +18,12 @@ export enum Permisos {
   // Permisos de Service
   SERVICE_READ = 'service:read',
   SERVICE_WRITE = 'service:write',
+  // Permisos de Incidente
+  INCIDENTE_WRITE = 'incidente:write',
+  // Permisos de Reparacion
+  REPARACION_WRITE = 'reparacion:write',
+  // Permisos de Vehiculos
+  VEHICULOS_READ = 'vehiculos:read',
 }
 
 // Alias para ValidPermissions (mismo que Permisos)
