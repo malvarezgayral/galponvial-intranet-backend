@@ -24,6 +24,8 @@ export enum Permisos {
   REPARACION_WRITE = 'reparacion:write',
   // Permisos de Vehiculos
   VEHICULOS_READ = 'vehiculos:read',
+  // Permisos de Combustible (Carro)
+  COMBUSTIBLE_CARRO_WRITE = 'combustible-carro:write',
 }
 
 // Alias para ValidPermissions (mismo que Permisos)
