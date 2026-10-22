@@ -6,6 +6,8 @@ import { Auth } from 'src/usuario/decorators/auth.decorator';
 import { ScopedAuth } from 'src/usuario/decorators/scoped-auth.decorator';
 import { ScopedPermissions } from 'src/usuario/decorators/scoped-permissions.decorator';
 import { Permisos, ValidRoles } from 'src/usuario/enums/usuario.enum';
+import { GetUser } from 'src/usuario/decorators/get-user.decorator';
+import { Usuario } from 'src/usuario/entities/usuario.entity';
 
 @ApiTags('Vehículos - Combustible Carro')
 @Controller('combustible-carro')
@@ -19,8 +21,8 @@ export class CombustibleCarroController {
   @HttpCode(HttpStatus.CREATED)
   @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
   @ScopedPermissions(Permisos.COMBUSTIBLE_CARRO_WRITE)
-  create(@Body() dto: CreateCombustibleCarroDto) {
-    return this.carroService.create(dto);
+  create(@Body() dto: CreateCombustibleCarroDto, @GetUser() user: Usuario) {
+    return this.carroService.create(dto, user);
   }
 
   @ApiOperation({ summary: 'Listar cargas de combustible (Carro)' })
