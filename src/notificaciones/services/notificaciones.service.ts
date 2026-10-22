@@ -75,7 +75,7 @@ export class NotificacionesService {
     if (rolesUsuario.some((r) => r.rol === ValidRoles.superadmin)) {
       [
         'service', 'reparacion', 'compras', 'incidentes', 'personal',
-        'recordatorio', 'combustible', 'proveedores', 'lubricentro',
+        'recordatorio', 'combustible', 'proveedores', 'lubricentro', 'combustible-carro',
         'privada', 'almacen',
       ].forEach((t) => permitidos.add(t));
       return permitidos;
@@ -120,6 +120,9 @@ export class NotificacionesService {
     }
     if (tiene(Permisos.INCIDENTE_WRITE)) {
       permitidos.add('incidentes');
+    }
+    if (tiene(Permisos.COMBUSTIBLE_CARRO_WRITE)) {
+      permitidos.add('combustible-carro');
     }
     // Recordatorios y privada visibles para admin (como antes); personal solo con permiso propio
     permitidos.add('recordatorio');
