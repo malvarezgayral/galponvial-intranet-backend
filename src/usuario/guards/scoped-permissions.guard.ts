@@ -26,6 +26,7 @@ const PERMISOS_CON_COMODIN_ALL_WRITE: Permisos[] = [
   Permisos.SERVICE_WRITE,
   Permisos.REPARACION_WRITE,
   Permisos.INCIDENTE_WRITE,
+  Permisos.COMBUSTIBLE_CARRO_WRITE,
 ];
 
 // Permisos de escritura que el super admin tiene siempre, sin que su rol
@@ -35,6 +36,7 @@ const PERMISOS_ABIERTOS_A_SUPERADMIN: Permisos[] = [
   Permisos.LUBRICENTRO_WRITE,
   Permisos.REPARACION_WRITE,
   Permisos.INCIDENTE_WRITE,
+  Permisos.COMBUSTIBLE_CARRO_WRITE,
 ];
 
 @Injectable()

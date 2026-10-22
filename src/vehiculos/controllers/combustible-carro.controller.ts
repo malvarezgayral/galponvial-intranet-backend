@@ -18,7 +18,7 @@ export class CombustibleCarroController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
-  @ScopedPermissions(Permisos.COMBUSTIBLE_WRITE)
+  @ScopedPermissions(Permisos.COMBUSTIBLE_CARRO_WRITE)
   create(@Body() dto: CreateCombustibleCarroDto) {
     return this.carroService.create(dto);
   }
