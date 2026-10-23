@@ -5,6 +5,9 @@ export class CombustibleCarro {
   @PrimaryGeneratedColumn()
   id_carro!: number;
 
+  @Column({ type: 'varchar', length: 150 })
+  maquina!: string;
+
   @Column({ type: 'date' })
   fecha_carga!: Date;
 
@@ -23,12 +26,24 @@ export class CombustibleCarro {
   @Column({ type: 'varchar', length: 50, nullable: true })
   galpon_vial?: string;
 
-  @Column('float')
+  @Column({ type: 'float', default: 0 })
   litros_entrada!: number;
 
-  @Column('float')
+  @Column({ type: 'float', default: 0 })
   litros_salida!: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  estado_parcial!: string;
+  @Column({ type: 'float' })
+  total_combustible!: number;
+
+  @Column({ type: 'float' })
+  estado_parcial!: number;
+
+  @Column({ type: 'varchar', length: 100 })
+  registrada_por_nombre!: string;
+
+  @Column({ type: 'varchar', length: 100 })
+  registrada_por_apellido!: string;
+
+  @Column({ type: 'varchar', length: 20 })
+  registrada_por_dni!: string;
 }
