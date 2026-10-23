@@ -9,6 +9,11 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateCombustibleCarroDto {
+  @ApiProperty({ example: 'Motoniveladora 01' })
+  @IsString()
+  @IsNotEmpty()
+  maquina!: string;
+
   @ApiProperty({ example: '2026-10-19' })
   @IsDateString()
   @IsNotEmpty()
@@ -39,18 +44,39 @@ export class CreateCombustibleCarroDto {
   @IsString()
   galpon_vial?: string;
 
-  @ApiProperty({ example: 50 })
+  @ApiPropertyOptional({
+    example: 250,
+    description: 'Litros de entrada. Completar este o litros_salida, nunca los dos.',
+  })
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  litros_entrada!: number;
+  litros_entrada?: number;
 
-  @ApiProperty({ example: 45.5 })
+  @ApiPropertyOptional({
+    example: 230,
+    description: 'Litros de salida. Completar este o litros_entrada, nunca los dos.',
+  })
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  litros_salida!: number;
+  litros_salida?: number;
 
-  @ApiProperty({ example: 'Normal' })
-  @IsString()
-  @IsNotEmpty()
-  estado_parcial!: string;
+  @ApiPropertyOptional({
+    example: 28,
+    description: 'Solo en la primera carga: total de combustible inicial.',
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  total_inicial?: number;
+
+  @ApiPropertyOptional({
+    example: 402790,
+    description: 'Solo en la primera carga: estado parcial inicial.',
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  estado_parcial_inicial?: number;
 }
