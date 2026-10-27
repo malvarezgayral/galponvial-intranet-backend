@@ -30,5 +30,9 @@ export class CreateLubricanteDto {
 
   @IsString()
   @IsOptional()
+  lubricante?: string;
+
+  @IsString()
+  @IsOptional()
   observaciones?: string;
 }
