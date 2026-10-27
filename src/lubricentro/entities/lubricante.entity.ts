@@ -30,6 +30,9 @@ export class Lubricante {
   @Column({ type: 'varchar', length: 100 })
   tipo: string;
 
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  lubricante: string;
+
   @Column({ type: 'text', nullable: true })
   observaciones: string;
 

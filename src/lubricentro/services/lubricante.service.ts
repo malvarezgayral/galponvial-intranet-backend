@@ -86,6 +86,7 @@ export class LubricanteService {
         { clave: 'ordenRetiro', etiqueta: 'orden de retiro' },
         { clave: 'cantidad', etiqueta: 'cantidad' },
         { clave: 'tipo', etiqueta: 'tipo' },
+        { clave: 'lubricante', etiqueta: 'lubricante' },
         { clave: 'observaciones', etiqueta: 'observaciones' },
       ];
     const cambiosLubricante: string[] = [];
