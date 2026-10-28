@@ -10,6 +10,7 @@ import { ReparacionModule } from './reparacion/reparacion.module';
 import { ProveedorModule } from './proveedores/proveedor.module';
 import { ComprasModule } from './compras/compras.module';
 import { LubricentroModule } from './lubricentro/lubricentro.module';
+import { FiltroServiceModule } from './filtro-service/filtro-service.module';
 import { PersonalModule } from './personal/personal.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
 const isTestEnv = process.env.NODE_ENV === 'test';
@@ -43,6 +44,7 @@ const isTestEnv = process.env.NODE_ENV === 'test';
     ProveedorModule,
     ComprasModule,
     LubricentroModule,
+    FiltroServiceModule,
     PersonalModule,
     NotificacionesModule,
   ],
