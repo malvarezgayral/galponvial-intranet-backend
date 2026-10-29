@@ -30,6 +30,10 @@ export class CreateLubricanteDto {
 
   @IsString()
   @IsOptional()
+  direccion?: string;
+
+  @IsString()
+  @IsOptional()
   lubricante?: string;
 
   @IsString()

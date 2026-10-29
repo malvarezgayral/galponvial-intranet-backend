@@ -85,7 +85,8 @@ export class LubricanteService {
         { clave: 'fecha', etiqueta: 'fecha' },
         { clave: 'ordenRetiro', etiqueta: 'orden de retiro' },
         { clave: 'cantidad', etiqueta: 'cantidad' },
-        { clave: 'tipo', etiqueta: 'tipo' },
+        { clave: 'tipo', etiqueta: 'chofer' },
+        { clave: 'direccion', etiqueta: 'dirección' },
         { clave: 'lubricante', etiqueta: 'lubricante' },
         { clave: 'observaciones', etiqueta: 'observaciones' },
       ];
