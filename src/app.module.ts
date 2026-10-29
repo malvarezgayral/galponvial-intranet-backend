@@ -11,6 +11,7 @@ import { ProveedorModule } from './proveedores/proveedor.module';
 import { ComprasModule } from './compras/compras.module';
 import { LubricentroModule } from './lubricentro/lubricentro.module';
 import { FiltroServiceModule } from './filtro-service/filtro-service.module';
+import { LubricanteEntradaModule } from './lubricante-entrada/lubricante-entrada.module';
 import { PersonalModule } from './personal/personal.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
 const isTestEnv = process.env.NODE_ENV === 'test';
@@ -45,6 +46,7 @@ const isTestEnv = process.env.NODE_ENV === 'test';
     ComprasModule,
     LubricentroModule,
     FiltroServiceModule,
+    LubricanteEntradaModule,
     PersonalModule,
     NotificacionesModule,
   ],
