@@ -23,4 +23,14 @@ export class LubricanteEntradaService {
     );
     return this.repo.save(filas);
   }
+
+  async obtenerTipos(): Promise<string[]> {
+    const filas = await this.repo
+      .createQueryBuilder('e')
+      .select('e.tipo', 'tipo')
+      .groupBy('e.tipo')
+      .orderBy('e.tipo', 'ASC')
+      .getRawMany<{ tipo: string }>();
+    return filas.map((f) => f.tipo);
+  }
 }
