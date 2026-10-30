@@ -1,7 +1,16 @@
 // src/lubricante-entrada/controllers/lubricante-entrada.controller.ts
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { LubricanteEntradaService } from '../services/lubricante-entrada.service';
 import { CreateLubricanteEntradaDto } from '../dto/create-lubricante-entrada.dto';
+import { UpdateLubricanteSalidaDto } from '../dto/update-lubricante-salida.dto';
 import { Auth } from 'src/usuario/decorators/auth.decorator';
 import { ScopedAuth } from 'src/usuario/decorators/scoped-auth.decorator';
 import { ScopedPermissions } from 'src/usuario/decorators/scoped-permissions.decorator';
@@ -22,5 +31,27 @@ export class LubricanteEntradaController {
   @Auth(ValidRoles.user, ValidRoles.admin, ValidRoles.superadmin)
   obtenerTipos() {
     return this.service.obtenerTipos();
+  }
+
+  @Get('stock')
+  @Auth(ValidRoles.user, ValidRoles.admin, ValidRoles.superadmin)
+  obtenerStock() {
+    return this.service.obtenerStock();
+  }
+
+  @Get('historial')
+  @Auth(ValidRoles.user, ValidRoles.admin, ValidRoles.superadmin)
+  obtenerHistorial() {
+    return this.service.obtenerHistorial();
+  }
+
+  @Patch(':id/salida')
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.LUBRICENTRO_WRITE)
+  guardarSalida(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateLubricanteSalidaDto,
+  ) {
+    return this.service.guardarSalida(id, dto);
   }
 }

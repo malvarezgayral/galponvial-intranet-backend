@@ -23,6 +23,12 @@ export class LubricanteEntrada {
   @Column({ type: 'float' })
   cantidad!: number;
 
+  @Column({ name: 'cantidad_salida', type: 'float', default: 0 })
+  cantidadSalida!: number;
+
+  @Column({ name: 'fecha_estado', type: 'date', nullable: true })
+  fechaEstado!: string | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 }
