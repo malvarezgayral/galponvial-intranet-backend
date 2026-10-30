@@ -10,6 +10,9 @@ import { LubricanteEntrada } from '../entities/lubricante-entrada.entity';
 import { LubricanteStockHistorial } from '../entities/lubricante-stock-historial.entity';
 import { CreateLubricanteEntradaDto } from '../dto/create-lubricante-entrada.dto';
 import { UpdateLubricanteSalidaDto } from '../dto/update-lubricante-salida.dto';
+import { NotificacionesService } from 'src/notificaciones/services/notificaciones.service';
+
+const TITULO_MAX = 150;
 
 @Injectable()
 export class LubricanteEntradaService {
@@ -18,7 +21,14 @@ export class LubricanteEntradaService {
     private readonly repo: Repository<LubricanteEntrada>,
     @InjectRepository(LubricanteStockHistorial)
     private readonly historialRepo: Repository<LubricanteStockHistorial>,
+    private readonly notificacionesService: NotificacionesService,
   ) {}
+
+  private recortarTitulo(titulo: string): string {
+    return titulo.length > TITULO_MAX
+      ? titulo.slice(0, TITULO_MAX - 1) + '…'
+      : titulo;
+  }
 
   async crear(dto: CreateLubricanteEntradaDto) {
     const filas = dto.registros.map((r) =>
@@ -29,7 +39,20 @@ export class LubricanteEntradaService {
         cantidad: r.cantidad,
       }),
     );
-    return this.repo.save(filas);
+    const guardadas = await this.repo.save(filas);
+
+    const titulo =
+      guardadas.length === 1
+        ? `Lubricante agregado · ${guardadas[0].tipo} · ${guardadas[0].cantidad} L`
+        : `Lubricante agregado · ${guardadas.length} registros · ${[
+            ...new Set(guardadas.map((g) => g.tipo)),
+          ].join(', ')}`;
+    await this.notificacionesService.crearNotificacionParaSuperadmin(
+      'lubricentro',
+      this.recortarTitulo(titulo),
+      `Se cargaron ${guardadas.length} registro(s) en Agregar Lubricante.`,
+    );
+    return guardadas;
   }
 
   async obtenerTipos(): Promise<string[]> {
@@ -62,7 +85,7 @@ export class LubricanteEntradaService {
   }
 
   async guardarSalida(id: number, dto: UpdateLubricanteSalidaDto) {
-    return this.repo.manager.transaction(async (manager) => {
+    const resultado = await this.repo.manager.transaction(async (manager) => {
       const entrada = await manager.findOne(LubricanteEntrada, {
         where: { id },
       });
@@ -102,6 +125,15 @@ export class LubricanteEntradaService {
         estadoParcial,
       };
     });
+
+    await this.notificacionesService.crearNotificacionParaSuperadmin(
+      'lubricentro',
+      this.recortarTitulo(
+        `Stock de lubricante actualizado · ${resultado.tipo} · salida ${resultado.cantidadSalida} L · Estado Parcial ${resultado.estadoParcial} L`,
+      ),
+      `Se actualizó el stock de ${resultado.tipo} al ${resultado.fechaEstado}.`,
+    );
+    return resultado;
   }
 
   async obtenerHistorial() {
