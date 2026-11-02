@@ -4,6 +4,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   ParseIntPipe,
@@ -53,5 +54,11 @@ export class LubricanteEntradaController {
     @Body() dto: UpdateLubricanteSalidaDto,
   ) {
     return this.service.guardarSalida(id, dto);
+  }
+
+  @Delete('historial/:id')
+  @Auth(ValidRoles.superadmin)
+  eliminarHistorial(@Param('id', ParseIntPipe) id: number) {
+    return this.service.eliminarHistorial(id);
   }
 }
