@@ -130,7 +130,10 @@ export class PersonalService {
       ? `${guardado.apellido}, ${guardado.nombre} (legajo ${guardado.legajo})`
       : `${guardado.apellido}, ${guardado.nombre}`;
     await this.notificar(
-      this.tituloPersonal('Personal', ['Registro administrativo cargado', persona]),
+      this.tituloPersonal('Personal', [
+        'Registro administrativo cargado',
+        persona,
+      ]),
       this.quienYCuando('Cargado', actor),
       'registro',
       guardado.id,
@@ -140,6 +143,23 @@ export class PersonalService {
 
   async obtenerRegistros(): Promise<RegistroAdministrativo[]> {
     return this.regRepo.find({ order: { apellido: 'ASC', nombre: 'ASC' } });
+  }
+
+  async obtenerChoferes(): Promise<
+    { nombre: string; apellido: string; numeroDni: string }[]
+  > {
+    const filas = await this.regRepo.find({
+      where: { tipoCargo: 'Chofer' },
+      select: { nombre: true, apellido: true, numeroDni: true },
+      order: { apellido: 'ASC', nombre: 'ASC' },
+    });
+    return filas
+      .filter((f) => !!f.numeroDni)
+      .map((f) => ({
+        nombre: f.nombre,
+        apellido: f.apellido,
+        numeroDni: String(f.numeroDni),
+      }));
   }
 
   async obtenerRegistro(id: number): Promise<RegistroAdministrativo> {
@@ -164,7 +184,10 @@ export class PersonalService {
       ? `${actualizado.apellido}, ${actualizado.nombre} (legajo ${actualizado.legajo})`
       : `${actualizado.apellido}, ${actualizado.nombre}`;
     await this.notificar(
-      this.tituloPersonal('Personal', ['Registro administrativo modificado', persona]),
+      this.tituloPersonal('Personal', [
+        'Registro administrativo modificado',
+        persona,
+      ]),
       this.quienYCuando('Modificado', actor),
       'registro',
       actualizado.id,
