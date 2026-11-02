@@ -86,6 +86,12 @@ export class PersonalController {
     return this.personalService.obtenerRegistros();
   }
 
+  @Get('choferes')
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  obtenerChoferes() {
+    return this.personalService.obtenerChoferes();
+  }
+
   @Get('registro/:id')
   @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
   @ScopedReadPermissions(Permisos.PERSONAL_READ, Permisos.PERSONAL_WRITE)
