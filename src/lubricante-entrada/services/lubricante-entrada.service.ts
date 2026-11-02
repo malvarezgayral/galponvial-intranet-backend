@@ -31,15 +31,30 @@ export class LubricanteEntradaService {
   }
 
   async crear(dto: CreateLubricanteEntradaDto) {
-    const filas = dto.registros.map((r) =>
-      this.repo.create({
-        fecha: r.fecha,
-        tipo: r.tipo.trim(),
-        nroRemito: r.nroRemito?.trim() || null,
-        cantidad: r.cantidad,
-      }),
-    );
-    const guardadas = await this.repo.save(filas);
+    const guardadas = await this.repo.manager.transaction(async (manager) => {
+      const filas = dto.registros.map((r) =>
+        manager.create(LubricanteEntrada, {
+          fecha: r.fecha,
+          tipo: r.tipo.trim(),
+          nroRemito: r.nroRemito?.trim() || null,
+          cantidad: r.cantidad,
+        }),
+      );
+      const nuevas = await manager.save(filas);
+      await manager.save(
+        nuevas.map((n) =>
+          manager.create(LubricanteStockHistorial, {
+            entradaId: n.id,
+            fechaEstado: n.fecha,
+            tipo: n.tipo,
+            cantidadEntrada: n.cantidad,
+            cantidadSalida: 0,
+            estadoParcial: this.redondear(n.cantidad),
+          }),
+        ),
+      );
+      return nuevas;
+    });
 
     const titulo =
       guardadas.length === 1
@@ -103,16 +118,6 @@ export class LubricanteEntradaService {
 
       const estadoParcial = this.redondear(
         entrada.cantidad - entrada.cantidadSalida,
-      );
-      await manager.save(
-        manager.create(LubricanteStockHistorial, {
-          entradaId: entrada.id,
-          fechaEstado: dto.fechaEstado,
-          tipo: entrada.tipo,
-          cantidadEntrada: entrada.cantidad,
-          cantidadSalida: entrada.cantidadSalida,
-          estadoParcial,
-        }),
       );
 
       return {
