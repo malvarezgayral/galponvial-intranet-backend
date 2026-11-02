@@ -146,4 +146,13 @@ export class LubricanteEntradaService {
       order: { fechaEstado: 'DESC', id: 'DESC' },
     });
   }
+
+  async eliminarHistorial(id: number): Promise<{ id: number }> {
+    const fila = await this.historialRepo.findOne({ where: { id } });
+    if (!fila) {
+      throw new NotFoundException('Renglón del listado no encontrado');
+    }
+    await this.historialRepo.remove(fila);
+    return { id };
+  }
 }
