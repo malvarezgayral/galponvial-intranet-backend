@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Notificacion } from '../entities/notificacion.entity';
 import { NotificacionLectura } from '../entities/notificacion-lectura.entity';
+import { NotificacionOculta } from '../entities/notificacion-oculta.entity';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import { Recordatorio } from 'src/vehiculos/entities/recordatorio.entity';
 import { ValidRoles, Permisos } from 'src/usuario/enums/usuario.enum';
@@ -17,6 +18,8 @@ export class NotificacionesService {
     private readonly notificacionRepository: Repository<Notificacion>,
     @InjectRepository(NotificacionLectura)
     private readonly lecturaRepository: Repository<NotificacionLectura>,
+    @InjectRepository(NotificacionOculta)
+    private readonly ocultaRepository: Repository<NotificacionOculta>,
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
     @InjectRepository(Recordatorio)
@@ -144,6 +147,10 @@ export class NotificacionesService {
         'NOT EXISTS (SELECT 1 FROM notificacion_lectura l WHERE l.notificacion_id = n.id AND l.dni = :dniLector)',
         { dniLector: vista.dni },
       );
+      qb.andWhere(
+        'NOT EXISTS (SELECT 1 FROM notificacion_oculta o WHERE o.notificacion_id = n.id AND o.dni = :dniOculta)',
+        { dniOculta: vista.dni },
+      );
     } else {
       qb.andWhere('n.leida = :leida', { leida: false });
     }
@@ -186,12 +193,27 @@ export class NotificacionesService {
       });
     }
     if (!vista) return filas;
+    // Se sacan las que ESTA persona elimino (eliminar es por persona)
+    const ocultas = await this.idsOcultosPor(
+      vista.dni,
+      filas.map((f) => f.id),
+    );
+    filas = filas.filter((f) => !ocultas.has(f.id));
     // "leida" se calcula por persona: solo cuenta si ESTA persona lo leyo
     const leidas = await this.idsLeidosPor(
       vista.dni,
       filas.map((f) => f.id),
     );
     return filas.map((f) => ({ ...f, leida: leidas.has(f.id) }) as Notificacion);
+  }
+
+  // Ids (de la lista dada) que esta persona elimino
+  private async idsOcultosPor(dni: number, ids: number[]): Promise<Set<number>> {
+    if (ids.length === 0) return new Set<number>();
+    const filas = await this.ocultaRepository.find({
+      where: { dni, notificacionId: In(ids) },
+    });
+    return new Set(filas.map((o) => Number(o.notificacionId)));
   }
 
   // Ids (de la lista dada) que esta persona ya leyo
@@ -267,12 +289,18 @@ export class NotificacionesService {
     return this.notificacionRepository.save(notificacion);
   }
 
-  async eliminar(id: number): Promise<{ eliminada: boolean }> {
+  async eliminar(id: number, dni: number): Promise<{ eliminada: boolean }> {
     const notificacion = await this.notificacionRepository.findOneBy({ id });
     if (!notificacion) {
       throw new NotFoundException(`Notificación con ID ${id} no encontrada`);
     }
-    await this.notificacionRepository.delete({ id });
+    // Eliminar es por persona: se oculta solo para quien elimina, no se borra la fila
+    await this.ocultaRepository
+      .createQueryBuilder()
+      .insert()
+      .values({ notificacionId: id, dni })
+      .orIgnore()
+      .execute();
     return { eliminada: true };
   }
 }

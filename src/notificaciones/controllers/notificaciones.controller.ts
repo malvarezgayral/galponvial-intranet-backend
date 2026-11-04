@@ -59,7 +59,7 @@ export class NotificacionesController {
 
   @Delete(':id')
   @Auth(ValidRoles.superadmin)
-  eliminar(@Param('id', ParseIntPipe) id: number) {
-    return this.notificacionesService.eliminar(id);
+  eliminar(@Param('id', ParseIntPipe) id: number, @GetUser() user: Usuario) {
+    return this.notificacionesService.eliminar(id, this.vista(user).dni);
   }
 }
