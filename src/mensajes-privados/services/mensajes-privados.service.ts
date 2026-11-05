@@ -1,8 +1,9 @@
 // src/mensajes-privados/services/mensajes-privados.service.ts
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, IsNull, Not, Repository } from 'typeorm';
+import { In, IsNull, MoreThan, Not, Repository } from 'typeorm';
 import { MensajePrivado } from '../entities/mensaje-privado.entity';
+import { GrupoLectura } from '../entities/grupo-lectura.entity';
 import { CreateMensajePrivadoDto } from '../dto/create-mensaje-privado.dto';
 import { Notificacion } from 'src/notificaciones/entities/notificacion.entity';
 import { NotificacionLectura } from 'src/notificaciones/entities/notificacion-lectura.entity';
@@ -59,6 +60,8 @@ export class MensajesPrivadosService {
     private readonly lecturaRepository: Repository<NotificacionLectura>,
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
+    @InjectRepository(GrupoLectura)
+    private readonly grupoLecturaRepository: Repository<GrupoLectura>,
     private readonly notificacionesService: NotificacionesService,
   ) {}
 
@@ -275,7 +278,7 @@ export class MensajesPrivadosService {
   }
 
   // Para el globito de la navbar
-  async chatNoLeidos(user: Usuario): Promise<{ noLeidos: number }> {
+  async chatNoLeidos(user: Usuario): Promise<{ noLeidos: number; grupo?: number }> {
     if (this.esSuperadmin(user)) {
       const n = await this.mensajeRepository
         .createQueryBuilder('m')
@@ -290,7 +293,8 @@ export class MensajesPrivadosService {
       // Admin: chat y mensajes del superadmin sin leer
       where: { dniAdmin: dni, tipo: In(['chat', 'mensaje']), dniAutor: Not(dni), leidoEn: IsNull(), ocultoAdmin: false },
     });
-    return { noLeidos: n };
+    const grupo = await this.grupoNoLeidos(dni);
+    return { noLeidos: n + grupo, grupo };
   }
 
   // ---------- Bandeja de Mensajes (superadmin <-> un admin, mensajes puntuales) ----------
@@ -418,5 +422,44 @@ export class MensajesPrivadosService {
       await this.mensajeRepository.update({ id: m.id }, { ocultoAdmin: true });
     }
     return { eliminado: true };
+  }
+
+  // ---------- Chat grupal "Grupo Galpon Vial" (solo escribe el superadmin) ----------
+
+  private async grupoNoLeidos(dni: number): Promise<number> {
+    const lectura = await this.grupoLecturaRepository.findOneBy({ dni });
+    const ultimo = lectura ? Number(lectura.ultimoId) : 0;
+    return this.mensajeRepository.count({ where: { tipo: 'grupo', id: MoreThan(ultimo) } });
+  }
+
+  async chatGrupo(user: Usuario): Promise<ChatMensaje[]> {
+    const sa = this.esSuperadmin(user);
+    const filas = await this.mensajeRepository.find({
+      where: { tipo: 'grupo' },
+      order: { fecha: 'ASC', id: 'ASC' },
+    });
+    // El admin que lo abre queda al dia
+    if (!sa && filas.length > 0) {
+      const dni = Number(user.dni);
+      const ultimoId = filas[filas.length - 1].id;
+      const actual = await this.grupoLecturaRepository.findOneBy({ dni });
+      if (!actual || Number(actual.ultimoId) < ultimoId) {
+        await this.grupoLecturaRepository.save({ dni, ultimoId });
+      }
+    }
+    return filas.map((m) => ({ id: m.id, texto: m.texto, fecha: m.fecha, mio: sa, leido: false }));
+  }
+
+  async escribirEnGrupo(user: Usuario, texto: string): Promise<ChatMensaje> {
+    const guardado = await this.mensajeRepository.save(
+      this.mensajeRepository.create({
+        dniAdmin: 0,
+        dniAutor: Number(user.dni),
+        tipo: 'grupo',
+        asunto: null,
+        texto: texto.trim(),
+      }),
+    );
+    return { id: guardado.id, texto: guardado.texto, fecha: guardado.fecha, mio: true, leido: false };
   }
 }

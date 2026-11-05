@@ -2,6 +2,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MensajePrivado } from './entities/mensaje-privado.entity';
+import { GrupoLectura } from './entities/grupo-lectura.entity';
 import { MensajesPrivadosService } from './services/mensajes-privados.service';
 import { MensajesPrivadosController } from './controllers/mensajes-privados.controller';
 import { Notificacion } from 'src/notificaciones/entities/notificacion.entity';
@@ -12,7 +13,7 @@ import { NotificacionesModule } from 'src/notificaciones/notificaciones.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([MensajePrivado, Notificacion, NotificacionLectura, Usuario]),
+    TypeOrmModule.forFeature([MensajePrivado, GrupoLectura, Notificacion, NotificacionLectura, Usuario]),
     UsuarioModule,
     NotificacionesModule,
   ],

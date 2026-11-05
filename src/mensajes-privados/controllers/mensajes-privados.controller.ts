@@ -42,6 +42,19 @@ export class MensajesPrivadosController {
     return this.service.listarAdminsChat();
   }
 
+  // Chat grupal "Grupo Galpon Vial": todos los admin leen, solo el superadmin escribe
+  @Get('chat/grupo')
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  chatGrupo(@GetUser() user: Usuario) {
+    return this.service.chatGrupo(user);
+  }
+
+  @Post('chat/grupo')
+  @Auth(ValidRoles.superadmin)
+  escribirEnGrupo(@Body() dto: EnviarChatDto, @GetUser() user: Usuario) {
+    return this.service.escribirEnGrupo(user, dto.texto);
+  }
+
   @Get('chat')
   @Auth(ValidRoles.admin)
   chatDelAdmin(@GetUser() user: Usuario) {
