@@ -31,4 +31,11 @@ export class MensajePrivado {
   // Chat: cuando lo leyo el otro participante (null = sin leer)
   @Column({ name: 'leido_en', type: 'timestamp', nullable: true })
   leidoEn?: Date | null;
+
+  // Mensajes: "Eliminar" lo oculta solo para quien lo elimina
+  @Column({ name: 'oculto_admin', type: 'boolean', default: false })
+  ocultoAdmin!: boolean;
+
+  @Column({ name: 'oculto_superadmin', type: 'boolean', default: false })
+  ocultoSuperadmin!: boolean;
 }

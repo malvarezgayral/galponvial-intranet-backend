@@ -35,6 +35,19 @@ export type ChatAdmin = {
   ultimo: Date | null;
 };
 
+// Un mensaje de la bandeja visto por quien consulta
+export type MensajeBandeja = {
+  id: number;
+  asunto: string | null;
+  texto: string;
+  fecha: Date;
+  recibido: boolean;
+  dniOtro: number;
+  nombreOtro: string;
+  apellidoOtro: string;
+  leido: boolean;
+};
+
 @Injectable()
 export class MensajesPrivadosService {
   constructor(
@@ -274,8 +287,136 @@ export class MensajesPrivadosService {
     }
     const dni = Number(user.dni);
     const n = await this.mensajeRepository.count({
-      where: { dniAdmin: dni, tipo: 'chat', dniAutor: Not(dni), leidoEn: IsNull() },
+      // Admin: chat y mensajes del superadmin sin leer
+      where: { dniAdmin: dni, tipo: In(['chat', 'mensaje']), dniAutor: Not(dni), leidoEn: IsNull(), ocultoAdmin: false },
     });
     return { noLeidos: n };
+  }
+
+  // ---------- Bandeja de Mensajes (superadmin <-> un admin, mensajes puntuales) ----------
+
+  async bandeja(user: Usuario): Promise<MensajeBandeja[]> {
+    const sa = this.esSuperadmin(user);
+    const dni = Number(user.dni);
+    const filas = await this.mensajeRepository.find({
+      where: sa
+        ? { tipo: 'mensaje', ocultoSuperadmin: false }
+        : { tipo: 'mensaje', dniAdmin: dni, ocultoAdmin: false },
+      order: { fecha: 'DESC', id: 'DESC' },
+    });
+    const delAdmin = (m: MensajePrivado) => Number(m.dniAutor) === Number(m.dniAdmin);
+    const leidosNotif = await this.idsLeidosPorSuperadmin(filas.filter(delAdmin).map((m) => m.id));
+    const dnis = [...new Set(filas.map((m) => Number(sa ? m.dniAdmin : m.dniAutor)))];
+    const usuarios = dnis.length
+      ? await this.usuarioRepository.find({ where: { dni: In(dnis) } })
+      : [];
+    const porDni = new Map(usuarios.map((u) => [Number(u.dni), u]));
+    return filas.map((m) => {
+      const esDelAdmin = delAdmin(m);
+      const recibido = sa ? esDelAdmin : !esDelAdmin;
+      const leido = esDelAdmin ? !!m.leidoEn || leidosNotif.has(m.id) : !!m.leidoEn;
+      let dniOtro = 0;
+      let nombreOtro = 'Superadmin';
+      let apellidoOtro = '';
+      const otro = porDni.get(Number(sa ? m.dniAdmin : m.dniAutor));
+      if (sa || recibido) {
+        dniOtro = Number(sa ? m.dniAdmin : m.dniAutor);
+        nombreOtro = otro?.nombre ?? 'Usuario';
+        apellidoOtro = otro?.apellido ?? '';
+      }
+      return {
+        id: m.id,
+        asunto: m.asunto ?? null,
+        texto: m.texto,
+        fecha: m.fecha,
+        recibido,
+        dniOtro,
+        nombreOtro,
+        apellidoOtro,
+        leido,
+      };
+    });
+  }
+
+  // Superadmin le escribe a un admin elegido
+  async enviarAAdmin(
+    user: Usuario,
+    dniAdmin: number,
+    dto: CreateMensajePrivadoDto,
+  ): Promise<MensajeBandeja> {
+    await this.verificarAdmin(dniAdmin);
+    const asunto = dto.asunto.trim();
+    const texto = dto.texto.trim();
+    const guardado = await this.mensajeRepository.save(
+      this.mensajeRepository.create({
+        dniAdmin,
+        dniAutor: Number(user.dni),
+        tipo: 'mensaje',
+        asunto,
+        texto,
+      }),
+    );
+    const admin = await this.usuarioRepository.findOneBy({ dni: dniAdmin });
+    return {
+      id: guardado.id,
+      asunto,
+      texto,
+      fecha: guardado.fecha,
+      recibido: false,
+      dniOtro: dniAdmin,
+      nombreOtro: admin?.nombre ?? 'Usuario',
+      apellidoOtro: admin?.apellido ?? '',
+      leido: false,
+    };
+  }
+
+  // Busca un mensaje de la bandeja que pertenezca a quien consulta
+  private async mensajeDe(user: Usuario, id: number): Promise<MensajePrivado> {
+    const m = await this.mensajeRepository.findOneBy({ id, tipo: 'mensaje' });
+    if (!m) throw new NotFoundException('Mensaje no encontrado');
+    if (!this.esSuperadmin(user) && Number(m.dniAdmin) !== Number(user.dni)) {
+      throw new NotFoundException('Mensaje no encontrado');
+    }
+    return m;
+  }
+
+  // Marca como leido un mensaje RECIBIDO por quien consulta
+  async marcarLeido(user: Usuario, id: number): Promise<{ leido: boolean }> {
+    const m = await this.mensajeDe(user, id);
+    const sa = this.esSuperadmin(user);
+    const esDelAdmin = Number(m.dniAutor) === Number(m.dniAdmin);
+    const recibido = sa ? esDelAdmin : !esDelAdmin;
+    if (!recibido) return { leido: !!m.leidoEn };
+    if (!m.leidoEn) {
+      await this.mensajeRepository.update({ id: m.id }, { leidoEn: new Date() });
+    }
+    if (sa) {
+      // Tambien se apaga su aviso en Notificaciones > Mensajes Privados
+      const aviso = await this.notificacionRepository.findOne({
+        where: { tipo: 'privada', referenciaTipo: 'mensaje_privado', referenciaId: m.id },
+      });
+      if (aviso) {
+        try {
+          await this.notificacionesService.marcarComoLeida(aviso.id, undefined, {
+            dni: Number(user.dni),
+            esSuperadmin: true,
+          });
+        } catch {
+          // si falla, el mensaje igual queda leido
+        }
+      }
+    }
+    return { leido: true };
+  }
+
+  // "Eliminar": lo oculta solo para quien lo elimina
+  async ocultar(user: Usuario, id: number): Promise<{ eliminado: boolean }> {
+    const m = await this.mensajeDe(user, id);
+    if (this.esSuperadmin(user)) {
+      await this.mensajeRepository.update({ id: m.id }, { ocultoSuperadmin: true });
+    } else {
+      await this.mensajeRepository.update({ id: m.id }, { ocultoAdmin: true });
+    }
+    return { eliminado: true };
   }
 }
