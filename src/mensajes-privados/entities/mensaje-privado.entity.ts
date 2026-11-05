@@ -27,4 +27,8 @@ export class MensajePrivado {
 
   @CreateDateColumn()
   fecha!: Date;
+
+  // Chat: cuando lo leyo el otro participante (null = sin leer)
+  @Column({ name: 'leido_en', type: 'timestamp', nullable: true })
+  leidoEn?: Date | null;
 }
