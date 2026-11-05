@@ -79,7 +79,7 @@ export class NotificacionesService {
       [
         'service', 'reparacion', 'compras', 'incidentes', 'personal',
         'recordatorio', 'combustible', 'proveedores', 'lubricentro', 'combustible-carro',
-        'privada', 'almacen',
+        'privada', 'chats', 'almacen',
       ].forEach((t) => permitidos.add(t));
       return permitidos;
     }

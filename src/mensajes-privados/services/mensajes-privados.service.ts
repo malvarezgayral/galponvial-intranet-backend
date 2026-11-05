@@ -198,7 +198,7 @@ export class MensajesPrivadosService {
     );
     const titulo = `Chat de ${user.nombre} ${user.apellido}`.slice(0, 150);
     await this.notificacionesService.crearNotificacionParaSuperadmin(
-      'privada',
+      'chats',
       titulo,
       limpio,
       'chat_privado',
