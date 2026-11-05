@@ -127,9 +127,9 @@ export class NotificacionesService {
     if (tiene(Permisos.COMBUSTIBLE_CARRO_WRITE)) {
       permitidos.add('combustible-carro');
     }
-    // Recordatorios y privada visibles para admin (como antes); personal solo con permiso propio
+    // Recordatorios visibles para admin; personal solo con permiso propio.
+    // 'privada' NO: los mensajes privados son solo para el superadmin.
     permitidos.add('recordatorio');
-    permitidos.add('privada');
     return permitidos;
   }
 

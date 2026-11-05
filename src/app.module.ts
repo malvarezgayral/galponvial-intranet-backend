@@ -14,6 +14,7 @@ import { FiltroServiceModule } from './filtro-service/filtro-service.module';
 import { LubricanteEntradaModule } from './lubricante-entrada/lubricante-entrada.module';
 import { PersonalModule } from './personal/personal.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
+import { MensajesPrivadosModule } from './mensajes-privados/mensajes-privados.module';
 const isTestEnv = process.env.NODE_ENV === 'test';
 @Module({
   imports: [
@@ -49,6 +50,7 @@ const isTestEnv = process.env.NODE_ENV === 'test';
     LubricanteEntradaModule,
     PersonalModule,
     NotificacionesModule,
+    MensajesPrivadosModule,
   ],
 })
 export class AppModule {}
