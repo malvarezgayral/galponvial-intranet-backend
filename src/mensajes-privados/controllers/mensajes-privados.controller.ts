@@ -1,5 +1,5 @@
 // src/mensajes-privados/controllers/mensajes-privados.controller.ts
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { MensajesPrivadosService } from '../services/mensajes-privados.service';
 import { CreateMensajePrivadoDto } from '../dto/create-mensaje-privado.dto';
 import { EnviarChatDto } from '../dto/enviar-chat.dto';
@@ -68,5 +68,36 @@ export class MensajesPrivadosController {
     @GetUser() user: Usuario,
   ) {
     return this.service.escribirComoSuperadmin(user, dni, dto.texto);
+  }
+
+  // ---------- Bandeja de Mensajes ----------
+
+  @Get('bandeja')
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  bandeja(@GetUser() user: Usuario) {
+    return this.service.bandeja(user);
+  }
+
+  // El superadmin le escribe a un admin elegido
+  @Post('para/:dni')
+  @Auth(ValidRoles.superadmin)
+  enviarAAdmin(
+    @Param('dni', ParseIntPipe) dni: number,
+    @Body() dto: CreateMensajePrivadoDto,
+    @GetUser() user: Usuario,
+  ) {
+    return this.service.enviarAAdmin(user, dni, dto);
+  }
+
+  @Patch(':id/leido')
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  marcarLeido(@Param('id', ParseIntPipe) id: number, @GetUser() user: Usuario) {
+    return this.service.marcarLeido(user, id);
+  }
+
+  @Delete(':id')
+  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  ocultar(@Param('id', ParseIntPipe) id: number, @GetUser() user: Usuario) {
+    return this.service.ocultar(user, id);
   }
 }
