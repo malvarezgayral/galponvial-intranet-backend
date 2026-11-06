@@ -8,7 +8,17 @@ import {
   Body,
   Param,
   ParseIntPipe,
+  UseInterceptors,
+  UploadedFile,
+  StreamableFile,
+  Header,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express/multer';
+import { FileUpload } from 'src/common/interfaces/file.interface';
+import {
+  DocumentosPersonalService,
+  MAX_DOCUMENTO_BYTES,
+} from '../services/documentos-personal.service';
 import { PersonalService } from '../services/personal.service';
 import { CreateDocumentacionPersonalDto } from '../dto/create-documentacion-personal.dto';
 import { CreateRegistroAdministrativoDto } from '../dto/create-registro-administrativo.dto';
@@ -24,7 +34,10 @@ import { Usuario } from 'src/usuario/entities/usuario.entity';
 
 @Controller('personal')
 export class PersonalController {
-  constructor(private readonly personalService: PersonalService) {}
+  constructor(
+    private readonly personalService: PersonalService,
+    private readonly documentosService: DocumentosPersonalService,
+  ) {}
 
   // ---------- Documentación personal ----------
   @Post('documentacion')
@@ -66,6 +79,53 @@ export class PersonalController {
   @Auth(ValidRoles.superadmin)
   eliminarDocumentacion(@Param('id', ParseIntPipe) id: number) {
     return this.personalService.eliminarDocumentacion(id);
+  }
+
+  // ---------- Archivos de documentación personal ----------
+  @Post('documentacion/:id/archivos')
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: MAX_DOCUMENTO_BYTES } }),
+  )
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.PERSONAL_WRITE)
+  subirArchivoDocumentacion(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('tipo') tipo: string,
+    @UploadedFile() file: FileUpload,
+  ) {
+    return this.documentosService.subir(id, tipo, file);
+  }
+
+  @Get('documentacion-archivos')
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedReadPermissions(Permisos.PERSONAL_READ, Permisos.PERSONAL_WRITE)
+  listarArchivosDocumentacion() {
+    return this.documentosService.listarTodos();
+  }
+
+  @Get('documentacion-archivos/:archivoId')
+  @Header('X-Content-Type-Options', 'nosniff')
+  @Header('Cache-Control', 'private, no-store')
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedReadPermissions(Permisos.PERSONAL_READ, Permisos.PERSONAL_WRITE)
+  async abrirArchivoDocumentacion(
+    @Param('archivoId', ParseIntPipe) archivoId: number,
+  ): Promise<StreamableFile> {
+    const a = await this.documentosService.abrir(archivoId);
+    return new StreamableFile(a.stream, {
+      type: a.mimetype,
+      length: a.tamano,
+      disposition: `inline; filename*=UTF-8''${encodeURIComponent(a.nombreOriginal)}`,
+    });
+  }
+
+  @Delete('documentacion-archivos/:archivoId')
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.PERSONAL_WRITE)
+  eliminarArchivoDocumentacion(
+    @Param('archivoId', ParseIntPipe) archivoId: number,
+  ) {
+    return this.documentosService.eliminar(archivoId);
   }
 
   // ---------- Registro administrativo ----------
