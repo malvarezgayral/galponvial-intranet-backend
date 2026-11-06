@@ -48,7 +48,7 @@ function aDto(a: DocumentacionPersonalArchivo): ArchivoPersonalDto {
 }
 
 // Se decide por el contenido real del archivo, no por lo que dice el navegador
-function detectarTipo(
+export function detectarTipo(
   buf: Buffer,
   nombre: string,
 ): { ext: string; mime: string } | null {
