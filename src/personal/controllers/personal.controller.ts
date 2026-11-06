@@ -19,6 +19,7 @@ import {
   DocumentosPersonalService,
   MAX_DOCUMENTO_BYTES,
 } from '../services/documentos-personal.service';
+import { RegistroArchivosService } from '../services/registro-archivos.service';
 import { PersonalService } from '../services/personal.service';
 import { CreateDocumentacionPersonalDto } from '../dto/create-documentacion-personal.dto';
 import { CreateRegistroAdministrativoDto } from '../dto/create-registro-administrativo.dto';
@@ -37,6 +38,7 @@ export class PersonalController {
   constructor(
     private readonly personalService: PersonalService,
     private readonly documentosService: DocumentosPersonalService,
+    private readonly registroArchivosService: RegistroArchivosService,
   ) {}
 
   // ---------- Documentación personal ----------
@@ -168,6 +170,53 @@ export class PersonalController {
     @GetUser() user: Usuario,
   ) {
     return this.personalService.actualizarRegistro(id, dto, user);
+  }
+
+  // ---------- Archivos de registro administrativo ----------
+  @Post('registro/:id/archivos')
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: MAX_DOCUMENTO_BYTES } }),
+  )
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.PERSONAL_WRITE)
+  subirArchivoRegistro(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('tipo') tipo: string,
+    @UploadedFile() file: FileUpload,
+  ) {
+    return this.registroArchivosService.subir(id, tipo, file);
+  }
+
+  @Get('registro-archivos')
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedReadPermissions(Permisos.PERSONAL_READ, Permisos.PERSONAL_WRITE)
+  listarArchivosRegistro() {
+    return this.registroArchivosService.listarTodos();
+  }
+
+  @Get('registro-archivos/:archivoId')
+  @Header('X-Content-Type-Options', 'nosniff')
+  @Header('Cache-Control', 'private, no-store')
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedReadPermissions(Permisos.PERSONAL_READ, Permisos.PERSONAL_WRITE)
+  async abrirArchivoRegistro(
+    @Param('archivoId', ParseIntPipe) archivoId: number,
+  ): Promise<StreamableFile> {
+    const a = await this.registroArchivosService.abrir(archivoId);
+    return new StreamableFile(a.stream, {
+      type: a.mimetype,
+      length: a.tamano,
+      disposition: `inline; filename*=UTF-8''${encodeURIComponent(a.nombreOriginal)}`,
+    });
+  }
+
+  @Delete('registro-archivos/:archivoId')
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.PERSONAL_WRITE)
+  eliminarArchivoRegistro(
+    @Param('archivoId', ParseIntPipe) archivoId: number,
+  ) {
+    return this.registroArchivosService.eliminar(archivoId);
   }
 
   @Delete('registro/:id')
