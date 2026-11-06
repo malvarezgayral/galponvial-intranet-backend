@@ -14,7 +14,13 @@ const vacioANull = ({ value }: { value: unknown }) =>
 
 const FECHA_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const FECHA_MSG = 'La fecha debe tener formato AAAA-MM-DD';
-const ESTUDIOS = ['Primario', 'Secundario', 'Terciario', 'Universitario'];
+const ESTUDIOS = [
+  'Primario',
+  'Secundario',
+  'Terciario',
+  'Universitario',
+  'Capacitaciones',
+];
 
 export class CreateDocumentacionPersonalDto {
   @IsString()
