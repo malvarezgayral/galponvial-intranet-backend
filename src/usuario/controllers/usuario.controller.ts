@@ -1,3 +1,6 @@
+import { Permisos } from '../enums/usuario.enum';
+import { ScopedAuth } from '../decorators/scoped-auth.decorator';
+import { ScopedPermissions } from '../decorators/scoped-permissions.decorator';
 import {
   Controller,
   Get,
@@ -298,7 +301,8 @@ export class UsuarioController {
     description: 'Vehículo asignado al usuario',
   })
   @Post('asignar-vehiculo')
-  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.VEHICULOS_WRITE)
   asignarVehiculo(@Body() dto: CreateUsuarioVehiculoDto) {
     return this.usuarioService.asignarVehiculo(dto);
   }

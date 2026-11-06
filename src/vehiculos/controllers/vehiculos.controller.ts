@@ -60,7 +60,8 @@ export class VehiculosController {
   })
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.VEHICULOS_WRITE)
   create(@Body() createVehiculoDto: CreateVehiculoDto) {
     return this.vehiculosService.create(createVehiculoDto);
   }
@@ -118,7 +119,8 @@ export class VehiculosController {
   })
   @Post('assign')
   @HttpCode(HttpStatus.CREATED)
-  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.VEHICULOS_WRITE)
   async assignVehicleToUser(
     @Body() dto: AssignVehicleToUserDto,
   ): Promise<ObjectServiceResponse<UsuarioVehiculo>> {
@@ -233,7 +235,8 @@ export class VehiculosController {
   })
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @Auth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.VEHICULOS_WRITE)
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateVehiculoDto: UpdateVehiculoDto,
@@ -445,7 +448,8 @@ export class VehiculosController {
   })
   @Put(':id/status')
   @HttpCode(HttpStatus.OK)
-  @Auth(ValidRoles.admin)
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.VEHICULOS_WRITE)
   async updateVehiculoStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body('nuevoStatus') nuevoStatus: VehiculoStatus,
