@@ -46,7 +46,7 @@ export class ProveedorController {
   }
 
   @Delete(':id')
-  @Auth(ValidRoles.user, ValidRoles.admin, ValidRoles.superadmin)
+  @Auth(ValidRoles.superadmin)
   eliminar(@Param('id', ParseIntPipe) id: number) {
     return this.proveedorService.eliminar(id);
   }
