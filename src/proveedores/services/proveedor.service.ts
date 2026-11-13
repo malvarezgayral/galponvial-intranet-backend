@@ -1,5 +1,5 @@
 // src/proveedores/services/proveedor.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Proveedor } from '../entities/proveedor.entity';
@@ -97,6 +97,16 @@ export class ProveedorService {
     if (!existente) {
       throw new NotFoundException(`Proveedor con ID ${id} no encontrado`);
     }
-    await this.proveedorRepository.delete(id);
+    try {
+      await this.proveedorRepository.delete(id);
+    } catch (error) {
+      const e = error as { code?: string; driverError?: { code?: string } };
+      if (e?.code === '23503' || e?.driverError?.code === '23503') {
+        throw new ConflictException(
+          'No se puede eliminar el proveedor porque tiene órdenes de compra, suministros o presupuestos asociados.',
+        );
+      }
+      throw error;
+    }
   }
 }
