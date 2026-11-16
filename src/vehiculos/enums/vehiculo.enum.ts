@@ -23,6 +23,8 @@ export enum TipoVehiculo {
   CAMION = 'CAMION',
   AUTO = 'AUTO',
   OTRO = 'otro',
+  CAMIONETA = 'CAMIONETA',
+  CARGA = 'CARGA',
 }
 
 export enum TipoIncidente {
