@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Vehiculo } from './entities/vehiculo.entity';
 import { InfoAdicional } from './entities/info-adicional.entity';
 import { Jurisdiccion } from './entities/jurisdiccion.entity';
+import { Dependencia } from './entities/dependencia.entity';
 import { CombustibleCarga } from './entities/combustible-carga.entity';
 import { CombustibleCarro } from './entities/combustible-carro.entity';
 import { Recordatorio } from './entities/recordatorio.entity';
@@ -25,6 +26,7 @@ import { CombustibleCarroService } from './services/combustible-carro.service';
 import { StatusUpdateService } from './services/status-update.service';
 import { ReporteIncidenteService } from './services/reporte-incidente.service';
 import { ServicioService } from './services/servicio.service';
+import { JurisdiccionesService } from './services/jurisdicciones.service';
 
 // Controladores
 import { VehiculosController } from './controllers/vehiculos.controller';
@@ -32,6 +34,7 @@ import { CombustibleController } from './controllers/combustible.controller';
 import { CombustibleCarroController } from './controllers/combustible-carro.controller';
 import { ReporteIncidenteController } from './controllers/reporte-incidente.controller';
 import { ServicioController } from './controllers/servicio.controller';
+import { JurisdiccionesController } from './controllers/jurisdicciones.controller';
 
 @Module({
   imports: [
@@ -39,6 +42,7 @@ import { ServicioController } from './controllers/servicio.controller';
       Vehiculo,
       InfoAdicional,
       Jurisdiccion,
+      Dependencia,
       CombustibleCarga,
       CombustibleCarro,
       Recordatorio,
@@ -57,6 +61,7 @@ import { ServicioController } from './controllers/servicio.controller';
     CombustibleCarroController,
     ReporteIncidenteController,
     ServicioController,
+    JurisdiccionesController,
   ],
   providers: [
     VehiculosService,
@@ -65,6 +70,7 @@ import { ServicioController } from './controllers/servicio.controller';
     StatusUpdateService,
     ReporteIncidenteService,
     ServicioService,
+    JurisdiccionesService,
   ],
   exports: [
     VehiculosService,
