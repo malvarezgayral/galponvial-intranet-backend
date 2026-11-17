@@ -64,12 +64,19 @@ export class ProveedorService {
 
     const CAMPOS_COMPARABLES_PROVEEDOR: { clave: string; etiqueta: string }[] =
       [
-        { clave: 'nombre', etiqueta: 'nombre' },
+        { clave: 'nombre', etiqueta: 'razón social' },
         { clave: 'telefono', etiqueta: 'teléfono' },
         { clave: 'direccion', etiqueta: 'dirección' },
         { clave: 'horarios', etiqueta: 'horarios' },
         { clave: 'ciudad', etiqueta: 'ciudad' },
         { clave: 'rubro', etiqueta: 'rubro' },
+        { clave: 'codigo', etiqueta: 'código' },
+        { clave: 'nombre_fantasia', etiqueta: 'nombre de fantasía' },
+        { clave: 'numero', etiqueta: 'N°' },
+        { clave: 'codigo_area', etiqueta: 'código de área' },
+        { clave: 'codigo_postal', etiqueta: 'C.P.' },
+        { clave: 'cuit', etiqueta: 'CUIT' },
+        { clave: 'estado', etiqueta: 'estado' },
       ];
     const cambiosProveedor: string[] = [];
     for (const { clave, etiqueta } of CAMPOS_COMPARABLES_PROVEEDOR) {
