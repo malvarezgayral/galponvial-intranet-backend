@@ -27,7 +27,7 @@ export class InfoAdicional {
   @Column({ type: 'varchar', length: 10, nullable: true })
   tipo_combustible: string | null;
 
-  @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
+  @Column({ type: 'text', nullable: true, unique: true })
   patente: string | null;
 
   @Column()

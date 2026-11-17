@@ -35,7 +35,6 @@ export class InfoAdicionalDto {
   @ApiProperty({ example: 'AB123CD' })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(20)
   patente: string;
 
   @ApiPropertyOptional({ example: 'B1-12345678' })
