@@ -23,7 +23,7 @@ export class CreateInfoAdicionalDataDto {
   @ApiProperty({
     description: 'Tipo de combustible',
     example: 'Diesel',
-    enum: ['Diesel', 'Euro', 'Nafta'],
+    enum: ['Diesel', 'Euro', 'Nafta', 'Ninguno'],
   })
   @IsString()
   tipo_combustible: string;

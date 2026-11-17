@@ -27,9 +27,9 @@ export class InfoAdicionalDto {
   @MaxLength(50)
   numero_chasis: string;
 
-  @ApiProperty({ example: 'Diesel', enum: ['Diesel', 'Euro', 'Nafta'] })
+  @ApiProperty({ example: 'Diesel', enum: ['Diesel', 'Euro', 'Nafta', 'Ninguno'] })
   @IsString()
-  @IsIn(['Diesel', 'Euro', 'Nafta'])
+  @IsIn(['Diesel', 'Euro', 'Nafta', 'Ninguno'])
   tipo_combustible: string;
 
   @ApiProperty({ example: 'AB123CD' })
