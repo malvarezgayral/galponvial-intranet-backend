@@ -1,28 +1,59 @@
 // src/proveedores/dto/create-proveedor.dto.ts
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsNotEmpty, IsString } from 'class-validator';
 
+export const ESTADOS_PROVEEDOR = ['NORMAL', 'FUERA DE ESTADO'];
+
+/** Todos los campos son obligatorios. En pantalla, "nombre" se muestra como "Razón Social". */
 export class CreateProveedorDto {
+  @IsString()
+  @IsNotEmpty()
+  codigo!: string;
+
   @IsString()
   @IsNotEmpty()
   nombre!: string;
 
   @IsString()
-  @IsOptional()
-  telefono?: string;
+  @IsNotEmpty()
+  nombre_fantasia!: string;
 
   @IsString()
-  @IsOptional()
-  direccion?: string;
+  @IsNotEmpty()
+  telefono!: string;
 
   @IsString()
-  @IsOptional()
-  horarios?: string;
+  @IsNotEmpty()
+  direccion!: string;
 
   @IsString()
-  @IsOptional()
-  ciudad?: string;
+  @IsNotEmpty()
+  numero!: string;
 
   @IsString()
-  @IsOptional()
-  rubro?: string;
+  @IsNotEmpty()
+  codigo_area!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  codigo_postal!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  cuit!: string;
+
+  @IsString()
+  @IsIn(ESTADOS_PROVEEDOR)
+  estado!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  horarios!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  ciudad!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  rubro!: string;
 }

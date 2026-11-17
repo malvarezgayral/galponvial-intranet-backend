@@ -29,6 +29,27 @@ export class Proveedor {
   @Column({ type: 'varchar', length: 100, nullable: true })
   rubro: string;
 
+  @Column({ type: 'text', nullable: true })
+  codigo: string;
+
+  @Column({ type: 'text', nullable: true })
+  nombre_fantasia: string;
+
+  @Column({ type: 'text', nullable: true })
+  numero: string;
+
+  @Column({ type: 'text', nullable: true })
+  codigo_area: string;
+
+  @Column({ type: 'text', nullable: true })
+  codigo_postal: string;
+
+  @Column({ type: 'text', nullable: true })
+  cuit: string;
+
+  @Column({ type: 'varchar', length: 20, default: 'NORMAL' })
+  estado: string;
+
   @CreateDateColumn({ nullable: false })
   created_at: Date;
 }
