@@ -5,7 +5,6 @@ import {
   IsOptional,
   IsString,
   Matches,
-  MaxLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -18,13 +17,11 @@ export class InfoAdicionalDto {
   @ApiProperty({ example: 'MOT123456' })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(50)
   numero_motor: string;
 
   @ApiProperty({ example: 'CHA987654' })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(50)
   numero_chasis: string;
 
   @ApiProperty({ example: 'Diesel', enum: ['Diesel', 'Euro', 'Nafta', 'Ninguno'] })
@@ -45,13 +42,11 @@ export class InfoAdicionalDto {
   @ApiProperty({ example: 'B1' })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(20)
   licencia_categoria: string;
 
   @ApiProperty({ example: 'Profesional' })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(20)
   licencia_clase: string;
 
   @ApiProperty({ example: '2028-08-08', description: 'Formato YYYY-MM-DD' })
@@ -63,7 +58,6 @@ export class InfoAdicionalDto {
   @ApiPropertyOptional({ example: 'Rojo' })
   @IsOptional()
   @IsString()
-  @MaxLength(20)
   color?: string;
 
   @ApiProperty({ example: 'San Cristóbal' })

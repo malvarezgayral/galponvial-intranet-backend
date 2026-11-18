@@ -6,7 +6,6 @@ import {
   IsOptional,
   Min,
   Max,
-  MaxLength,
   ValidateNested,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -18,25 +17,21 @@ export class CreateVehiculoDto {
   @ApiProperty({ example: 'CAM-001' })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(20)
   codigo: string;
 
   @ApiProperty({ example: 'Camión Iveco' })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(100)
   nombre: string;
 
   @ApiProperty({ example: 'Iveco' })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(50)
   marca: string;
 
   @ApiProperty({ example: 'Tector 170E' })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(50)
   modelo: string;
 
   @ApiProperty({ example: 2022 })
@@ -72,7 +67,6 @@ export class CreateVehiculoDto {
 
   @ApiPropertyOptional({ example: 'Delegación Centro' })
   @IsString()
-  @MaxLength(100)
   @IsOptional()
   dependencia?: string;
 

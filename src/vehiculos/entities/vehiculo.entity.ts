@@ -20,16 +20,16 @@ export class Vehiculo {
   @PrimaryGeneratedColumn()
   id_vehiculo: number;
 
-  @Column('varchar', { length: 20, unique: true, nullable: true })
+  @Column('text', { unique: true, nullable: true })
   codigo: string;
 
-  @Column('varchar', { length: 100 })
+  @Column('text')
   nombre: string;
 
-  @Column('varchar', { length: 50 })
+  @Column('text')
   marca: string;
 
-  @Column('varchar', { length: 50 })
+  @Column('text')
   modelo: string;
 
   @Column('int')
@@ -54,7 +54,7 @@ export class Vehiculo {
   })
   tipo_vehiculo: TipoVehiculo;
 
-  @Column('varchar', { length: 100, nullable: true })
+  @Column('text', { nullable: true })
   dependencia: string;
 
   @Column({ type: 'boolean', default: false })
