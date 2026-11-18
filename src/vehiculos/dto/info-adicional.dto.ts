@@ -35,9 +35,9 @@ export class InfoAdicionalDto {
   patente: string;
 
   @ApiPropertyOptional({ example: 'B1-12345678' })
-  @IsOptional()
   @IsString()
-  licencia_conductor?: string;
+  @IsNotEmpty()
+  licencia_conductor: string;
 
   @ApiProperty({ example: 'B1' })
   @IsString()
@@ -50,15 +50,16 @@ export class InfoAdicionalDto {
   licencia_clase: string;
 
   @ApiProperty({ example: '2028-08-08', description: 'Formato YYYY-MM-DD' })
+  @IsNotEmpty()
   @Matches(/^\d{4}-\d{2}-\d{2}$/, {
     message: 'licencia_vencimiento debe tener formato YYYY-MM-DD',
   })
   licencia_vencimiento: string;
 
   @ApiPropertyOptional({ example: 'Rojo' })
-  @IsOptional()
   @IsString()
-  color?: string;
+  @IsNotEmpty()
+  color: string;
 
   @ApiProperty({ example: 'San Cristóbal' })
   @IsString()

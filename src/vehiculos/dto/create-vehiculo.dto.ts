@@ -52,23 +52,25 @@ export class CreateVehiculoDto {
     example: VehiculoStatus.ACTIVO,
   })
   @IsEnum(VehiculoStatus)
-  @IsOptional()
-  status?: VehiculoStatus;
+  @IsNotEmpty()
+  status: VehiculoStatus;
 
   @ApiPropertyOptional({ example: 12.5 })
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  uso_combustible: number;
+  uso_combustible?: number;
 
   @ApiPropertyOptional({ example: 150000 })
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  uso_km: number;
+  uso_km?: number;
 
   @ApiPropertyOptional({ example: 'Delegación Centro' })
   @IsString()
-  @IsOptional()
-  dependencia?: string;
+  @IsNotEmpty()
+  dependencia: string;
 
   @ApiProperty({
     type: () => InfoAdicionalDto,
