@@ -1,3 +1,4 @@
+import { RegistroAdministrativo } from 'src/personal/entities/registro-administrativo.entity';
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
@@ -48,6 +49,8 @@ export class VehiculosService {
     private readonly usuarioRepository: Repository<Usuario>,
     @InjectRepository(UsuarioVehiculo)
     private readonly usuarioVehiculoRepository: Repository<UsuarioVehiculo>,
+    @InjectRepository(RegistroAdministrativo)
+    private readonly registroAdministrativoRepository: Repository<RegistroAdministrativo>,
     private readonly statusUpdateService: StatusUpdateService,
     private readonly notificacionesService: NotificacionesService,
   ) {}
@@ -588,12 +591,15 @@ export class VehiculosService {
     const usuario = await this.usuarioRepository.findOne({
       where: { dni },
     });
+    const chofer = await this.buscarChoferRegistro(dni);
 
-    if (!usuario) {
-      throw new NotFoundException(`Usuario con DNI ${dni} no encontrado`);
+    if (usuario === null && chofer === null) {
+      throw new NotFoundException(
+        'No hay un usuario ni un chofer del Registro Administrativo con DNI ' + dni,
+      );
     }
 
-    if (!usuario.isActive) {
+    if (chofer === null && usuario && usuario.isActive === false) {
       throw new BadRequestException('El usuario no está activo');
     }
 
@@ -618,7 +624,7 @@ export class VehiculosService {
 
     const relacionExistente = await this.usuarioVehiculoRepository.findOne({
       where: {
-        id_usuario: usuario.dni,
+        id_usuario: dni,
         id_vehiculo: idVehiculo,
         fecha_hasta: IsNull(),
       },
@@ -629,7 +635,7 @@ export class VehiculosService {
     }
 
     const nuevaRelacion = new UsuarioVehiculo();
-    nuevaRelacion.id_usuario = usuario.dni;
+    nuevaRelacion.id_usuario = dni;
     nuevaRelacion.id_vehiculo = idVehiculo;
     nuevaRelacion.fecha_desde = new Date();
     nuevaRelacion.fecha_hasta = null;
@@ -637,6 +643,28 @@ export class VehiculosService {
     nuevaRelacion.vehiculo = vehiculo;
 
     return await this.usuarioVehiculoRepository.save(nuevaRelacion);
+  }
+
+  private async registrosPorDni(
+    soloChoferes: boolean,
+  ): Promise<Map<string, { dni: string; nombre: string; apellido: string }>> {
+    const filas = await this.registroAdministrativoRepository.find({
+      where: soloChoferes ? { tipoCargo: 'Chofer' } : {},
+      select: { nombre: true, apellido: true, numeroDni: true },
+    });
+    const mapa = new Map<string, { dni: string; nombre: string; apellido: string }>();
+    for (const f of filas) {
+      const dniLimpio = String(f.numeroDni ?? '').replace(/\D/g, '');
+      if (dniLimpio) mapa.set(dniLimpio, { dni: dniLimpio, nombre: f.nombre, apellido: f.apellido });
+    }
+    return mapa;
+  }
+
+  private async buscarChoferRegistro(
+    dni: number | string,
+  ): Promise<{ dni: string; nombre: string; apellido: string } | null> {
+    const mapa = await this.registrosPorDni(true);
+    return mapa.get(String(dni).replace(/\D/g, '')) ?? null;
   }
 
   async getAllUsuarioVehiculo(
@@ -655,7 +683,14 @@ export class VehiculosService {
       order: { id_usuario_vehiculo: 'DESC' },
     });
 
-    return { data, total, page, pageSize };
+    const registros = await this.registrosPorDni(false);
+    const conChofer = data.map((r) =>
+      Object.assign(r, {
+        chofer: r.usuario ? null : (registros.get(String(r.id_usuario)) ?? null),
+      }),
+    );
+
+    return { data: conChofer, total, page, pageSize };
   }
 
   async unassignVehicleFromUser(

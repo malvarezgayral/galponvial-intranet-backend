@@ -1,3 +1,4 @@
+import { RegistroAdministrativo } from 'src/personal/entities/registro-administrativo.entity';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -51,6 +52,7 @@ import { JurisdiccionesController } from './controllers/jurisdicciones.controlle
       Usuario,
       UsuarioVehiculo,
       Servicio,
+      RegistroAdministrativo,
     ]),
     UsuarioModule,
     NotificacionesModule,

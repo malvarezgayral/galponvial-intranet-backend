@@ -25,9 +25,11 @@ export class UsuarioVehiculo {
   @Column('date', { nullable: true })
   fecha_hasta: Date | null;
 
-  @ManyToOne(() => Usuario, (usuario) => usuario.vehiculos)
+  @ManyToOne(() => Usuario, (usuario) => usuario.vehiculos, {
+    createForeignKeyConstraints: false,
+  })
   @JoinColumn({ name: 'id_usuario' })
-  usuario: Usuario;
+  usuario: Usuario | null;
 
   @ManyToOne(() => Vehiculo)
   @JoinColumn({ name: 'id_vehiculo' })
