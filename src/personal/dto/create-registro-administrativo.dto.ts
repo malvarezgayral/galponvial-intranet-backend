@@ -156,6 +156,12 @@ export class CreateRegistroAdministrativoDto {
   @Matches(FECHA_REGEX, { message: FECHA_MSG })
   unidadACargoDesde?: string | null;
 
+  // Unidad a cargo
+  @Transform(vacioANull)
+  @IsOptional()
+  @Matches(FECHA_REGEX, { message: FECHA_MSG })
+  unidadACargoHasta?: string | null;
+
   // Situación de revista
   @Transform(vacioANull)
   @IsOptional()

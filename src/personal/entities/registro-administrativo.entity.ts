@@ -94,6 +94,9 @@ export class RegistroAdministrativo {
   @Column({ type: 'date', nullable: true })
   unidadACargoDesde: string | null;
 
+  @Column({ type: 'date', nullable: true })
+  unidadACargoHasta: string | null;
+
   // Situación de revista
   @Column({ type: 'date', nullable: true })
   plantaPermanenteDesde: string | null;
