@@ -20,24 +20,20 @@ const TIPOS_DNI = ['DNI', 'LC', 'LE'];
 export class CreateRegistroAdministrativoDto {
   @IsString()
   @IsNotEmpty()
-  @MaxLength(100)
   nombre!: string;
 
   @IsString()
   @IsNotEmpty()
-  @MaxLength(100)
   apellido!: string;
 
   @Transform(vacioANull)
   @IsOptional()
   @IsString()
-  @MaxLength(30)
   legajo?: string | null;
 
   @Transform(vacioANull)
   @IsOptional()
   @IsString()
-  @MaxLength(50)
   categoriaActual?: string | null;
 
   @Transform(vacioANull)
@@ -60,13 +56,11 @@ export class CreateRegistroAdministrativoDto {
   @Transform(vacioANull)
   @IsOptional()
   @IsString()
-  @MaxLength(150)
   secretariaACargo?: string | null;
 
   @Transform(vacioANull)
   @IsOptional()
   @IsString()
-  @MaxLength(150)
   direccionACargo?: string | null;
 
   @Transform(vacioANull)
@@ -84,7 +78,6 @@ export class CreateRegistroAdministrativoDto {
   @Transform(vacioANull)
   @IsOptional()
   @IsString()
-  @MaxLength(50)
   antiguedad?: string | null;
 
   @Transform(vacioANull)
@@ -101,7 +94,6 @@ export class CreateRegistroAdministrativoDto {
   @Transform(vacioANull)
   @IsOptional()
   @IsString()
-  @MaxLength(150)
   titulo?: string | null;
 
   // Licencia anual
@@ -113,7 +105,6 @@ export class CreateRegistroAdministrativoDto {
   @Transform(vacioANull)
   @IsOptional()
   @IsString()
-  @MaxLength(200)
   licAnualAsunto?: string | null;
 
   @Transform(vacioANull)
@@ -147,7 +138,6 @@ export class CreateRegistroAdministrativoDto {
   @Transform(vacioANull)
   @IsOptional()
   @IsString()
-  @MaxLength(30)
   licConducirCategoria?: string | null;
 
   @Transform(vacioANull)
