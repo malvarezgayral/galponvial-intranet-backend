@@ -12,16 +12,16 @@ export class RegistroAdministrativo {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'text' })
   nombre: string;
 
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'text' })
   apellido: string;
 
-  @Column({ type: 'varchar', length: 30, nullable: true })
+  @Column({ type: 'text', nullable: true })
   legajo: string | null;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
+  @Column({ type: 'text', nullable: true })
   categoriaActual: string | null;
 
   @Column({ type: 'varchar', length: 10, nullable: true })
@@ -33,10 +33,10 @@ export class RegistroAdministrativo {
   @Column({ type: 'varchar', length: 20, nullable: true })
   numeroCuil: string | null;
 
-  @Column({ type: 'varchar', length: 150, nullable: true })
+  @Column({ type: 'text', nullable: true })
   secretariaACargo: string | null;
 
-  @Column({ type: 'varchar', length: 150, nullable: true })
+  @Column({ type: 'text', nullable: true })
   direccionACargo: string | null;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
@@ -45,7 +45,7 @@ export class RegistroAdministrativo {
   @Column({ type: 'varchar', length: 150, nullable: true })
   areaEspecifica: string | null;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
+  @Column({ type: 'text', nullable: true })
   antiguedad: string | null;
 
   @Column({ type: 'date', nullable: true })
@@ -55,14 +55,14 @@ export class RegistroAdministrativo {
   @Column({ type: 'varchar', length: 30, nullable: true })
   estudiosAlcanzados: string | null;
 
-  @Column({ type: 'varchar', length: 150, nullable: true })
+  @Column({ type: 'text', nullable: true })
   titulo: string | null;
 
   // Licencia anual
   @Column({ type: 'date', nullable: true })
   licAnualFechaPresentada: string | null;
 
-  @Column({ type: 'varchar', length: 200, nullable: true })
+  @Column({ type: 'text', nullable: true })
   licAnualAsunto: string | null;
 
   @Column({ type: 'varchar', length: 4, nullable: true })
@@ -81,7 +81,7 @@ export class RegistroAdministrativo {
   licAnualObservaciones: string | null;
 
   // Licencia de conducir
-  @Column({ type: 'varchar', length: 30, nullable: true })
+  @Column({ type: 'text', nullable: true })
   licConducirCategoria: string | null;
 
   @Column({ type: 'date', nullable: true })
