@@ -1,4 +1,5 @@
 import {
+  NotFoundException,
   Injectable,
   Logger,
   UnauthorizedException,
@@ -866,6 +867,14 @@ export class UsuarioService {
 
   // Usuario-Vehiculo
   async asignarVehiculo(dto: CreateUsuarioVehiculoDto) {
+    const existe = await this.usuarioRepository.findOne({
+      where: { dni: Number(dto.id_usuario) },
+    });
+    if (existe === null) {
+      throw new NotFoundException(
+        'Usuario con DNI ' + dto.id_usuario + ' no encontrado',
+      );
+    }
     const usuarioVehiculo = {
       ...dto,
       fecha_desde: new Date(dto.fecha_desde),
