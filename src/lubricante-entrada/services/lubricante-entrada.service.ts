@@ -1,16 +1,21 @@
 // src/lubricante-entrada/services/lubricante-entrada.service.ts
 import {
   BadRequestException,
+  ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { LubricanteEntrada } from '../entities/lubricante-entrada.entity';
 import { LubricanteStockHistorial } from '../entities/lubricante-stock-historial.entity';
 import { CreateLubricanteEntradaDto } from '../dto/create-lubricante-entrada.dto';
+import { UpdateLubricanteEntradaDto } from '../dto/update-lubricante-entrada.dto';
 import { UpdateLubricanteSalidaDto } from '../dto/update-lubricante-salida.dto';
 import { NotificacionesService } from 'src/notificaciones/services/notificaciones.service';
+import { Usuario } from 'src/usuario/entities/usuario.entity';
+import { ValidRoles } from 'src/usuario/enums/usuario.enum';
 
 const TITULO_MAX = 150;
 
@@ -21,6 +26,8 @@ export class LubricanteEntradaService {
     private readonly repo: Repository<LubricanteEntrada>,
     @InjectRepository(LubricanteStockHistorial)
     private readonly historialRepo: Repository<LubricanteStockHistorial>,
+    @InjectRepository(Usuario)
+    private readonly usuarioRepo: Repository<Usuario>,
     private readonly notificacionesService: NotificacionesService,
   ) {}
 
@@ -30,7 +37,20 @@ export class LubricanteEntradaService {
       : titulo;
   }
 
-  async crear(dto: CreateLubricanteEntradaDto) {
+  private esSuperadmin(user: Usuario): boolean {
+    return (user.roles ?? []).some((r) => r.rol === ValidRoles.superadmin);
+  }
+
+  /** El super admin puede editar cualquier carga; los demás, solo las que cargaron ellos. */
+  private puedeEditar(user: Usuario, entrada: LubricanteEntrada): boolean {
+    if (this.esSuperadmin(user)) return true;
+    return (
+      entrada.creadoPorDni != null &&
+      String(entrada.creadoPorDni) === String(user.dni)
+    );
+  }
+
+  async crear(dto: CreateLubricanteEntradaDto, user: Usuario) {
     const guardadas = await this.repo.manager.transaction(async (manager) => {
       const filas = dto.registros.map((r) =>
         manager.create(LubricanteEntrada, {
@@ -38,6 +58,7 @@ export class LubricanteEntradaService {
           tipo: r.tipo.trim(),
           nroRemito: r.nroRemito?.trim() || null,
           cantidad: r.cantidad,
+          creadoPorDni: String(user.dni),
         }),
       );
       const nuevas = await manager.save(filas);
@@ -97,6 +118,135 @@ export class LubricanteEntradaService {
       fechaEstado: f.fechaEstado,
       estadoParcial: this.redondear(f.cantidad - f.cantidadSalida),
     }));
+  }
+
+  /** Listado de Eliminar/Editar Lubricante: quién cargó cada una y qué puede hacer el usuario. */
+  async obtenerCargas(user: Usuario) {
+    const filas = await this.repo.find({
+      order: { fecha: 'DESC', id: 'DESC' },
+    });
+    const dnis = [
+      ...new Set(
+        filas
+          .map((f) => f.creadoPorDni)
+          .filter((d): d is string => d != null)
+          .map((d) => Number(d)),
+      ),
+    ];
+    const usuarios = dnis.length
+      ? await this.usuarioRepo.find({ where: { dni: In(dnis) } })
+      : [];
+    const nombres = new Map(
+      usuarios.map((u) => [
+        String(u.dni),
+        `${(u.apellido ?? '').trim()}, ${(u.nombre ?? '').trim()}`,
+      ]),
+    );
+    const esSuper = this.esSuperadmin(user);
+    return filas.map((f) => ({
+      id: f.id,
+      fecha: f.fecha,
+      tipo: f.tipo,
+      nroRemito: f.nroRemito,
+      cantidad: f.cantidad,
+      cantidadSalida: f.cantidadSalida,
+      creadoPor:
+        f.creadoPorDni != null
+          ? (nombres.get(String(f.creadoPorDni)) ?? `DNI ${f.creadoPorDni}`)
+          : null,
+      puedeEditar: this.puedeEditar(user, f),
+      puedeEliminar: esSuper,
+    }));
+  }
+
+  async actualizar(id: number, dto: UpdateLubricanteEntradaDto, user: Usuario) {
+    const { entrada, cambios } = await this.repo.manager.transaction(
+      async (manager) => {
+        const entrada = await manager.findOne(LubricanteEntrada, {
+          where: { id },
+        });
+        if (!entrada) {
+          throw new NotFoundException('Lubricante no encontrado');
+        }
+        if (!this.puedeEditar(user, entrada)) {
+          throw new ForbiddenException(
+            'Solo podés editar los lubricantes que cargaste vos.',
+          );
+        }
+        if (dto.cantidad < entrada.cantidadSalida) {
+          throw new BadRequestException(
+            `La cantidad no puede ser menor que lo que ya salió (${entrada.cantidadSalida} L).`,
+          );
+        }
+
+        const nuevo = {
+          fecha: dto.fecha,
+          tipo: dto.tipo.trim(),
+          nroRemito: dto.nroRemito?.trim() || null,
+          cantidad: dto.cantidad,
+        };
+        const cambios: string[] = [];
+        if (String(nuevo.fecha) !== String(entrada.fecha)) cambios.push('fecha');
+        if (nuevo.tipo !== entrada.tipo) cambios.push('tipo');
+        if ((nuevo.nroRemito ?? '') !== (entrada.nroRemito ?? '')) cambios.push('remito');
+        if (nuevo.cantidad !== entrada.cantidad) cambios.push('cantidad');
+
+        Object.assign(entrada, nuevo);
+        await manager.save(entrada);
+
+        const filasHistorial = await manager.find(LubricanteStockHistorial, {
+          where: { entradaId: entrada.id },
+        });
+        for (const h of filasHistorial) {
+          h.tipo = entrada.tipo;
+          h.cantidadEntrada = entrada.cantidad;
+          h.estadoParcial = this.redondear(h.cantidadEntrada - h.cantidadSalida);
+          if (h.cantidadSalida === 0) h.fechaEstado = entrada.fecha;
+        }
+        if (filasHistorial.length) await manager.save(filasHistorial);
+
+        return { entrada, cambios };
+      },
+    );
+
+    if (cambios.length > 0) {
+      await this.notificacionesService.crearNotificacionParaSuperadmin(
+        'lubricentro',
+        this.recortarTitulo(
+          `Lubricante editado · ${entrada.tipo} · ${entrada.cantidad} L · cambió: ${cambios.join(', ')}`,
+        ),
+        `Se editó un registro de Agregar Lubricante.`,
+      );
+    }
+    return entrada;
+  }
+
+  async eliminar(id: number): Promise<{ id: number }> {
+    const entrada = await this.repo.manager.transaction(async (manager) => {
+      const entrada = await manager.findOne(LubricanteEntrada, {
+        where: { id },
+      });
+      if (!entrada) {
+        throw new NotFoundException('Lubricante no encontrado');
+      }
+      if (entrada.cantidadSalida > 0) {
+        throw new ConflictException(
+          'No se puede eliminar porque ya tiene salidas registradas.',
+        );
+      }
+      await manager.delete(LubricanteStockHistorial, { entradaId: entrada.id });
+      await manager.delete(LubricanteEntrada, { id: entrada.id });
+      return entrada;
+    });
+
+    await this.notificacionesService.crearNotificacionParaSuperadmin(
+      'lubricentro',
+      this.recortarTitulo(
+        `Lubricante eliminado · ${entrada.tipo} · ${entrada.cantidad} L`,
+      ),
+      `Se eliminó un registro de Agregar Lubricante.`,
+    );
+    return { id };
   }
 
   async guardarSalida(id: number, dto: UpdateLubricanteSalidaDto) {
