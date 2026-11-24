@@ -7,10 +7,11 @@ import { LubricanteEntradaService } from './services/lubricante-entrada.service'
 import { LubricanteEntradaController } from './controllers/lubricante-entrada.controller';
 import { UsuarioModule } from 'src/usuario/usuario.module';
 import { NotificacionesModule } from 'src/notificaciones/notificaciones.module';
+import { Usuario } from 'src/usuario/entities/usuario.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([LubricanteEntrada, LubricanteStockHistorial]),
+    TypeOrmModule.forFeature([LubricanteEntrada, LubricanteStockHistorial, Usuario]),
     UsuarioModule,
     NotificacionesModule,
   ],

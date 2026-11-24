@@ -29,6 +29,10 @@ export class LubricanteEntrada {
   @Column({ name: 'fecha_estado', type: 'date', nullable: true })
   fechaEstado!: string | null;
 
+  /** DNI del usuario que cargó el registro (bigint: TypeORM lo devuelve como texto). */
+  @Column({ name: 'creado_por_dni', type: 'bigint', nullable: true })
+  creadoPorDni!: string | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 }
