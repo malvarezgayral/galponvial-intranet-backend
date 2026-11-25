@@ -1,13 +1,11 @@
 // src/lubricentro/dto/create-lubricante.dto.ts
 import {
-  IsIn,
   IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
-import { TIPOS_LUBRICANTE } from '../../lubricante-entrada/tipos-lubricante';
 
 export class CreateLubricanteDto {
   @IsInt()
@@ -34,9 +32,6 @@ export class CreateLubricanteDto {
   @IsOptional()
   direccion?: string;
 
-  @IsIn([...TIPOS_LUBRICANTE, ''], {
-    message: 'El lubricante no está en la lista',
-  })
   @IsString()
   @IsOptional()
   lubricante?: string;

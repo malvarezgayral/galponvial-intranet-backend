@@ -1,8 +1,13 @@
 // src/lubricentro/services/lubricante.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Lubricante } from '../entities/lubricante.entity';
+import { LubricanteTipo } from 'src/lubricante-entrada/entities/lubricante-tipo.entity';
 import { CreateLubricanteDto } from '../dto/create-lubricante.dto';
 import { NotificacionesService } from 'src/notificaciones/services/notificaciones.service';
 
@@ -11,6 +16,8 @@ export class LubricanteService {
   constructor(
     @InjectRepository(Lubricante)
     private readonly lubricanteRepository: Repository<Lubricante>,
+    @InjectRepository(LubricanteTipo)
+    private readonly tipoRepo: Repository<LubricanteTipo>,
     private readonly notificacionesService: NotificacionesService,
   ) {}
 
@@ -41,7 +48,17 @@ export class LubricanteService {
       : titulo;
   }
 
+  /** El lubricante es opcional, pero si viene tiene que estar en la lista. */
+  private async verificarLubricante(nombre?: string | null): Promise<void> {
+    if (nombre == null || nombre === '') return;
+    const n = await this.tipoRepo.count({ where: { nombre } });
+    if (n === 0) {
+      throw new BadRequestException('El lubricante no está en la lista.');
+    }
+  }
+
   async crear(dto: CreateLubricanteDto): Promise<Lubricante> {
+    await this.verificarLubricante(dto.lubricante);
     const nuevo = this.lubricanteRepository.create({
       ...dto,
       vehiculo: { id_vehiculo: dto.id_vehiculo } as any,
@@ -75,6 +92,7 @@ export class LubricanteService {
   }
 
   async actualizar(id: number, dto: CreateLubricanteDto): Promise<Lubricante> {
+    await this.verificarLubricante(dto.lubricante);
     const existente = await this.lubricanteRepository.findOneBy({ id });
     if (!existente) {
       throw new NotFoundException(`Lubricante con ID ${id} no encontrado`);
