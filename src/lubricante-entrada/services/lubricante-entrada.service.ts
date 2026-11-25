@@ -1,4 +1,5 @@
 // src/lubricante-entrada/services/lubricante-entrada.service.ts
+import { TIPOS_LUBRICANTE } from '../tipos-lubricante';
 import {
   BadRequestException,
   ConflictException,
@@ -91,14 +92,9 @@ export class LubricanteEntradaService {
     return guardadas;
   }
 
-  async obtenerTipos(): Promise<string[]> {
-    const filas = await this.repo
-      .createQueryBuilder('e')
-      .select('e.tipo', 'tipo')
-      .groupBy('e.tipo')
-      .orderBy('e.tipo', 'ASC')
-      .getRawMany<{ tipo: string }>();
-    return filas.map((f) => f.tipo);
+  /** Lista fija de lubricantes (ver tipos-lubricante.ts). */
+  obtenerTipos(): string[] {
+    return [...TIPOS_LUBRICANTE];
   }
 
   private redondear(n: number): number {
