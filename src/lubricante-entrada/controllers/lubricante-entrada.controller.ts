@@ -14,6 +14,7 @@ import { LubricanteEntradaService } from '../services/lubricante-entrada.service
 import { CreateLubricanteEntradaDto } from '../dto/create-lubricante-entrada.dto';
 import { UpdateLubricanteEntradaDto } from '../dto/update-lubricante-entrada.dto';
 import { UpdateLubricanteSalidaDto } from '../dto/update-lubricante-salida.dto';
+import { LubricanteTipoDto } from '../dto/lubricante-tipo.dto';
 import { Auth } from 'src/usuario/decorators/auth.decorator';
 import { ScopedAuth } from 'src/usuario/decorators/scoped-auth.decorator';
 import { ScopedPermissions } from 'src/usuario/decorators/scoped-permissions.decorator';
@@ -36,6 +37,39 @@ export class LubricanteEntradaController {
   @Auth(ValidRoles.user, ValidRoles.admin, ValidRoles.superadmin)
   obtenerTipos() {
     return this.service.obtenerTipos();
+  }
+
+  /** Pestaña "Tipos de lubricante": cada tipo con su uso y si se puede eliminar. */
+  @Get('tipos/detalle')
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.LUBRICENTRO_WRITE)
+  obtenerTiposDetalle(@GetUser() user: Usuario) {
+    return this.service.obtenerTiposDetalle(user);
+  }
+
+  @Post('tipos')
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.LUBRICENTRO_WRITE)
+  crearTipo(@Body() dto: LubricanteTipoDto) {
+    return this.service.crearTipo(dto);
+  }
+
+  /** Cambia el nombre también en las cargas, el historial y las salidas que lo usan. */
+  @Put('tipos/:id')
+  @ScopedAuth(ValidRoles.admin, ValidRoles.superadmin)
+  @ScopedPermissions(Permisos.LUBRICENTRO_WRITE)
+  actualizarTipo(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: LubricanteTipoDto,
+  ) {
+    return this.service.actualizarTipo(id, dto);
+  }
+
+  /** Solo super admin, y solo si ninguna carga ni salida lo usa. */
+  @Delete('tipos/:id')
+  @Auth(ValidRoles.superadmin)
+  eliminarTipo(@Param('id', ParseIntPipe) id: number) {
+    return this.service.eliminarTipo(id);
   }
 
   @Get('stock')

@@ -4,7 +4,6 @@ import {
   ArrayMinSize,
   IsArray,
   IsDateString,
-  IsIn,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -14,7 +13,6 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
-import { TIPOS_LUBRICANTE } from '../tipos-lubricante';
 
 export class LubricanteEntradaItemDto {
   @IsDateString()
@@ -23,9 +21,6 @@ export class LubricanteEntradaItemDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  @IsIn([...TIPOS_LUBRICANTE], {
-    message: 'El tipo de lubricante no está en la lista',
-  })
   tipo!: string;
 
   @IsOptional()
