@@ -21,6 +21,8 @@ import { Usuario } from 'src/usuario/entities/usuario.entity';
 import { ValidRoles } from 'src/usuario/enums/usuario.enum';
 
 const TITULO_MAX = 150;
+/** Largo máximo de un tipo de lubricante (columna lubricante_tipo.nombre). */
+const TIPO_MAX = 100;
 
 @Injectable()
 export class LubricanteEntradaService {
@@ -56,12 +58,15 @@ export class LubricanteEntradaService {
   }
 
   async crear(dto: CreateLubricanteEntradaDto, user: Usuario) {
-    await this.verificarTiposExisten(dto.registros.map((r) => r.tipo.trim()));
-    const guardadas = await this.repo.manager.transaction(async (manager) => {
-      const filas = dto.registros.map((r) =>
+    const { guardadas, tiposNuevos } = await this.repo.manager.transaction(async (manager) => {
+      const { nombres, nuevos } = await this.resolverTipos(
+        manager,
+        dto.registros.map((r) => r.tipo),
+      );
+      const filas = dto.registros.map((r, i) =>
         manager.create(LubricanteEntrada, {
           fecha: r.fecha,
-          tipo: r.tipo.trim(),
+          tipo: nombres[i],
           nroRemito: r.nroRemito?.trim() || null,
           cantidad: r.cantidad,
           creadoPorDni: String(user.dni),
@@ -80,7 +85,7 @@ export class LubricanteEntradaService {
           }),
         ),
       );
-      return nuevas;
+      return { guardadas: nuevas, tiposNuevos: nuevos };
     });
 
     const titulo =
@@ -94,7 +99,52 @@ export class LubricanteEntradaService {
       this.recortarTitulo(titulo),
       `Se cargaron ${guardadas.length} registro(s) en Agregar Lubricante.`,
     );
+    for (const nombre of tiposNuevos) {
+      await this.notificacionesService.crearNotificacionParaSuperadmin(
+        'lubricentro',
+        this.recortarTitulo(`Tipo de lubricante agregado · ${nombre}`),
+        `Se agregó "${nombre}" a la lista de lubricantes desde Agregar Lubricante.`,
+      );
+    }
     return guardadas;
+  }
+
+  /**
+   * Agregar Lubricante: el tipo se escribe a mano. Si ya está en la lista
+   * (sin importar mayúsculas ni espacios de más) se usa el nombre de la lista;
+   * si no está, se crea en lubricante_tipo dentro de la misma transacción.
+   */
+  private async resolverTipos(
+    manager: EntityManager,
+    escritos: string[],
+  ): Promise<{ nombres: string[]; nuevos: string[] }> {
+    const existentes = await manager.find(LubricanteTipo);
+    const porClave = new Map(
+      existentes.map((t) => [t.nombre.toLowerCase(), t.nombre]),
+    );
+    const nombres: string[] = [];
+    const nuevos: string[] = [];
+    for (const escrito of escritos) {
+      const nombre = this.normalizarNombre(escrito);
+      if (!nombre) {
+        throw new BadRequestException('Completá el tipo de lubricante.');
+      }
+      if (nombre.length > TIPO_MAX) {
+        throw new BadRequestException(
+          `El tipo de lubricante puede tener hasta ${TIPO_MAX} caracteres.`,
+        );
+      }
+      const clave = nombre.toLowerCase();
+      let final = porClave.get(clave);
+      if (final === undefined) {
+        await manager.save(manager.create(LubricanteTipo, { nombre }));
+        porClave.set(clave, nombre);
+        nuevos.push(nombre);
+        final = nombre;
+      }
+      nombres.push(final);
+    }
+    return { nombres, nuevos };
   }
 
   /** Nombre sin espacios de más: "  15  W 40 " pasa a "15 W 40". */
